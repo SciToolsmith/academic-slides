@@ -223,6 +223,237 @@ function exactOccurrenceCount(value, needle) {
   }
 }
 
+function effectiveSectionAudienceRole(section) {
+  if (section?.audience_role === "main" || section?.audience_role === "appendix") return section.audience_role;
+  return section?.role === "appendix" ? "appendix" : "main";
+}
+
+function sectionVisibility(section, field) {
+  if (typeof section?.[field] === "boolean") return section[field];
+  return effectiveSectionAudienceRole(section) === "main";
+}
+
+function slidePosition(slide, index) {
+  return Number.isInteger(slide?.order) ? slide.order : index + 1;
+}
+
+function normalizedAgendaTitle(value) {
+  return String(value ?? "")
+    .replace(/^\s*(?:PART\s*)?\d{1,2}(?:[.\u3001:_\-\s]+|$)/i, "")
+    .trim();
+}
+
+function agendaEntryMatchesSection(entry, section) {
+  if (!section || entry == null) return false;
+  if (entry && typeof entry === "object" && !Array.isArray(entry) && isNonEmptyString(entry.id) && entry.id !== section.id) return false;
+  const rawTitle = entry && typeof entry === "object" && !Array.isArray(entry)
+    ? (entry.title ?? entry.short_title ?? entry.name)
+    : entry;
+  const title = normalizedAgendaTitle(rawTitle);
+  const accepted = [section.title, section.short_title].filter(isNonEmptyString).map(normalizedAgendaTitle);
+  return isNonEmptyString(title) && accepted.includes(title);
+}
+
+function finalDefenseStructureIssues(deck, slides) {
+  const findings = [];
+  if (deck.profile !== "final_defense") return findings;
+  const artifactPurpose = deck.artifact_purpose ?? "production";
+  if (artifactPurpose === "layout_gallery") return findings;
+
+  const sectionEntries = Array.isArray(deck.sections) ? deck.sections : [];
+  const sectionRecords = sectionEntries.map((section, index) => ({ section, index }));
+  const mainSections = sectionRecords
+    .filter(({ section }) => effectiveSectionAudienceRole(section) === "main")
+    .sort((left, right) => (left.section?.order ?? left.index + 1) - (right.section?.order ?? right.index + 1));
+  const appendixSections = sectionRecords
+    .filter(({ section }) => effectiveSectionAudienceRole(section) === "appendix")
+    .sort((left, right) => (left.section?.order ?? left.index + 1) - (right.section?.order ?? right.index + 1));
+  const mainIds = new Set(mainSections.map(({ section }) => section.id).filter(isNonEmptyString));
+  const appendixIds = new Set(appendixSections.map(({ section }) => section.id).filter(isNonEmptyString));
+  const positionedSlides = slides.map((slide, index) => ({ slide, index, position: slidePosition(slide, index) }));
+  const coverSlides = positionedSlides.filter(({ slide }) => slide?.kind === "title");
+  const agendaSlides = positionedSlides.filter(({ slide }) => slide?.kind === "agenda");
+  const closingSlides = positionedSlides.filter(({ slide }) => slide?.kind === "closing");
+  const appendixSlides = positionedSlides.filter(({ slide }) => (
+    slide?.kind === "appendix"
+    || slide?.priority === "appendix"
+    || appendixIds.has(slide?.section_id)
+  ));
+  const appendixSlideIndexes = new Set(appendixSlides.map(({ index }) => index));
+  const bodyKinds = new Set(["content", "summary", "questions"]);
+
+  if (mainSections.length < 3 || mainSections.length > 6) {
+    findings.push(issue("error", "final-defense.section-count", "$/sections", `Production final-defense decks need 3–6 main sections; found ${mainSections.length}.`));
+  }
+  if (coverSlides.length !== 1) {
+    findings.push(issue("error", "final-defense.cover.count", "$/slides", `Production final-defense decks need exactly one cover slide; found ${coverSlides.length}.`));
+  }
+  if (agendaSlides.length !== 1) {
+    findings.push(issue("error", "final-defense.agenda.count", "$/slides", `Production final-defense decks need exactly one audience agenda; found ${agendaSlides.length}.`));
+  }
+  if (closingSlides.length !== 1) {
+    findings.push(issue("error", "final-defense.closing.count", "$/slides", `Production final-defense decks need exactly one closing slide; found ${closingSlides.length}.`));
+  }
+
+  const reservedMainTitle = /(?:\u7b54\u8fa9\s*\u5907\u67e5|\u95ee\u7b54\s*\u5907\u67e5|\u5907\u67e5\s*\u6750\u6599|\u7b54\u8fa9\s*\u5907\u7528|\u5907\u7528\s*(?:\u9875|\u6750\u6599)|^\s*\u9644\u5f55\s*$|^\s*appendix\s*$|^\s*backup\s+slides?\s*$)/i;
+  const genericProductionTitle = /^(?:问题(?:分析)?与路线|建模(?:理论)?基础|并网(?:分析)?场景|离网(?:分析)?场景|结论与边界)$/;
+  for (const { section, index } of mainSections) {
+    for (const field of ["title", "short_title"]) {
+      const value = String(section?.[field] ?? "").trim();
+      if (!value) continue;
+      if (reservedMainTitle.test(value)) {
+        findings.push(issue("error", "final-defense.section-title.reserved", `$/sections/${index}/${field}`, `"${value}" is appendix/backup language and cannot be a main defense section label.`));
+      }
+      if (genericProductionTitle.test(value)) {
+        findings.push(issue("warning", "final-defense.section-title.generic", `$/sections/${index}/${field}`, `"${value}" is a production/workflow label rather than an academic section label. Name the actual research question, model/verification object, result, or contribution; keep only a concise academic short_title for navigation.`));
+      }
+    }
+    if (!sectionVisibility(section, "show_in_agenda")) findings.push(issue("error", "final-defense.section.agenda-hidden", `$/sections/${index}/show_in_agenda`, "Every main final-defense section must appear in the audience agenda."));
+    if (!sectionVisibility(section, "show_in_navigation")) findings.push(issue("error", "final-defense.section.navigation-hidden", `$/sections/${index}/show_in_navigation`, "Every main final-defense section must remain visible in the audience navigation."));
+  }
+
+  for (const { section, index } of appendixSections) {
+    if (sectionVisibility(section, "show_in_agenda")) {
+      findings.push(issue("error", "final-defense.appendix.agenda", `$/sections/${index}/show_in_agenda`, "Appendix sections must remain unlisted in the agenda."));
+    }
+    if (sectionVisibility(section, "show_in_navigation")) {
+      findings.push(issue("error", "final-defense.appendix.navigation", `$/sections/${index}/show_in_navigation`, "Appendix sections must remain outside the main navigation."));
+    }
+  }
+
+  const sectionMode = deck.structure?.section_transition_mode ?? "full";
+  if (sectionMode !== "full" && !isNonEmptyString(deck.structure?.section_transition_reason)) {
+    findings.push(issue("error", "final-defense.section-divider.reason", "$/structure/section_transition_reason", `section_transition_mode=${sectionMode} requires an explicit user-request or compact-structure rationale.`));
+  }
+  if (sectionMode === "full") {
+    for (const { section, index: sectionIndex } of mainSections) {
+      const dividers = slides
+        .map((slide, index) => ({ slide, index }))
+        .filter(({ slide }) => slide?.kind === "section" && slide?.section_id === section.id);
+      if (dividers.length !== 1) {
+        findings.push(issue("error", "final-defense.section-divider.count", `$/sections/${sectionIndex}`, `Main section ${section.id} needs exactly one kind=section slide in full transition mode; found ${dividers.length}.`));
+        continue;
+      }
+      const divider = dividers[0];
+      const acceptedTitles = [section.title, section.short_title].filter(isNonEmptyString).map((value) => value.trim());
+      const dividerTitle = String(divider.slide?.content?.title ?? "").trim();
+      if (!acceptedTitles.includes(dividerTitle)) {
+        findings.push(issue("error", "final-defense.section-divider.source", `$/slides/${divider.index}/content/title`, `Section divider title "${dividerTitle}" must come from sections[${sectionIndex}].title or short_title.`));
+      }
+      const firstBody = slides
+        .map((slide, index) => ({ slide, index }))
+        .filter(({ slide }) => slide?.section_id === section.id && ["content", "summary", "questions"].includes(slide?.kind))
+        .sort((left, right) => slidePosition(left.slide, left.index) - slidePosition(right.slide, right.index))[0];
+      if (firstBody && slidePosition(divider.slide, divider.index) >= slidePosition(firstBody.slide, firstBody.index)) {
+        findings.push(issue("error", "final-defense.section-divider.order", `$/slides/${divider.index}`, `Section divider for ${section.id} must appear before its first body slide.`));
+      }
+    }
+  } else {
+    for (const { slide, index } of positionedSlides) {
+      if (slide?.kind === "section" && mainIds.has(slide?.section_id)) {
+        findings.push(issue("error", "final-defense.section-divider.unexpected", `$/slides/${index}`, `section_transition_mode=${sectionMode} forbids standalone main-section divider slides.`));
+      }
+    }
+  }
+
+  for (const [index, slide] of slides.entries()) {
+    if (slide?.kind === "section" && appendixIds.has(slide?.section_id)) {
+      findings.push(issue("error", "final-defense.section-divider.appendix", `$/slides/${index}`, "Appendix material must not use a kind=section transition slide."));
+    } else if (slide?.kind === "section" && !mainIds.has(slide?.section_id)) {
+      findings.push(issue("error", "final-defense.section-divider.orphan", `$/slides/${index}`, "A section divider must belong to one declared main section."));
+    }
+  }
+
+  const expectedAgenda = mainSections.filter(({ section }) => sectionVisibility(section, "show_in_agenda"));
+  for (const [index, slide] of slides.entries()) {
+    if (slide?.kind !== "agenda") continue;
+    const explicitLists = [];
+    if (Array.isArray(slide.render_data?.sections) && slide.render_data.sections.length > 0) {
+      explicitLists.push({ path: `$/slides/${index}/render_data/sections`, entries: slide.render_data.sections });
+    }
+    if (Array.isArray(slide.content?.body) && slide.content.body.length > 0) {
+      explicitLists.push({ path: `$/slides/${index}/content/body`, entries: slide.content.body });
+    }
+    for (const list of explicitLists) {
+      const matches = list.entries.length === expectedAgenda.length
+        && list.entries.every((entry, entryIndex) => agendaEntryMatchesSection(entry, expectedAgenda[entryIndex]?.section));
+      if (!matches) {
+        findings.push(issue("error", "final-defense.agenda.source", list.path, "Agenda entries must match the ordered, show_in_agenda main sections from the top-level sections array."));
+      }
+    }
+  }
+
+  const mainBlocks = [];
+  for (const { section, index: sectionIndex } of mainSections) {
+    const bodies = positionedSlides.filter(({ slide, index }) => (
+      slide?.section_id === section.id
+      && bodyKinds.has(slide?.kind)
+      && !appendixSlideIndexes.has(index)
+    ));
+    if (bodies.length === 0) {
+      findings.push(issue("error", "final-defense.section.body-missing", `$/sections/${sectionIndex}`, `Main section ${section.id} needs at least one non-appendix body slide.`));
+    }
+    const dividers = positionedSlides.filter(({ slide }) => slide?.kind === "section" && slide?.section_id === section.id);
+    const positions = [...bodies, ...dividers].map(({ position }) => position);
+    mainBlocks.push({ section, sectionIndex, first: positions.length ? Math.min(...positions) : null, last: positions.length ? Math.max(...positions) : null });
+  }
+  for (let index = 1; index < mainBlocks.length; index += 1) {
+    const previous = mainBlocks[index - 1];
+    const current = mainBlocks[index];
+    if (previous.last != null && current.first != null && previous.last >= current.first) {
+      findings.push(issue("error", "final-defense.section.order", `$/sections/${current.sectionIndex}`, `Main section ${current.section.id} begins before the preceding section ${previous.section.id} is complete.`));
+    }
+  }
+
+  for (const { slide, index } of positionedSlides) {
+    if (bodyKinds.has(slide?.kind) && !appendixSlideIndexes.has(index) && !mainIds.has(slide?.section_id)) {
+      findings.push(issue("error", "final-defense.body.section-missing", `$/slides/${index}/section_id`, "Every production body slide must belong to a declared main section or be explicitly classified as appendix."));
+    }
+  }
+
+  if (coverSlides.length === 1 && coverSlides[0].position !== 1) {
+    findings.push(issue("error", "final-defense.cover.order", `$/slides/${coverSlides[0].index}`, "The cover must be the first production slide."));
+  }
+  if (agendaSlides.length === 1 && agendaSlides[0].position !== 2) {
+    findings.push(issue("error", "final-defense.agenda.order", `$/slides/${agendaSlides[0].index}`, "The audience agenda must immediately follow the cover."));
+  }
+  const mainPositions = mainBlocks.flatMap((block) => [block.first, block.last]).filter((value) => value != null);
+  const firstMainPosition = mainPositions.length ? Math.min(...mainPositions) : null;
+  const lastMainPosition = mainPositions.length ? Math.max(...mainPositions) : null;
+  if (agendaSlides.length === 1 && firstMainPosition != null && agendaSlides[0].position >= firstMainPosition) {
+    findings.push(issue("error", "final-defense.agenda.before-body", `$/slides/${agendaSlides[0].index}`, "The audience agenda must appear before every main-section divider and body slide."));
+  }
+  if (closingSlides.length === 1 && lastMainPosition != null && closingSlides[0].position <= lastMainPosition) {
+    findings.push(issue("error", "final-defense.closing.order", `$/slides/${closingSlides[0].index}`, "The closing slide must appear after all main-section content."));
+  }
+
+  const appendixPolicy = deck.structure?.appendix_policy ?? "after_closing_unlisted";
+  if (appendixPolicy === "none" && (appendixSections.length > 0 || appendixSlides.length > 0)) {
+    findings.push(issue("error", "final-defense.appendix.disabled", "$/structure/appendix_policy", "appendix_policy=none forbids appendix sections and appendix slides."));
+  }
+  if (appendixSlides.length > 0) {
+    if (closingSlides.length === 0) {
+      findings.push(issue("error", "final-defense.appendix.closing", "$/slides", "Appendix slides require a preceding kind=closing slide."));
+    } else {
+      const closingPosition = closingSlides[0].position;
+      for (const { position, index } of appendixSlides) {
+        if (position <= closingPosition) {
+          findings.push(issue("error", "final-defense.appendix.order", `$/slides/${index}`, "Appendix slides must appear after the closing slide."));
+        }
+      }
+    }
+  }
+  if (closingSlides.length === 1) {
+    for (const { position, index } of positionedSlides) {
+      if (position > closingSlides[0].position && !appendixSlideIndexes.has(index)) {
+        findings.push(issue("error", "final-defense.after-closing.non-appendix", `$/slides/${index}`, "Only explicitly classified appendix material may appear after the closing slide."));
+      }
+    }
+  }
+
+  return findings;
+}
+
 function referenceItems(slide, base) {
   const output = [];
   const add = (value, pointer) => {
@@ -430,6 +661,8 @@ function semanticDeckIssues(deck, strict = false) {
     }
   }
 
+  findings.push(...finalDefenseStructureIssues(deck, slides));
+
   if (deck.profile === "proposal_midterm") {
     const narrativeRoles = new Set(slides.flatMap((slide) => Array.isArray(slide?.narrative_roles) ? slide.narrative_roles : []));
     const expectedRoles = milestoneMode === "proposal"
@@ -532,7 +765,12 @@ export async function validateDeckSpecFile(specPath, options = {}) {
     findings.push(issue("warning", "schema.missing", "$", `Schema not found; only semantic checks ran: ${schemaPath}`));
   }
   findings.push(...semanticDeckIssues(deck, options.strict));
-  return { file: absoluteSpec, schema: schemaPath, deck, issues: findings };
+  const issues = options.strict === true
+    ? findings.map((item) => item.severity === "warning" && item.strict_exempt !== true
+      ? { ...item, severity: "error", promoted_by_strict: true }
+      : item)
+    : findings;
+  return { file: absoluteSpec, schema: schemaPath, deck, issues };
 }
 
 function usage() {
@@ -598,9 +836,6 @@ async function main() {
   }
   try {
     const result = await validateDeckSpecFile(args.specPath, args);
-    if (args.strict) {
-      for (const item of result.issues) if (item.severity === "warning" && item.strict_exempt !== true) item.severity = "error";
-    }
     const errors = result.issues.filter((item) => item.severity === "error");
     if (args.json) console.log(JSON.stringify({ ok: errors.length === 0, file: result.file, schema: result.schema, issues: result.issues }, null, 2));
     else printHuman(result);

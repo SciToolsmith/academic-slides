@@ -37,7 +37,7 @@ Use five phases:
 
 1. Preflight once: load the Codex bundled workspace dependencies, reuse only the runtime paths returned by the host, inspect the source, run `scripts/preflight.mjs`, then create the workspace and configuration. Reuse the result while the runtime is unchanged; never guess a private runtime path or try to install `@oai/artifact-tool` from public npm.
 2. Build the evidence base in one source pass: analyze the paper, extract original figures, and index claims, figures, tables, formulas, and branding without polishing unused assets.
-3. Plan once: create `deck-spec.json` with narrative, selected evidence, visible content, speaker notes, sources, and layout intent; generate `PPT内容与设计大纲.md` from it.
+3. Plan once: create `deck-spec.json` with narrative, selected evidence, visible content, speaker notes, sources, relationship topology, visual focus, annotation plan, asset treatment, and layout intent; generate `PPT内容与设计大纲.md` from it.
 4. Produce only selected derived assets, then build the editable PPTX, synchronized Word script, and project MJS.
 5. Render and inspect the complete deck and Word script once, repair material defects, recheck affected pages, and stage the minimal customer package.
 
@@ -45,7 +45,9 @@ When the user asks to see the outline first, stop after the outline. Otherwise s
 
 Reuse prior extraction, analysis, and rendered assets when source hashes and requirements have not changed. Do not reread the whole paper after a local page edit, regenerate unselected assets, or restart whole-deck QA after a local-only change. A global theme, font, master, navigation, or renderer change does require a new full-deck render.
 
-The paper determines the number, names, and order of sections. Never default a defense to five parts because the visual gallery happens to show five categories. Agenda pages, section dividers, and segmented navigation are optional presentation devices: include, integrate, split, or omit them according to the narrative and any duration the user supplied.
+Do not create a project-specific deck generator, figure extractor, montage script, or delivery sanitizer when the bundled deterministic scripts already cover the task. Put project decisions in `deck-spec.json`; extend a shared component only when a real missing capability has been identified and tested.
+
+The paper determines the number, names, and order of sections. Never default a defense to five parts because the visual gallery happens to show five categories. A production final defense uses 3–6 audience-facing sections and one full divider before each main section; use integrated or no dividers only when the user requests a compact style or the deck structure explicitly justifies it. Appendix or backup material stays after the closing slide, outside the agenda and navigation, and is never a numbered main section.
 
 ## Prepare evidence and assets
 
@@ -65,7 +67,7 @@ Use the canonical per-slide decision order in [references/workflow.md](reference
 
 Read [references/layout-selection.md](references/layout-selection.md). Never select a layout first and force content into it. Use the free-evidence canvas when no registered layout fits.
 
-Treat the layout library as a preferred design vocabulary, not a whitelist and not a required sequence. Reuse the common shell for cover, agenda, section transitions, and closing when it helps orientation. For body slides, use a registered layout only when its evidence relationship and slot count fit naturally; otherwise compose a new editable layout from the design tokens and record the rationale in `deck-spec.json`.
+Treat the layout library as a preferred design vocabulary, not a whitelist and not a required sequence. Reuse the common shell for cover, agenda, section transitions, and closing when it helps orientation. For body slides, use a registered layout only when its evidence relationship, topology, information density, and slot count fit naturally; otherwise compose a new editable evidence canvas from the design tokens and record the rationale in `deck-spec.json`. A substantive final defense must contain thesis-specific evidence canvases; quantitative work may bind figures, formulas, metrics, and model relationships, while argument-driven work may bind source-traceable quotations, cases, claims, and counterarguments. It may not express every core page through generic cards, ribbons, or two-image shells.
 
 Use `text_emphasis` only for one short, evidence-bearing focal phrase and at most one secondary phrase. Choose a semantic role instead of a hex color; the active theme resolves the accessible color. Do not color-emphasize cover, agenda, section, or closing pages, and never let color be the only cue. Follow [references/layout-selection.md](references/layout-selection.md).
 
@@ -78,13 +80,15 @@ Use `text_emphasis` only for one short, evidence-bearing focal phrase and at mos
 - When LaTeX is unavailable, prefer a faithful high-resolution source-PDF crop for an existing equation, then a trustworthy local MathJax/KaTeX renderer. Use native Unicode math only for short, non-core expressions verified character by character.
 - Draw a process or relationship diagram only when sequence, branching, feedback, system boundaries, or module dependencies are materially clearer than prose.
 - Prefer a clear source figure. Bind every redraw to source references and preserve the original logic.
+- Encode the actual relationship before choosing its shape. A branch, convergence, feedback loop, or parallel comparison must never be flattened into a linear four-step ribbon.
+- Treat a dense paper figure as raw evidence, not presentation-ready artwork. Select among crop, direct annotation, split panels, zoom inset, or faithful editable redraw; if the audience cannot read the decisive internal label at projection scale, do not place the complete figure in a generic dual-image layout.
 
 ## Build with the bundled template system
 
 - Resolve the profile through `assets/profile-registry.json`, then use that profile's layout library, design tokens, theme presets, and semantic layout registry.
 - Use `assets/final-defense-universal/` for final defenses, `assets/proposal-midterm-universal/` for proposal/midterm reviews, and `assets/group-meeting-literature-universal/` for literature-centered group meetings. Treat every `layout-registry.json` as a preferred semantic catalog, not a complete set of allowed layouts.
-- Use `scripts/build.mjs --spec <deck-spec.json> --output <短题名_汇报类型.pptx>` for deterministic deck generation.
-- Use `scripts/build-speaker-script.mjs` to generate the Word script from the same `speaker_notes`, then use `scripts/create-project-builder.mjs` to produce the same-stem project MJS without an external deck-spec dependency.
+- Use `scripts/build-project.mjs --spec <deck-spec.json> --output-dir <internal-build-dir> --stem <短题名_汇报类型> --render` for the normal internal build. It validates the deck, builds the editable PPTX, compact Word script, and same-stem project MJS once, renders one QA preview, and skips unchanged rebuilds by content hash.
+- Use the lower-level `scripts/build.mjs`, `scripts/build-speaker-script.mjs`, and `scripts/create-project-builder.mjs` only for targeted debugging or a deliberately partial operation.
 - Use semantic asset IDs from `evidence-index.json` and `figures.manifest.json`; do not hard-code transient PowerPoint object IDs in content specs.
 - Preserve editable text, tables, charts, and simple diagrams.
 - Do not require a deck to use all library pages, all navigation devices, any fixed number of sections, or one page per paper. Each layout library is a gallery of reusable patterns, not a fixed presentation sequence.
@@ -97,7 +101,9 @@ Read [references/qa.md](references/qa.md).
 
 Run the bundled validators, render every slide, and inspect each final slide at full size once. Separate material defects from optional polish. Repair unsupported claims, wrong numbers or units, broken media, missing notes, unintended overlap, clipping, one-line title wrapping, unreadable formulas, and wrong branding. After local fixes, recheck only affected pages; repeat a full-deck pass only after a global change.
 
-Stop when hard failures are zero and remaining observations are optional polish or documented low-risk limitations. Do not spend additional rounds on pixel-level similarity, harmless metadata, marginal spacing, or other changes that do not improve comprehension, academic accuracy, projection readability, or compatibility.
+Before the first full build, run the scientific-design validator. It must reject topology/layout mismatches, generic custom-canvas fallbacks, unprocessed complex figures, missing visual focus on core result pages, all-black technical decks, and excessive reuse of one generic body layout. Resolve these at the storyboarding or asset-treatment stage instead of discovering them after 20+ slides are rendered.
+
+Stop when hard failures are zero and remaining observations are optional polish or documented low-risk limitations. The normal budget is one complete build/inspection and one targeted repair pass. Do not spend additional rounds on pixel-level similarity, harmless metadata, marginal spacing, or other changes that do not improve comprehension, academic accuracy, projection readability, or compatibility.
 
 Read [references/delivery.md](references/delivery.md) before packaging. Deliver exactly one concise folder named `短题名_汇报类型` containing the same-stem editable PPTX, same-stem project MJS, same-stem `_发言稿.docx`, and `assets/`. Do not add a date, version, name, `final`, or “最终版” marker. Do not expose the deck spec, outline, evidence index, QA report, source PDF, previews, logs, or other internal work products. Use `scripts/stage-delivery.mjs`: it runs the project MJS in a clean staging directory so PPTX and Word share one source, validates the package, and only then replaces an older delivery.
 

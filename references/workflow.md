@@ -60,6 +60,11 @@
 
 生成 `deck-spec.json` 作为唯一机器事实源，再由它生成 `PPT内容与设计大纲.md`。公式和流程图只有在实际使用、或确有必要记录否决理由时才写入对应字段；普通页面省略未使用字段，不生成长篇“不需要”的解释。
 
+毕业答辩规格必须在首次构建前先通过两类门禁：
+
+- 结构门禁：正式答辩默认 3–6 个主章节，每个主章节有且仅有一张章节首页；章节名来自论文问题与证据主线，不使用“问题与路线”、“答辩备查”等生产内部语言。备查材料位于结束页之后，不进目录、不进导航、不单独设章节首页。
+- 科学设计门禁：每张技术页先声明 `relationship_topology`、`visual_focus`、`annotation_plan` 和必要的 `asset_transform`，再将其落实为实际渲染的图、标注、强调或可编辑关系。声明这些规划字段不等于已落实。分支/汇合/反馈不得使用线性流程版式；密集科研图必须选择直接标注、拆图、局部放大或忠实重绘，不得只做 contain 后缩到双栏。
+
 若 `workflow_mode=outline_first`，在大纲生成后等待用户；否则直接进入构建，不二次确认。
 
 ## 4. 入选资产、公式与成品构建
@@ -75,7 +80,21 @@
 
 公式统一按 `references/asset-preparation.md` 的单一链路处理，并优先调用 `scripts/render-formula.mjs`。只编译入选公式；最多一次合理的 LaTeX 引擎切换和一次 SVG→PNG 切换，不建立无限回退树。复杂核心公式无法可靠呈现时停止并报告，不把 raw LaTeX 当普通文本输出。
 
-完成资产引用后，按 `deck-spec.json` 的 profile 选择对应资产库：用 `scripts/build.mjs` 构建可编辑 PPTX 并写入逐页备注；用 `scripts/build-speaker-script.mjs` 从同一份 `speaker_notes` 生成 Word 发言稿；用 `scripts/create-project-builder.mjs` 生成嵌入最终项目规格、只引用 `assets/` 相对路径的同名 MJS。项目 MJS 默认同时重建同名 PPTX 与 DOCX，不读取客户包之外的 deck spec。
+完成资产引用后，按 `deck-spec.json` 的 profile 选择对应资产库。正常路径运行：
+
+```bash
+node scripts/build-project.mjs \
+  --spec <deck-spec.json> \
+  --output-dir <internal-build-dir> \
+  --stem <短题名_汇报类型> \
+  --render
+```
+
+它使用同一规格一次生成可编辑 PPTX、精简 Word 发言稿和同名 MJS，并只渲染一份内部 QA 预览。规格、入选资产和核心渲染代码未变时，签名缓存直接复用三个产物；不要为一行文字反复全量构建。只在定向调试时才分别调用 `build.mjs`、`build-speaker-script.mjs` 或 `create-project-builder.mjs`。
+
+项目内容写入 `deck-spec.json`，不要临时生成数百行的项目专用 spec builder、图片提取器、联系表或交付清洗脚本。只有稳定共享组件确实缺少能力时，才修改 Skill 级脚本并加入回归测试。
+
+项目 MJS 嵌入最终项目规格、只引用 `assets/` 相对路径，默认同时重建同名 PPTX 与 DOCX，不读取客户包之外的 deck spec。客户项目 MJS 必须显式标记 `artifact_purpose: production`；`layout_gallery` 仅允许通过底层构建器生成内部布局库，不进入项目 MJS 和交付暂存链路。
 
 中期“计划—实际”页必须覆盖计划基线和当前进展证据；组会多篇比较页的来源必须覆盖参与比较的每篇焦点论文。
 
@@ -89,7 +108,7 @@
 4. 局部修改只重新检查受影响页面；主题、字体、母版、全局间距、导航或渲染器变化才重新渲染全稿；
 5. 硬失败为零、重要问题已修复或明确披露后停止。
 
-默认只进行一轮完整检查和一轮针对性修复。仍有硬失败时继续处理硬失败；不得转而反复微调字距、像素相似度、轻微留白、无害元数据或其他不影响理解与交付的细节。
+默认只进行一轮完整检查和一轮针对性修复。仍有硬失败时继续处理硬失败；不得转而反复微调字距、像素相似度、轻微留白、无害元数据或其他不影响理解与交付的细节。若冷启动任务反复超过约 30 分钟，优先定位重复读取、临时脚本、全量素材加工、多次整稿渲染或交付扫描误报，不得以“继续优化”代替根因修复。
 
 完成内部 PPTX 和 Word 的渲染检查后读取 `references/delivery.md`。调用 `scripts/stage-delivery.mjs`，由同名项目 MJS 在空白暂存目录一次重建 PPTX 与 Word，再通过白名单生成客户包。客户包根目录只能包含：`短题名_汇报类型.pptx`、`短题名_汇报类型.mjs`、`短题名_汇报类型_发言稿.docx` 和 `assets/`。名称不加入姓名、日期、版本、`final` 或“最终版”；姓名、导师、学号等已知身份词作为 forbidden terms 参与检查。
 

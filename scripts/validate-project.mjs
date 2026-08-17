@@ -6,6 +6,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readJsonFile, validateDeckSpecFile, validateJsonValue } from "./validate-deck-spec.mjs";
+import { validateScientificDesignFile } from "./validate-scientific-design.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
@@ -668,6 +669,11 @@ export async function validateProject(projectPath, options = {}) {
       try {
         const validation = await validateDeckSpecFile(paths.deckSpec, { strict: options.strict, requireSchema: options.requireSchemas });
         for (const item of validation.issues) findings.push(finding(item.severity, `deck.${item.code}`, paths.deckSpec, `${item.path}: ${item.message}`, { strictExempt: item.strict_exempt === true }));
+        const scientific = await validateScientificDesignFile(paths.deckSpec, { strict: options.strict });
+        for (const item of scientific.issues) {
+          const code = item.code.startsWith("scientific.") ? `deck.${item.code}` : `deck.scientific.${item.code}`;
+          findings.push(finding(item.severity, code, paths.deckSpec, `${item.path}: ${item.message}`));
+        }
         const deck = validation.deck;
         const resolvedDeckProfile = deckProfile(deck, profileRegistry);
         if (resolvedDeckProfile !== profileId) findings.push(finding("error", "deck.profile", paths.deckSpec, `deck profile=${resolvedDeckProfile} does not match project profile=${profileId}.`));

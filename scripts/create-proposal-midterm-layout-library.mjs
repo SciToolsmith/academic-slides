@@ -505,6 +505,7 @@ export async function createProposalMidtermSpec() {
   const slides = registry.layouts.map((layout, index) => makeSlide(layout, index, registry.layouts));
   const estimated = slides.reduce((sum, slide) => sum + slide.speaker_notes.estimated_seconds, 0);
   return {
+    artifact_purpose: "layout_gallery",
     schema_version: "1.1",
     project_id: "proposal-midterm-layout-library",
     profile: "proposal_midterm",

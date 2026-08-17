@@ -145,15 +145,42 @@ async function main() {
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-theme-contract-"));
   try {
     const sample = await readJson(path.join(SKILL_DIR, "assets", "final-defense-universal", "sample-deck-spec.json"));
+    const sections = [
+      { id: "problem", order: 1, title: "研究问题与证据", short_title: "研究问题", role: "problem", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
+      { id: "method", order: 2, title: "研究方法与分析", short_title: "研究方法", role: "method", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
+      { id: "result", order: 3, title: "研究结果与边界", short_title: "研究结果", role: "results", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
+    ];
     sample.theme.preset = "blue";
+    sample.artifact_purpose = "production";
+    sample.structure = { section_transition_mode: "integrated", section_transition_reason: "主题契约使用精简集成过渡。", appendix_policy: "none" };
+    sample.sections = sections;
     sample.sources = sample.sources.map((source) => ({ ...source, citation: "本项目规范", path: null }));
-    sample.slides = sample.slides.slice(0, 3).map((slide, index) => ({ ...slide, order: index + 1 }));
+    const cover = structuredClone(sample.slides.find((slide) => slide.kind === "title"));
+    const agenda = structuredClone(sample.slides.find((slide) => slide.kind === "agenda"));
+    const bodies = ["sample-claim-evidence", "sample-four-point-list", "sample-conclusion-list"].map((id, index) => {
+      const slide = structuredClone(sample.slides.find((item) => item.id === id));
+      slide.id = `theme-body-${index + 1}`;
+      slide.section_id = sections[index].id;
+      slide.priority = "supporting";
+      return slide;
+    });
+    const closing = structuredClone(sample.slides.find((slide) => slide.kind === "closing"));
+    cover.id = "theme-cover";
+    cover.section_id = sections[0].id;
+    agenda.id = "theme-agenda";
+    agenda.section_id = sections[0].id;
+    agenda.render_data.sections = sections.map((section, index) => ({ number: String(index + 1).padStart(2, "0"), title: section.title }));
+    agenda.content.body = sections.map((section, index) => `${String(index + 1).padStart(2, "0")} ${section.title}`);
+    closing.id = "theme-closing";
+    closing.section_id = sections.at(-1).id;
+    sample.slides = [cover, agenda, ...bodies, closing].map((slide, index) => ({ ...slide, order: index + 1 }));
+    const seconds = sample.slides.reduce((sum, slide) => sum + Number(slide.speaker_notes?.estimated_seconds ?? 0), 0);
     sample.timing = {
       ...sample.timing,
-      duration_minutes: 30 / 60 / Number(sample.timing.usable_fraction),
-      target_seconds: 30,
-      estimated_seconds: 30,
-      target_slide_count: 3,
+      duration_minutes: seconds / 60 / Number(sample.timing.usable_fraction),
+      target_seconds: seconds,
+      estimated_seconds: seconds,
+      target_slide_count: sample.slides.length,
     };
     sample.claim_evidence_map = [];
     const sampleSpec = path.join(temporary, "deck-spec.json");

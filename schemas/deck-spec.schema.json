@@ -26,6 +26,14 @@
       "enum": ["final_defense", "proposal_midterm", "group_meeting_literature"],
       "description": "Explicit presentation profile used to resolve narrative rules and template assets."
     },
+    "artifact_purpose": {
+      "enum": ["production", "layout_gallery"],
+      "default": "production",
+      "description": "Distinguishes an audience-ready deck from a layout catalog. Omission has production semantics."
+    },
+    "structure": {
+      "$ref": "#/$defs/deckStructure"
+    },
     "literature": {
       "$ref": "#/$defs/literatureContext"
     },
@@ -167,6 +175,25 @@
     "hexColor": {
       "type": "string",
       "pattern": "^#?[A-Fa-f0-9]{6}$"
+    },
+    "deckStructure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["section_transition_mode", "appendix_policy"],
+      "properties": {
+        "section_transition_mode": {
+          "enum": ["full", "integrated", "none"],
+          "description": "Whether main sections use full divider slides, integrated transitions, or no explicit transitions."
+        },
+        "section_transition_reason": {
+          "type": ["string", "null"],
+          "description": "Required when a production final defense does not use full section dividers; records the user request or compact-structure rationale."
+        },
+        "appendix_policy": {
+          "enum": ["after_closing_unlisted", "none"],
+          "description": "Whether unlisted appendix material may appear after the closing slide."
+        }
+      }
     },
     "timing": {
       "type": "object",
@@ -386,6 +413,18 @@
         "role": {
           "enum": ["opening", "publication", "problem", "framework", "objectives", "method", "design", "feasibility", "results", "validation", "progress", "deviation", "risk", "plan", "synthesis", "critique", "discussion", "contribution", "conclusion", "appendix", "other"]
         },
+        "audience_role": {
+          "enum": ["main", "appendix"],
+          "description": "Canonical audience role. When omitted, legacy role=appendix means appendix and every other role means main."
+        },
+        "show_in_agenda": {
+          "type": "boolean",
+          "description": "Whether this section appears in the audience-facing agenda. Defaults semantically to true for main sections and false for appendix sections."
+        },
+        "show_in_navigation": {
+          "type": "boolean",
+          "description": "Whether this section appears in persistent audience-facing navigation. Defaults semantically to true for main sections and false for appendix sections."
+        },
         "purpose": {"type": ["string", "null"]}
       }
     },
@@ -422,6 +461,7 @@
         "id",
         "order",
         "kind",
+        "priority",
         "purpose",
         "takeaway",
         "content",
@@ -440,6 +480,31 @@
         "purpose": {"type": "string", "minLength": 1},
         "audience_question": {"type": ["string", "null"]},
         "takeaway": {"type": "string"},
+        "relationship_topology": {
+          "enum": ["linear", "parallel", "branch_converge", "feedback", "hierarchy", "comparison", "spatial", "none"],
+          "description": "Optional scientific relationship encoded by the page composition."
+        },
+        "visual_focus": {
+          "type": ["string", "null"],
+          "description": "Optional statement of the single visual element the audience should inspect first."
+        },
+        "annotation_plan": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": [],
+          "description": "Optional evidence-anchored annotations planned for the page."
+        },
+        "asset_transform": {
+          "oneOf": [
+            {"$ref": "#/$defs/assetTransform"},
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {"$ref": "#/$defs/assetTransform"}
+            }
+          ],
+          "description": "Optional presentation-specific treatment applied to one or more source assets."
+        },
         "priority": {"enum": ["core", "supporting", "optional", "appendix"]},
         "narrative_roles": {
           "type": "array",
@@ -517,6 +582,16 @@
         "caption": {"type": ["string", "null"]},
         "source_ref": {"type": ["string", "null"]},
         "fit": {"enum": ["contain", "cover"]}
+      }
+    },
+    "assetTransform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_ref", "mode", "reason"],
+      "properties": {
+        "asset_ref": {"$ref": "#/$defs/stableId"},
+        "mode": {"enum": ["original", "crop", "annotate", "split", "zoom", "redraw"]},
+        "reason": {"type": "string", "minLength": 1}
       }
     },
     "content": {

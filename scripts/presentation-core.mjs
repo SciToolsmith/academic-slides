@@ -72,7 +72,13 @@ const PPT_FONT_SCALE = 4 / 3;
 
 const DEFAULT_TOKENS = Object.freeze({
   slideSize: { width: 1280, height: 720 },
-  fonts: { zh: "Microsoft YaHei", en: "Arial", serif: "Times New Roman" },
+  fonts: {
+    zh: "Microsoft YaHei",
+    zhFallbacks: ["PingFang SC", "Noto Sans CJK SC", "Source Han Sans SC"],
+    en: "Arial",
+    serif: "Times New Roman",
+    math: "Latin Modern Math",
+  },
   typeScale: {
     deckTitle: 52,
     sectionTitle: 44,
@@ -174,6 +180,14 @@ function list(value) {
   return [value];
 }
 
+function firstNonEmptyList(...values) {
+  for (const value of values) {
+    const items = list(value);
+    if (items.length > 0) return items;
+  }
+  return [];
+}
+
 function textOf(value) {
   if (typeof value === "string" || typeof value === "number") return String(value);
   if (Array.isArray(value)) return value.map(textOf).filter(Boolean).join("；");
@@ -183,6 +197,54 @@ function textOf(value) {
 
 function cleanText(value) {
   return textOf(value).replace(/\r\n/g, "\n").trim();
+}
+
+function normalizedFontName(value) {
+  return cleanText(value).replace(/\s+/g, " ");
+}
+
+function validateThemeFontOverrides(themeFonts, profileFonts, profile = "final_defense") {
+  if (!isObject(themeFonts)) return;
+  const cjkFonts = [profileFonts?.zh, ...list(profileFonts?.zhFallbacks)]
+    .map(normalizedFontName)
+    .filter(Boolean);
+  const allowedByRole = {
+    heading: cjkFonts,
+    body: cjkFonts,
+    latin: [normalizedFontName(profileFonts?.en)].filter(Boolean),
+    math: [normalizedFontName(profileFonts?.math)].filter(Boolean),
+  };
+
+  for (const [role, allowedFonts] of Object.entries(allowedByRole)) {
+    const requested = normalizedFontName(themeFonts[role]);
+    if (!requested) continue;
+    const allowedKeys = new Set(allowedFonts.map((font) => font.toLocaleLowerCase("en-US")));
+    if (allowedKeys.has(requested.toLocaleLowerCase("en-US"))) continue;
+    const allowedLabel = allowedFonts.length > 0 ? allowedFonts.join(", ") : "no configured font";
+    throw new Error(
+      `Theme font "${requested}" at theme.fonts.${role} is outside the ${profile} profile font set (${allowedLabel}). `
+      + "Arbitrary font overrides can render as missing glyphs/tofu in LibreOffice. "
+      + "Use the profile font or one of its declared fallbacks.",
+    );
+  }
+  const heading = normalizedFontName(themeFonts.heading);
+  const body = normalizedFontName(themeFonts.body);
+  if (heading && body && heading.toLocaleLowerCase("en-US") !== body.toLocaleLowerCase("en-US")) {
+    throw new Error(
+      `theme.fonts.heading (${heading}) and theme.fonts.body (${body}) differ, but the current editable PowerPoint renderer uses one CJK typeface. `
+      + "Use the same declared profile font for both roles to avoid a silent font substitution.",
+    );
+  }
+}
+
+function sectionAudienceRole(section) {
+  if (section?.audience_role === "main" || section?.audience_role === "appendix") return section.audience_role;
+  return section?.role === "appendix" ? "appendix" : "main";
+}
+
+function sectionVisible(section, field) {
+  if (typeof section?.[field] === "boolean") return section[field];
+  return sectionAudienceRole(section) === "main";
 }
 
 function normalizeProfile(spec) {
@@ -232,6 +294,29 @@ function normalizeHex(value, fallback) {
   const candidate = String(value ?? "").trim();
   if (/^#[0-9a-f]{6}$/i.test(candidate)) return candidate.toUpperCase();
   return fallback;
+}
+
+function resolveCanvasColor(value, context, fallback) {
+  const raw = cleanText(value);
+  if (!raw) return fallback;
+  if (/^#[0-9a-f]{6}$/i.test(raw)) return raw.toUpperCase();
+  const camel = raw.replace(/[-_]([a-z])/g, (_, letter) => letter.toUpperCase());
+  const neutralAliases = {
+    canvas: "canvas",
+    background: "canvas",
+    surface: "surface",
+    text: "text",
+    muted: "muted",
+    line: "line",
+    white: "white",
+    black: "black",
+  };
+  return first(
+    context?.colors?.[camel],
+    context?.colors?.[raw],
+    context?.tokens?.neutral?.[neutralAliases[raw] ?? raw],
+    fallback,
+  );
 }
 
 function isRedDominant(hex) {
@@ -1119,9 +1204,16 @@ async function addContentChrome(slide, slideSpec, context, slideNumber) {
     bold: true,
     color: colors.primary,
   }, "institution-wordmark");
-  const allSections = list(context.spec?.sections).filter((item) => cleanText(first(item?.title, item?.short_title)));
+  const allSections = list(context.spec?.sections).filter((item) => (
+    sectionVisible(item, "show_in_navigation") && cleanText(first(item?.title, item?.short_title))
+  ));
   const activeSection = allSections.find((item) => item?.id === slideSpec.section_id);
-  if (allSections.length >= 2 && allSections.length <= 6) {
+  const appendixSlide = sectionAudienceRole(sectionRecord) === "appendix" || slideSpec.kind === "appendix";
+  if (appendixSlide) {
+    addPill(slide, "附录·问答备查", {
+      left: 964, top: 11, width: 242, height: 34,
+    }, colors, tokens, { name: "appendix-label", fill: colors.primaryLight, color: colors.primaryDark, fontSize: 13 });
+  } else if (allSections.length >= 2 && allSections.length <= 6) {
     const visibleSections = allSections;
     const navLeft = 354;
     const navRight = 1220;
@@ -2051,7 +2143,10 @@ async function renderMilestoneCover(slide, spec, slideSpec, context, longTitle =
 }
 
 async function renderMilestoneAgenda(slide, spec, slideSpec, context, slideNumber) {
-  const sections = list(first(renderData(slideSpec).sections, slideSpec.sections, slideSpec.content?.body, spec.sections, []));
+  const explicitSections = firstNonEmptyList(renderData(slideSpec).sections, slideSpec.sections, slideSpec.content?.body);
+  const sections = explicitSections.length > 0
+    ? explicitSections
+    : list(spec.sections).filter((item) => sectionVisible(item, "show_in_agenda"));
   if (sections.length < 2) throw new Error(`Agenda slide ${slideSpec.id ?? slideNumber} needs at least two sections or should be omitted.`);
   if (sections.length > 10) throw new Error(`Agenda slide ${slideSpec.id ?? slideNumber} has ${sections.length} sections. Split it into two agenda slides; no item is truncated.`);
   slide.background.fill = context.tokens.neutral.canvas;
@@ -2669,7 +2764,10 @@ async function renderAgenda(slide, spec, slideSpec, context, slideNumber) {
     bold: true,
     color: context.colors.primary,
   }, "agenda-institution");
-  const sections = list(first(renderData(slideSpec).sections, slideSpec.sections, slideSpec.content?.body, spec.sections, []));
+  const explicitSections = firstNonEmptyList(renderData(slideSpec).sections, slideSpec.sections, slideSpec.content?.body);
+  const sections = explicitSections.length > 0
+    ? explicitSections
+    : list(spec.sections).filter((item) => sectionVisible(item, "show_in_agenda"));
   if (!sections.length) {
     throw new Error(`Agenda slide ${slideSpec.id ?? slideNumber} has no sections. Populate render_data.sections/spec.sections or omit the agenda slide; placeholder chapters are not generated.`);
   }
@@ -3150,6 +3248,31 @@ function diagramNodes(slideSpec) {
 }
 
 async function renderProcess(slide, slideSpec, context, slideNumber, framework = false) {
+  const declaredTopology = cleanText(first(slideSpec.relationship_topology, renderData(slideSpec).relationship_topology)).toLowerCase();
+  if (["branch_converge", "parallel", "hierarchy"].includes(declaredTopology)) {
+    throw new Error(`Slide ${slideSpec.id ?? slideNumber} declares ${declaredTopology} topology and cannot use the linear process renderer. Use a thesis-specific scientific canvas.`);
+  }
+  if (slideSpec.diagram?.include === true) {
+    const declaredNodes = list(slideSpec.diagram.nodes);
+    const edges = list(slideSpec.diagram.edges);
+    const feedbackEdges = edges.filter((edge) => cleanText(edge?.relation).toLowerCase() === "feedback");
+    const forwardEdges = edges.filter((edge) => cleanText(edge?.relation).toLowerCase() !== "feedback");
+    const outgoing = new Map();
+    const incoming = new Map();
+    for (const edge of forwardEdges) {
+      const from = cleanText(edge?.from);
+      const to = cleanText(edge?.to);
+      outgoing.set(from, (outgoing.get(from) ?? 0) + 1);
+      incoming.set(to, (incoming.get(to) ?? 0) + 1);
+    }
+    const unsupported = forwardEdges.some((edge) => !["", "sequence"].includes(cleanText(edge?.relation).toLowerCase()))
+      || [...outgoing.values(), ...incoming.values()].some((degree) => degree > 1)
+      || (declaredNodes.length > 0 && forwardEdges.length !== declaredNodes.length - 1)
+      || feedbackEdges.length > 1;
+    if (unsupported) {
+      throw new Error(`Slide ${slideSpec.id ?? slideNumber} diagram is not one linear chain plus at most one feedback edge and cannot use the process renderer.`);
+    }
+  }
   await addContentChrome(slide, slideSpec, context, slideNumber);
   const nodes = diagramNodes(slideSpec).slice(0, framework ? 6 : 5);
   const count = nodes.length;
@@ -3570,17 +3693,20 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
       }
       const type = cleanText(first(element.type, "text")).toLowerCase();
       const name = cleanText(first(element.name, element.id, `custom-element-${index + 1}`));
-      if (type === "image") {
+      if (type === "image" || type === "formula") {
         const request = normalizeAssetRequest(first(element.asset_ref, element.assetRef, element.asset, element.path, element.src), context.assetIndex, context.baseDir);
         await addImageOrPlaceholder(slide, request, position, {
           ...context,
           name,
           fit: first(element.fit, "contain"),
-          placeholderLabel: first(element.alt, element.alt_text, "自定义证据视觉"),
+          placeholderLabel: first(element.alt, element.alt_text, type === "formula" ? "LaTeX 公式" : "自定义证据视觉"),
         });
       } else if (type === "shape") {
-        const fill = first(element.fill, element.style?.fill, context.tokens.neutral.surface);
-        const line = first(element.line, element.style?.line, { style: "solid", fill: context.tokens.neutral.line, width: 1 });
+        const fill = resolveCanvasColor(first(element.fill, element.style?.fill), context, context.tokens.neutral.surface);
+        const rawLine = first(element.line, element.style?.line);
+        const line = isObject(rawLine)
+          ? { ...rawLine, fill: resolveCanvasColor(rawLine.fill, context, context.tokens.neutral.line) }
+          : { style: "solid", fill: resolveCanvasColor(rawLine, context, context.tokens.neutral.line), width: 1 };
         addShape(slide, cleanText(first(element.geometry, element.shape, "roundRect")), position, {
           name,
           fill,
@@ -3589,10 +3715,71 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
           rotation: Number(first(element.rotation, 0)),
         });
       } else if (type === "line") {
+        const color = resolveCanvasColor(first(element.color, element.fill), context, context.colors.primary);
         addShape(slide, "rect", position, {
           name,
-          fill: first(element.color, element.fill, context.colors.primary),
-          line: { style: "solid", fill: first(element.color, element.fill, context.colors.primary), width: 0 },
+          fill: color,
+          line: { style: "solid", fill: color, width: 0 },
+        });
+      } else if (type === "connector" || type === "arrow") {
+        const direction = cleanText(first(element.direction, position.width >= position.height ? "right" : "down")).toLowerCase();
+        const color = resolveCanvasColor(first(element.color, element.style?.color), context, context.colors.secondary);
+        const thickness = Math.max(1, Number(first(element.thickness, element.style?.thickness, 3)));
+        if (["right", "left"].includes(direction)) {
+          const arrowWidth = Math.min(20, Math.max(12, position.height));
+          const lineLeft = direction === "right" ? position.left : position.left + arrowWidth - 2;
+          const lineWidth = Math.max(2, position.width - arrowWidth + 2);
+          addRule(slide, lineLeft, position.top + position.height / 2 - thickness / 2, lineWidth, color, thickness, `${name}-line`);
+          addShape(slide, direction === "right" ? "rightArrow" : "leftArrow", {
+            left: direction === "right" ? position.left + position.width - arrowWidth : position.left,
+            top: position.top,
+            width: arrowWidth,
+            height: position.height,
+          }, { name: `${name}-head`, fill: color, line: { style: "solid", fill: color, width: 0 } });
+        } else if (["down", "up"].includes(direction)) {
+          const arrowHeight = Math.min(20, Math.max(12, position.width));
+          const lineTop = direction === "down" ? position.top : position.top + arrowHeight - 2;
+          const lineHeight = Math.max(2, position.height - arrowHeight + 2);
+          addVerticalRule(slide, position.left + position.width / 2 - thickness / 2, lineTop, lineHeight, color, thickness, `${name}-line`);
+          addShape(slide, direction === "down" ? "downArrow" : "upArrow", {
+            left: position.left,
+            top: direction === "down" ? position.top + position.height - arrowHeight : position.top,
+            width: position.width,
+            height: arrowHeight,
+          }, { name: `${name}-head`, fill: color, line: { style: "solid", fill: color, width: 0 } });
+        } else {
+          throw new Error(`Unsupported free-canvas connector direction "${direction}" at element ${index + 1}.`);
+        }
+      } else if (type === "callout" || type === "annotation") {
+        const value = cleanText(first(element.text, element.value, element.label, ""));
+        const style = isObject(element.style) ? element.style : {};
+        const fill = resolveCanvasColor(first(style.fill, element.fill), context, context.colors.primaryLight);
+        const lineColor = resolveCanvasColor(first(style.lineColor, style.line_color, element.lineColor, element.color), context, context.colors.emphasis);
+        addShape(slide, cleanText(first(element.geometry, "roundRect")), position, {
+          name: `${name}-box`,
+          fill,
+          line: { style: "solid", fill: lineColor, width: Number(first(style.lineWidth, style.line_width, 1.5)) },
+          borderRadius: first(element.borderRadius, element.border_radius, "rounded-lg"),
+        });
+        addText(slide, value, {
+          left: position.left + 12,
+          top: position.top + 8,
+          width: Math.max(12, position.width - 24),
+          height: Math.max(12, position.height - 16),
+        }, {
+          fontSize: Number(first(style.fontSize, style.font_size, element.fontSize, 16)),
+          fontFamily: first(style.fontFamily, style.font_family, fontFor(value, context.tokens)),
+          bold: Boolean(first(style.bold, element.bold, true)),
+          color: resolveCanvasColor(first(style.color, element.textColor), context, context.colors.primaryDark),
+          alignment: first(style.alignment, element.alignment, "left"),
+          verticalAlignment: first(style.verticalAlignment, style.vertical_alignment, "middle"),
+        }, name);
+      } else if (type === "highlight") {
+        const color = resolveCanvasColor(first(element.color, element.style?.color), context, context.colors.emphasis);
+        addShape(slide, cleanText(first(element.geometry, element.shape, "ellipse")), position, {
+          name,
+          fill: "none",
+          line: { style: cleanText(first(element.lineStyle, element.line_style, "solid")), fill: color, width: Number(first(element.thickness, 2.5)) },
         });
       } else if (type === "text" || type === "metric") {
         const value = cleanText(first(element.text, element.value, element.label, ""));
@@ -3601,7 +3788,7 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
           fontSize: Number(first(style.fontSize, style.font_size, element.fontSize, element.font_size, type === "metric" ? 30 : 18)),
           fontFamily: first(style.fontFamily, style.font_family, fontFor(value, context.tokens)),
           bold: Boolean(first(style.bold, element.bold, type === "metric")),
-          color: first(style.color, element.color, context.tokens.neutral.text),
+          color: resolveCanvasColor(first(style.color, element.color), context, context.tokens.neutral.text),
           alignment: first(style.alignment, element.alignment, "left"),
           verticalAlignment: first(style.verticalAlignment, style.vertical_alignment, element.verticalAlignment, "top"),
           wrap: first(style.wrap, element.wrap, true),
@@ -3907,6 +4094,29 @@ async function renderRadialMethods(slide, slideSpec, context, slideNumber) {
 }
 
 async function renderFourStepRibbon(slide, slideSpec, context, slideNumber) {
+  const declaredTopology = cleanText(first(slideSpec.relationship_topology, renderData(slideSpec).relationship_topology)).toLowerCase();
+  if (declaredTopology && !["linear", "none"].includes(declaredTopology)) {
+    throw new Error(`Slide ${slideSpec.id ?? slideNumber} declares ${declaredTopology} topology and cannot use four-step-ribbon. Use a branch/converge scientific canvas.`);
+  }
+  if (slideSpec.diagram?.include === true) {
+    const nodes = list(slideSpec.diagram.nodes);
+    const edges = list(slideSpec.diagram.edges);
+    const inDegree = new Map(nodes.map((node) => [cleanText(node.id), 0]));
+    const outDegree = new Map(nodes.map((node) => [cleanText(node.id), 0]));
+    for (const edge of edges) {
+      const from = cleanText(edge?.from);
+      const to = cleanText(edge?.to);
+      outDegree.set(from, (outDegree.get(from) ?? 0) + 1);
+      inDegree.set(to, (inDegree.get(to) ?? 0) + 1);
+    }
+    const isLinear = nodes.length === 4 && edges.length === 3
+      && edges.every((edge) => edge?.relation === "sequence")
+      && [...inDegree.values()].every((degree) => degree <= 1)
+      && [...outDegree.values()].every((degree) => degree <= 1);
+    if (!isLinear) {
+      throw new Error(`Slide ${slideSpec.id ?? slideNumber} diagram is not a four-node linear sequence and cannot use four-step-ribbon.`);
+    }
+  }
   await addContentChrome(slide, slideSpec, context, slideNumber);
   const items = semanticItems(slideSpec, ["items", "steps"], 4).slice(0, 4);
   // The staggered cards keep the original template's rhythm, while elbow
@@ -4571,6 +4781,7 @@ function layoutFor(slideSpec, layouts) {
 export async function createPresentationFromSpec(spec, options = {}) {
   if (!isObject(spec)) throw new Error("Deck spec must be a JSON object.");
   if (!Array.isArray(spec.slides) || spec.slides.length === 0) throw new Error("Deck spec needs a non-empty slides array.");
+  const profile = normalizeProfile(options.profile ? { ...spec, profile: options.profile } : spec);
   const tokens = {
     ...DEFAULT_TOKENS,
     ...(options.tokens ?? {}),
@@ -4588,7 +4799,8 @@ export async function createPresentationFromSpec(spec, options = {}) {
     neutral: { ...DEFAULT_TOKENS.neutral, ...(options.tokens?.neutral ?? {}) },
   };
   const resolvedFonts = isObject(spec.theme?.fonts) ? spec.theme.fonts : {};
-  if (resolvedFonts.body) tokens.fonts.zh = resolvedFonts.body;
+  validateThemeFontOverrides(resolvedFonts, tokens.fonts, profile);
+  if (resolvedFonts.body || resolvedFonts.heading) tokens.fonts.zh = first(resolvedFonts.body, resolvedFonts.heading);
   if (resolvedFonts.latin) tokens.fonts.en = resolvedFonts.latin;
   if (resolvedFonts.math) tokens.fonts.math = resolvedFonts.math;
   const colors = normalizeTheme(options.presets ?? { defaultPreset: "blue", presets: { blue: DEFAULT_THEME } }, spec, options);
@@ -4609,7 +4821,6 @@ export async function createPresentationFromSpec(spec, options = {}) {
   presentation.theme.colorScheme = presentationTheme(colors, tokens);
   const layouts = createSemanticLayouts(presentation, colors);
   const sectionIndex = new Map(list(spec.sections).map((section) => [section?.id, section]));
-  const profile = normalizeProfile(options.profile ? { ...spec, profile: options.profile } : spec);
   const mode = profile === "proposal_midterm" ? normalizeMilestoneMode(spec) : null;
   const context = { spec, profile, mode, tokens, colors, brand, baseDir, assetIndex, sectionIndex, allowPlaceholder: options.allowPlaceholder ?? true };
   const slides = [...spec.slides].sort((left, right) => Number(first(left.order, 0)) - Number(first(right.order, 0)));
@@ -4709,9 +4920,12 @@ export async function buildPresentationFromFile(specPath, options = {}) {
 
 export const internal = Object.freeze({
   cleanText,
+  validateThemeFontOverrides,
   normalizeProfile,
   normalizeLayoutId,
   normalizeTheme,
+  sectionAudienceRole,
+  sectionVisible,
   buildAssetIndex,
   normalizeAssetRequest,
   slideAssetRequests,

@@ -165,6 +165,7 @@ function createSpec() {
   const slides = LAYOUTS.map(makeSlide);
   const estimated = slides.reduce((sum, slide) => sum + slide.speaker_notes.estimated_seconds, 0);
   return {
+    artifact_purpose: "layout_gallery",
     schema_version: "1.1",
     project_id: "group-meeting-literature-layout-library",
     profile: "group_meeting_literature",

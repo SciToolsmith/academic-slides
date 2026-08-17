@@ -8,7 +8,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { createProjectBuilder } from "../scripts/create-project-builder.mjs";
-import { serializeSpeakerNotes } from "../scripts/speaker-notes.mjs";
+import { normalizeSpeakerNotes, serializeSpeakerNotes } from "../scripts/speaker-notes.mjs";
 import { stageDelivery, validateAssetTree, validateDeliveryStem } from "../scripts/stage-delivery.mjs";
 import { validateDeckSpecFile } from "../scripts/validate-deck-spec.mjs";
 
@@ -19,18 +19,49 @@ const SAMPLE_SPEC = path.join(SKILL_DIR, "assets", "final-defense-universal", "s
 const STEM = "客机侧开式登机门优化设计_硕士答辩";
 
 function threeSlideSpec(sample) {
-  const slides = sample.slides.slice(0, 3).map((slide, index) => ({ ...structuredClone(slide), order: index + 1 }));
+  const sections = [
+    { id: "problem", order: 1, title: "研究问题与证据", short_title: "研究问题", role: "problem", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
+    { id: "method", order: 2, title: "研究方法与分析", short_title: "研究方法", role: "method", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
+    { id: "result", order: 3, title: "研究结果与边界", short_title: "研究结果", role: "results", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
+  ];
+  const cover = structuredClone(sample.slides.find((slide) => slide.kind === "title"));
+  const agenda = structuredClone(sample.slides.find((slide) => slide.kind === "agenda"));
+  const bodyIds = ["sample-claim-evidence", "sample-four-point-list", "sample-conclusion-list"];
+  const bodies = bodyIds.map((id, index) => {
+    const slide = structuredClone(sample.slides.find((item) => item.id === id));
+    slide.id = `delivery-body-${index + 1}`;
+    slide.section_id = sections[index].id;
+    slide.priority = "supporting";
+    return slide;
+  });
+  const closing = structuredClone(sample.slides.find((slide) => slide.kind === "closing"));
+  cover.id = "delivery-cover";
+  cover.section_id = sections[0].id;
+  agenda.id = "delivery-agenda";
+  agenda.section_id = sections[0].id;
+  agenda.render_data.sections = sections.map((section, index) => ({ number: String(index + 1).padStart(2, "0"), title: section.title }));
+  agenda.content.body = sections.map((section, index) => `${String(index + 1).padStart(2, "0")} ${section.title}`);
+  closing.id = "delivery-closing";
+  closing.section_id = sections.at(-1).id;
+  const slides = [cover, agenda, ...bodies, closing].map((slide, index) => ({ ...slide, order: index + 1 }));
   const seconds = slides.reduce((sum, slide) => sum + slide.speaker_notes.estimated_seconds, 0);
   return {
     ...sample,
+    artifact_purpose: "production",
+    structure: {
+      section_transition_mode: "integrated",
+      section_transition_reason: "精简交付契约测试使用集成过渡。",
+      appendix_policy: "none",
+    },
     project_id: "delivery-contract-fixture",
     title: "客机侧开式登机门优化设计",
+    sections,
     timing: {
       ...sample.timing,
       duration_minutes: seconds / 60 / Number(sample.timing.usable_fraction || 0.75),
       target_seconds: seconds,
       estimated_seconds: seconds,
-      target_slide_count: 3,
+      target_slide_count: slides.length,
     },
     slides,
     sources: sample.sources.map((source) => ({
@@ -50,6 +81,22 @@ async function xmlText(archive, entry) {
 async function archiveEntries(archive) {
   const result = await execFileAsync("unzip", ["-Z1", archive], { encoding: "utf8", maxBuffer: 20 * 1024 * 1024 });
   return result.stdout.split(/\r?\n/).filter(Boolean);
+}
+
+function decodeXml(value) {
+  return value
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", "\"")
+    .replaceAll("&apos;", "'");
+}
+
+function wordParagraphs(documentXml) {
+  return [...documentXml.matchAll(/<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g)].map((match) => ({
+    xml: match[0],
+    text: decodeXml([...match[0].matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map((item) => item[1]).join("")),
+  }));
 }
 
 async function main() {
@@ -109,12 +156,37 @@ async function main() {
     assert.doesNotMatch(generated, /\/(?:Users|Volumes|home|private\/var|var\/folders)\//);
     assert.doesNotMatch(generated, /readFile\([^\n]*deck-spec\.json/);
     assert.match(generated, /^\/\/ academic-slides-delivery:/m);
+    assert.match(generated, /"artifact_purpose":"production"/);
+    assert.match(generated, /validate-scientific-design\.mjs/);
+    assert.match(generated, /validateScientificDesign\(deckSpec, \{ strict: true \}\)/);
     await assert.rejects(() => createProjectBuilder({
       spec: specPath,
       output: path.join(temporary, `${STEM}.mjs`),
       pptxName: "其他名称.pptx",
       docxName: `${STEM}_发言稿.docx`,
     }));
+
+    const gallerySpec = threeSlideSpec(sample);
+    gallerySpec.artifact_purpose = "layout_gallery";
+    const gallerySpecPath = path.join(temporary, "layout-gallery-spec.json");
+    await fs.writeFile(gallerySpecPath, `${JSON.stringify(gallerySpec, null, 2)}\n`, "utf8");
+    await assert.rejects(() => createProjectBuilder({
+      spec: gallerySpecPath,
+      output: path.join(temporary, "画廊_硕士答辩.mjs"),
+      pptxName: "画廊_硕士答辩.pptx",
+      docxName: "画廊_硕士答辩_发言稿.docx",
+    }), /layout_gallery/);
+    const galleryMjs = path.join(temporary, "画廊_硕士答辩.mjs");
+    await fs.writeFile(galleryMjs, `#!/usr/bin/env node\n// academic-slides-delivery: ${JSON.stringify({
+      stem: "画廊_硕士答辩",
+      pptx: "画廊_硕士答辩.pptx",
+      docx: "画廊_硕士答辩_发言稿.docx",
+      artifact_purpose: "layout_gallery",
+    })}\n`, "utf8");
+    await assert.rejects(() => stageDelivery({
+      output: path.join(temporary, "画廊_硕士答辩"),
+      mjs: galleryMjs,
+    }), /artifact_purpose=production/);
 
     const unsafePaths = [
       ".." + "/../source/thesis.pdf",
@@ -202,14 +274,25 @@ async function main() {
     assert.equal(await fs.access(path.join(delivery, "assets", "formulas")).then(() => true).catch(() => false), false);
 
     const docXml = await xmlText(path.join(delivery, `${STEM}_发言稿.docx`), "word/document.xml");
-    assert.equal((docXml.match(/\[Sources\]/g) ?? []).length, 3);
-    assert.equal((docXml.match(/\[\/Sources\]/g) ?? []).length, 3);
+    const docParagraphs = wordParagraphs(docXml);
+    const expectedSlides = threeSlideSpec(sample).slides;
+    assert.equal(docParagraphs.length, expectedSlides.length + 1);
+    assert.equal(docParagraphs[0].text, `${STEM.replaceAll("_", " ")}发言稿`);
+    for (const [index, slide] of expectedSlides.entries()) {
+      const notes = normalizeSpeakerNotes(slide);
+      const transition = notes.transition && !notes.script.includes(notes.transition) ? ` ${notes.transition}` : "";
+      assert.equal(docParagraphs[index + 1].text, `第${index + 1}页：${notes.script}${transition}`);
+      assert.match(docParagraphs[index + 1].xml, new RegExp(`<w:b(?:\\s[^>]*)?\\/>[\\s\\S]*?<w:t(?:\\s[^>]*)?>第${index + 1}页：<\\/w:t>`));
+    }
+    assert.doesNotMatch(docXml, /\[\/?Sources\]/);
+    assert.doesNotMatch(docXml, /过渡：/);
+    assert.doesNotMatch(docXml, /P01｜|PPT 备注/);
     const deliveredPptx = path.join(delivery, `${STEM}.pptx`);
     const notesEntries = (await archiveEntries(deliveredPptx)).filter((entry) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(entry));
-    assert.equal(notesEntries.length, 3);
+    assert.equal(notesEntries.length, expectedSlides.length);
     const noteXml = (await Promise.all(notesEntries.map((entry) => xmlText(deliveredPptx, entry)))).join("\n");
-    assert.equal((noteXml.match(/\[Sources\]/g) ?? []).length, 3);
-    assert.equal((noteXml.match(/\[\/Sources\]/g) ?? []).length, 3);
+    assert.equal((noteXml.match(/\[Sources\]/g) ?? []).length, expectedSlides.length);
+    assert.equal((noteXml.match(/\[\/Sources\]/g) ?? []).length, expectedSlides.length);
 
     const badAssets = path.join(temporary, "bad-assets");
     await fs.mkdir(path.join(badAssets, "figures"), { recursive: true });

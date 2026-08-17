@@ -13,7 +13,9 @@ const DEFAULT_SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
 const REQUIRED_SCRIPTS = [
   "validate-project.mjs",
   "validate-deck-spec.mjs",
+  "validate-scientific-design.mjs",
   "build-outline.mjs",
+  "build-project.mjs",
   "create-layout-library.mjs",
   "create-group-meeting-layout-library.mjs",
   "create-proposal-midterm-layout-library.mjs",
@@ -25,6 +27,7 @@ const REQUIRED_SCRIPTS = [
   "run-skill-evals.mjs",
   "speaker-notes.mjs",
   "build-speaker-script.mjs",
+  "render-word-qa.mjs",
   "create-project-builder.mjs",
   "stage-delivery.mjs",
 ];
@@ -39,6 +42,12 @@ const REQUIRED_TESTS = [
   "delivery-contract.test.mjs",
   "intake-controls.test.mjs",
   "theme-contract.test.mjs",
+  "font-portability.test.mjs",
+  "word-render-qa.test.mjs",
+  "scientific-design-quality.test.mjs",
+  "scientific-canvas-render.test.mjs",
+  "build-project-cache.test.mjs",
+  "final-defense-structure.test.mjs",
 ];
 const PROFILE_REGISTRY_PATH = path.join("assets", "profile-registry.json");
 const PROFILE_ASSET_FIELDS = ["layoutLibrary", "layoutRegistry", "templateMap", "designTokens", "themePresets", "librarySpec", "preview"];

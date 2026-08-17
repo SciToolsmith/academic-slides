@@ -17,11 +17,12 @@ QA 同时覆盖学术内容、证据、叙事、视觉和技术。结构检查�
 
 1. 校验 `project-config.json`、`figures.manifest.json` 和 `deck-spec.json` 的 JSON Schema。
 2. 执行跨字段语义检查。
-3. 构建 PPTX、Word 发言稿和项目 MJS。
-4. 渲染所有幻灯片和联系表一次；渲染 Word 为逐页 PNG 一次。
-5. 先看全稿节奏，再逐页全尺寸复核一次；检查 Word 标题、分页、讲稿和 Sources。
-6. 检查 PPT 备注、Word、媒体、字体、公式、MJS 可复现性和可编辑性。
-7. 修复后只复查受影响页面；主题、字体、母版、全局间距、导航或渲染器变更才触发全稿复查。
+3. 对生产型 deck 执行 `node scripts/validate-scientific-design.mjs <deck-spec.json> --strict`，先修复科研关系、视觉焦点、图片处理和布局重复问题；布局画廊显式使用 `artifact_purpose: "layout_gallery"` 豁免。
+4. 构建 PPTX、Word 发言稿和项目 MJS。
+5. 渲染所有幻灯片和联系表一次；使用 `node scripts/render-word-qa.mjs --input <发言稿.docx> --output-dir <内部QA目录>` 将 Word 渲染为逐页 PNG 一次。该包装器继续调用 Documents Skill 的 `render_docx.py`，并为 bundled LibreOffice 显式加载其 `fontconfig/fonts.conf`，避免 macOS 中文字体被错误替换为空白。
+6. 先看全稿节奏，再逐页全尺寸复核一次；检查 Word 标题、分页、逐页编号和讲稿顺序；来源继续在 PPT 备注中核对。
+7. 检查 PPT 备注、Word、媒体、字体、公式、MJS 可复现性和可编辑性。
+8. 修复后只复查受影响页面；主题、字体、母版、全局间距、导航或渲染器变更才触发全稿复查。
 
 ## 学术与证据 QA
 
@@ -56,7 +57,11 @@ QA 同时覆盖学术内容、证据、叙事、视觉和技术。结构检查�
 - 对比图尺度和视觉编码一致。
 - 公式清晰，变量解释靠近公式；页面不得出现 raw LaTeX 命令。
 - 流程图关系真实，箭头、分支和循环无歧义。
+- 分支、汇合、反馈或循环关系没有被线性 ribbon、时间线、阶梯或流水线模板扭曲。
 - 不存在为填空而画的流程图、树形图或卡片。
+- 核心结果与验证页把 `visual_focus` 真正落实为局部强调、已处理证据资产或直接图上标注；复杂双栏科研图的 `annotation_plan` 已转化为实际可见处理，不只停留在元数据。
+- 论文图不止做普通裁边或 `contain`：需要评委定位的证据已按需标注、局部放大、拆分或忠实重绘。
+- 标题、takeaway 和底部结论条没有重复同一句结论；连续三页同一布局 variant 已有证据关系上的理由。
 - 页面不过密，也不因装饰造成空洞。
 - 颜色、字体、页码、导航和章节规则一致。
 - 眯眼检查每页只有一个第一落点；局部强调不超过 2 段且没有把普通信息全部染色。
@@ -71,10 +76,11 @@ QA 同时覆盖学术内容、证据、叙事、视觉和技术。结构检查�
 - PPTX 能正常打开、保存和播放。
 - 页面顺序、总页数、章节和 `deck-spec.json` 一致。
 - 每页备注包含讲稿和 `[Sources]` 区块。
-- Word 发言稿与 PPT 备注来自同一 `speaker_notes`，页面数量、顺序、讲稿、过渡和 Sources 一致；每页只有一个 Sources 区块。
+- Word 发言稿与 PPT 备注来自同一 `speaker_notes`，页面数量、顺序、讲稿和过渡一致；PPT 每页保留一个 Sources 区块，精简 Word 默认不重复展示 Sources。
+- Word QA 同时满足三项：OOXML 中中文正文完整、PDF/PNG 使用可识别的 CJK 字体、逐页 PNG 中文可见。Darwin 下包装器另生成 QuickLook 缩略图作为原生解析交叉检查。若结果为 `runtime-limited`，这是 LibreOffice 字体解析环境限制，不得据此改写、图片化或嵌入整套正文字体；应改用原生 Word/QuickLook 复核并在内部 QA 记录限制。QuickLook 缩略图只验证原生中文显示，完整页数仍以修复后的逐页渲染或原生 Word 导出为准。
 - 项目 MJS 不读取未交付的 deck spec，不含本机绝对路径，能使用包内相对资产重建同名 PPTX 和 DOCX。
 - 所有外链媒体已按交付策略嵌入或明确说明。
-- 字体缺失不会造成严重替换或字符丢失。
+- `theme.fonts` 只使用 profile 声明的主字体或回退字体，且中文标题/正文使用同一可验证字体；不得临时写入 Heiti SC 等未声明字体。在 PowerPoint 与 QA 渲染器中都不应出现严重替换、方框或字符丢失。
 - 公式资产来自已核对的源：优先使用本地 LaTeX 同源生成的 SVG/PNG；SVG 或 PNG 在目标软件中正确显示。
 - 关键文本、形状、图表和流程图保持可编辑；无法编辑的部分有合理原因。
 - 未包含临时路径、敏感信息、无关文件或失效资源。
@@ -91,6 +97,12 @@ JSON Schema 之外至少检查：
 - 所有 `evidence_refs`、`source_refs` 和资产 ID 可解析；
 - `formula.include=true` 时存在公式内容、角色和来源；
 - `diagram.include=true` 时至少有节点、关系和明确输出；
+- `diagram.edges` 含分支、汇合、反馈、循环或非线性拓扑时，布局不得使用线性 variant；
+- 生产型 `final_defense` 的技术核心页不能全稿只有 `strong` 或零强调；需在少数证据页落实可编辑语义强调；
+- 核心结果/验证页至少具有已渲染的 `text_emphasis`、已选中的 `ready/` 处理资产或自由画布直接标注之一；`visual_focus`/`annotation_plan` 元数据本身不计为落实；
+- included 科研图全部只有 `crop/contain` 且无标注、拆分、局部放大或重绘时产生重要警告，严格模式视为失败；
+- 复杂 chart/diagram 放入双栏且没有 `annotation_plan` 时产生重要警告，严格模式视为失败；
+- 标题、takeaway 与 `render_data` 结论重复，以及连续三页同一 layout variant，均在完整构建前报告；
 - `figure_count` 与图片记录数一致；
 - 备注预计秒数之和与 deck 级 `estimated_seconds` 一致；仅在用户提供时长时检查其与时长软约束的近似关系；
 - 核心主张至少映射到一页和一项证据；

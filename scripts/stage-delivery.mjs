@@ -264,6 +264,9 @@ function assertBuilderContract(contract, stem) {
   if (!contract || contract.stem !== expected.stem || contract.pptx !== expected.pptx || contract.docx !== expected.docx) {
     throw new Error(`Project MJS output contract does not match delivery stem ${stem}.`);
   }
+  if (contract.artifact_purpose !== "production") {
+    throw new Error("Only artifact_purpose=production project builders may be staged as customer deliveries; layout galleries and legacy builders without an explicit production contract are rejected.");
+  }
 }
 
 async function assertRootContract(directory, stem) {
