@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "proposal-midterm-universal",
+  "profile": "proposal_midterm",
+  "supportedModes": [
+    "proposal",
+    "midterm"
+  ],
+  "displayName": "开题·中期答辩｜学术通用",
+  "source": "clean-generated-layout-library",
+  "generatedAsset": "layout-library.pptx",
+  "binding": {
+    "strategy": "semantic-layout-id-and-slot",
+    "stableKeys": [
+      "layoutId",
+      "slotName",
+      "elementName"
+    ],
+    "forbidTransientPowerPointIds": true,
+    "forbidSourceShapeIds": true,
+    "forbidSourceSlideIds": true,
+    "layoutRegistry": "layout-registry.json"
+  },
+  "globalSlots": [
+    "brand.logo",
+    "brand.institution",
+    "brand.department",
+    "profile.mode",
+    "navigation.sections",
+    "navigation.activeSection",
+    "pageNumber",
+    "speakerNotes",
+    "sources"
+  ],
+  "generationPolicy": {
+    "cleanGenerated": true,
+    "importsReferenceDeck": false,
+    "copiesReferenceSlides": false,
+    "copiesReferenceShapes": false,
+    "copiesReferenceMedia": false,
+    "dependsOnReferenceAtBuildTime": false,
+    "usesSemanticLayoutIds": true,
+    "allowsFreeEvidenceCanvas": true,
+    "fixedSectionCount": false,
+    "fixedAgendaLength": false,
+    "sameNarrativeForBothModes": false
+  },
+  "abstractHeritage": {
+    "visualPrinciples": [
+      "深蓝主色与白色画布建立庄重学术气质",
+      "顶部细线、章节编号和右上品牌槽提供轻量导航",
+      "黑色主结论、蓝色结构信息、灰蓝辅助说明形成层级",
+      "封面、目录、章节和结束页可优先复用通用壳层",
+      "正文根据证据关系原创重绘，不复制参考页几何、图片或对象"
+    ],
+    "excludedHeritage": [
+      "任何学校校徽、字样、水印或品牌照片",
+      "任何论文、期刊、实验、医学或工程图片",
+      "参考幻灯片的 shape ID、slide ID、母版 ID或对象名称",
+      "固定六部分目录、固定三栏、四方法或五步流程",
+      "示例人名、导师、日期、题目和科研结论"
+    ]
+  },
+  "referenceHeritage": {
+    "kind": "abstract-only-clean-generated",
+    "importsReferenceDeck": false,
+    "copiesReferenceShapes": false,
+    "dependsOnReferenceAtBuildTime": false,
+    "sourceSlideMap": [
+      {"layoutId": "cover-short-title", "sourceSlides": [], "origin": "clean-generated", "heritage": "白底、深蓝横向强调和正式身份信息的开场层级。"},
+      {"layoutId": "cover-long-title", "sourceSlides": [], "origin": "clean-generated", "heritage": "延续克制封面语言，为长题目重构标题比例与留白。"},
+      {"layoutId": "agenda-adaptive", "sourceSlides": [], "origin": "clean-generated", "heritage": "继承左右导航节奏，重构为3至7项自适应目录。"},
+      {"layoutId": "section-divider", "sourceSlides": [], "origin": "clean-generated", "heritage": "使用深蓝、细线与大字建立主要章节过渡。"},
+      {"layoutId": "evaluation-focus", "sourceSlides": [], "origin": "clean-generated", "heritage": "将开场导航扩展为评委待判断问题，不重复目录。"},
+      {"layoutId": "closing-feedback", "sourceSlides": [], "origin": "clean-generated", "heritage": "保留蓝白收束和简洁反馈邀请的庄重节奏。"},
+      {"layoutId": "context-stakes", "sourceSlides": [], "origin": "clean-generated", "heritage": "提炼背景、技术支撑与缺口的递进逻辑，不复制固定三卡几何。"},
+      {"layoutId": "literature-landscape", "sourceSlides": [], "origin": "clean-generated", "heritage": "将并列文献意图重构为共同维度下的综合景观。"},
+      {"layoutId": "evidence-gap", "sourceSlides": [], "origin": "clean-generated", "heritage": "把背景意义转化为已知—边界—缺口—问题的证据链。"},
+      {"layoutId": "question-hypothesis", "sourceSlides": [], "origin": "clean-generated", "heritage": "以深蓝层级组织问题、假设、预测与否证判据。"},
+      {"layoutId": "objectives-workpackages", "sourceSlides": [], "origin": "clean-generated", "heritage": "保留目标与研究任务对应意图，支持2至5个工作包。"},
+      {"layoutId": "conceptual-framework", "sourceSlides": [], "origin": "clean-generated", "heritage": "把概念、机制、结果和边界组织为可追踪关系。"},
+      {"layoutId": "scope-boundaries", "sourceSlides": [], "origin": "clean-generated", "heritage": "新增纳入、排除和外推边界的平面对照构图。"},
+      {"layoutId": "contribution-value", "sourceSlides": [], "origin": "clean-generated", "heritage": "将研究意义重构为缺口、价值、证据和边界的对应。"},
+      {"layoutId": "technical-route", "sourceSlides": [], "origin": "clean-generated", "heritage": "保留横向方向感，步骤数和分支由真实研究依赖决定。"},
+      {"layoutId": "method-architecture", "sourceSlides": [], "origin": "clean-generated", "heritage": "把多方法并列意图重构为数据、分析与验证层级。"},
+      {"layoutId": "study-design", "sourceSlides": [], "origin": "clean-generated", "heritage": "用简洁蓝白画布组织对象、处理、测量与判据。"},
+      {"layoutId": "data-sample-variables", "sourceSlides": [], "origin": "clean-generated", "heritage": "新增数据、样本、变量和质量控制的学术证据画布。"},
+      {"layoutId": "model-formula", "sourceSlides": [], "origin": "clean-generated", "heritage": "将公式、变量、自然语言含义和证据关系组织为一个焦点。"},
+      {"layoutId": "validation-plan-status", "sourceSlides": [], "origin": "clean-generated", "heritage": "把计划性验证和实绩性状态统一在共同矩阵中。"},
+      {"layoutId": "feasibility-resources", "sourceSlides": [], "origin": "clean-generated", "heritage": "保留前期基础与可行性的证明任务，删除主观标签。"},
+      {"layoutId": "risk-ethics-contingency", "sourceSlides": [], "origin": "clean-generated", "heritage": "新增风险、触发、应对和责任闭环。"},
+      {"layoutId": "innovation-claims", "sourceSlides": [], "origin": "clean-generated", "heritage": "将创新点重构为缺口、新做法和验证路径。"},
+      {"layoutId": "expected-outcomes", "sourceSlides": [], "origin": "clean-generated", "heritage": "用可验收交付物替代泛化预期成果。"},
+      {"layoutId": "baseline-gantt", "sourceSlides": [], "origin": "clean-generated", "heritage": "保留时间轴意图，增加里程碑、依赖和交付物。"},
+      {"layoutId": "proposal-decision-check", "sourceSlides": [], "origin": "clean-generated", "heritage": "新增开题结尾的价值、方法、可行性和风险检查。"},
+      {"layoutId": "progress-snapshot", "sourceSlides": [], "origin": "clean-generated", "heritage": "新增里程碑、实际证据与风险的中期概览。"},
+      {"layoutId": "plan-vs-actual", "sourceSlides": [], "origin": "clean-generated", "heritage": "将原计划和实际交付置于共同尺度比较。"},
+      {"layoutId": "leading-result-single", "sourceSlides": [], "origin": "clean-generated", "heritage": "以一幅主证据图与一条阶段结论建立视觉中心。"},
+      {"layoutId": "leading-results-multipanel", "sourceSlides": [], "origin": "clean-generated", "heritage": "将多图意图限定为2至4个证据角色共同支持一条结论。"},
+      {"layoutId": "deviation-cause-action", "sourceSlides": [], "origin": "clean-generated", "heritage": "新增偏差、根因、影响、纠偏与复查的完整链路。"},
+      {"layoutId": "remaining-work-updated-plan", "sourceSlides": [], "origin": "clean-generated", "heritage": "将旧计划重构为剩余任务、更新时间、风险和下一里程碑。"}
+    ]
+  },
+  "layoutFamilies": [
+    "opening-navigation",
+    "problem-and-evidence",
+    "research-design-and-feasibility",
+    "proposal-decision",
+    "midterm-progress-and-correction"
+  ],
+  "notes": "layout-library.pptx 将是一页一布局的32种语义画廊，不是固定32页的答辩成稿。开题与中期共享视觉系统，但分别使用计划性和实绩性叙事。没有自然匹配的注册布局时，允许使用遵守设计令牌的 free_canvas。"
+}

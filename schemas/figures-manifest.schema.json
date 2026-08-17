@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.skills/academic-slides/figures-manifest.schema.json",
+  "title": "Academic Slides Figures Manifest",
+  "description": "Traceable inventory of figures extracted from a thesis or supplied as project assets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "source_document_id",
+    "generated_at",
+    "extraction_summary",
+    "figures"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project_id": {"$ref": "#/$defs/stableId"},
+    "source_document_id": {"$ref": "#/$defs/stableId"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "extraction_summary": {"$ref": "#/$defs/extractionSummary"},
+    "figures": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/figure"}
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "extractionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detected_caption_count", "manifest_record_count", "file_count", "differences", "status"],
+      "properties": {
+        "detected_caption_count": {"type": "integer", "minimum": 0},
+        "manifest_record_count": {"type": "integer", "minimum": 0},
+        "file_count": {"type": "integer", "minimum": 0},
+        "differences": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/difference"}
+        },
+        "status": {"enum": ["matched", "explained_difference", "needs_review"]},
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "difference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "description", "resolved"],
+      "properties": {
+        "type": {"enum": ["caption_without_file", "file_without_caption", "duplicate_caption", "multi_panel", "excluded_non_figure", "other"]},
+        "description": {"type": "string", "minLength": 1},
+        "figure_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "resolved": {"type": "boolean"}
+      }
+    },
+    "figure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "figure_number",
+        "title",
+        "chapter",
+        "section",
+        "source",
+        "file",
+        "classification",
+        "description",
+        "role_in_thesis",
+        "supported_claims",
+        "ppt_use",
+        "quality",
+        "relationships",
+        "provenance",
+        "qa"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "figure_number": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "chapter": {"type": ["string", "null"]},
+        "section": {"type": ["string", "null"]},
+        "source": {"$ref": "#/$defs/sourceLocation"},
+        "file": {"$ref": "#/$defs/fileBundle"},
+        "classification": {"$ref": "#/$defs/classification"},
+        "description": {"type": "string", "minLength": 1},
+        "role_in_thesis": {"type": "string", "minLength": 1},
+        "supported_claims": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/supportedClaim"}
+        },
+        "ppt_use": {"$ref": "#/$defs/pptUse"},
+        "quality": {"$ref": "#/$defs/quality"},
+        "relationships": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/relationship"},
+          "default": []
+        },
+        "alt_text": {"type": ["string", "null"]},
+        "provenance": {"$ref": "#/$defs/provenance"},
+        "qa": {"$ref": "#/$defs/qa"}
+      }
+    },
+    "sourceLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_id", "pdf_page", "printed_page", "caption_text", "context_before", "context_after", "source_nature"],
+      "properties": {
+        "document_id": {"$ref": "#/$defs/stableId"},
+        "pdf_page": {"type": ["integer", "null"], "minimum": 1},
+        "printed_page": {"type": ["string", "integer", "null"]},
+        "caption_text": {"type": ["string", "null"]},
+        "context_before": {"type": ["string", "null"]},
+        "context_after": {"type": ["string", "null"]},
+        "source_nature": {"enum": ["author_original", "cited_by_thesis", "user_supplied", "external_supplement", "unknown"]},
+        "original_source_citation": {"type": ["string", "null"]}
+      }
+    },
+    "fileBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["original", "ready_variants"],
+      "properties": {
+        "original": {"$ref": "#/$defs/fileRecord"},
+        "ready_variants": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/readyFile"}
+        }
+      }
+    },
+    "fileRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "mime_type", "width_px", "height_px", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "mime_type": {"type": "string", "minLength": 1},
+        "width_px": {"type": ["integer", "null"], "minimum": 1},
+        "height_px": {"type": ["integer", "null"], "minimum": 1},
+        "dpi": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "color_space": {"type": ["string", "null"]},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "readyFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "purpose", "mime_type", "sha256", "transformations"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "path": {"type": "string", "minLength": 1},
+        "purpose": {"enum": ["cropped", "annotated", "enhanced", "transparent", "split_panel", "format_compatible", "redrawn", "other"]},
+        "mime_type": {"type": "string", "minLength": 1},
+        "width_px": {"type": ["integer", "null"], "minimum": 1},
+        "height_px": {"type": ["integer", "null"], "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "transformations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["figure_type", "content_domain", "contains_text", "multi_panel"],
+      "properties": {
+        "figure_type": {"enum": ["photo", "schematic", "diagram", "flowchart", "chart", "plot", "map", "microscopy", "screenshot", "render", "equation", "composite", "other"]},
+        "content_domain": {"type": ["string", "null"]},
+        "contains_text": {"type": "boolean"},
+        "multi_panel": {"type": "boolean"},
+        "panel_labels": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        }
+      }
+    },
+    "supportedClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim", "support_level"],
+      "properties": {
+        "claim_id": {"type": ["string", "null"]},
+        "claim": {"type": "string", "minLength": 1},
+        "support_level": {"enum": ["direct", "supporting", "context_only", "uncertain"]},
+        "scope_limit": {"type": ["string", "null"]}
+      }
+    },
+    "pptUse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommended", "priority", "rationale", "suggested_layout", "presentation_notes"],
+      "properties": {
+        "recommended": {"type": "boolean"},
+        "priority": {"enum": ["core", "supporting", "appendix", "not_recommended"]},
+        "rationale": {"type": "string", "minLength": 1},
+        "suggested_layout": {"type": ["string", "null"]},
+        "presentation_notes": {"type": ["string", "null"]},
+        "annotation_needed": {"type": "boolean", "default": false},
+        "annotation_plan": {"type": ["string", "null"]},
+        "related_slide_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clarity", "crop", "text_readability", "resolution_status", "issues"],
+      "properties": {
+        "clarity": {"enum": ["excellent", "good", "acceptable", "poor", "unusable"]},
+        "crop": {"enum": ["clean", "needs_crop", "cropped_incorrectly", "unknown"]},
+        "text_readability": {"enum": ["clear", "small", "illegible", "not_applicable", "unknown"]},
+        "resolution_status": {"enum": ["sufficient", "marginal", "insufficient", "vector", "unknown"]},
+        "issues": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["figure_id", "relation"],
+      "properties": {
+        "figure_id": {"$ref": "#/$defs/stableId"},
+        "relation": {"enum": ["before_after", "same_experiment", "same_system", "detail_of", "overview_of", "alternative", "sequence", "other"]},
+        "note": {"type": ["string", "null"]}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["extraction_method", "created_at", "transformations"],
+      "properties": {
+        "extraction_method": {"enum": ["embedded_asset", "vector_export", "page_crop", "manual_crop", "user_supplied", "external_download", "other"]},
+        "tool": {"type": ["string", "null"]},
+        "created_at": {"type": "string", "format": "date-time"},
+        "transformations": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "qa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "issues"],
+      "properties": {
+        "status": {"enum": ["not_checked", "pass", "warning", "fail"]},
+        "issues": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/qaIssue"}
+        }
+      }
+    },
+    "qaIssue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "message", "resolved"],
+      "properties": {
+        "severity": {"enum": ["info", "warning", "error"]},
+        "message": {"type": "string", "minLength": 1},
+        "resolved": {"type": "boolean"},
+        "resolution": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

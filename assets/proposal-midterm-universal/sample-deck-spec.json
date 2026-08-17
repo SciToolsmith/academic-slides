@@ -1,0 +1,4013 @@
+{
+  "schema_version": "1.0",
+  "project_id": "proposal-midterm-layout-library",
+  "profile": "proposal_midterm",
+  "milestone": {
+    "mode": "proposal",
+    "as_of_date": null,
+    "plan_document_ids": [
+      "gallery-plan"
+    ],
+    "progress_document_ids": [],
+    "work_packages": [
+      {
+        "id": "gallery-work-package",
+        "title": "布局画廊计划工作包",
+        "status": "planned",
+        "planned_output": "32页一页一布局的可编辑布局画廊",
+        "planned_due": null,
+        "actual_output": null,
+        "evidence_refs": [
+          "layout-registry"
+        ],
+        "deviation_reason": null,
+        "next_action": null
+      }
+    ],
+    "review_question": "哪种布局能在不改变真实证据结构的前提下最清晰地回答当页问题？"
+  },
+  "title": "开题·中期答辩｜学术通用布局库",
+  "language": "zh-CN",
+  "slide_size": {
+    "ratio": "16:9",
+    "width_inches": 13.333,
+    "height_inches": 7.5
+  },
+  "timing": {
+    "duration_minutes": 9,
+    "usable_fraction": 0.75,
+    "target_seconds": 405,
+    "estimated_seconds": 396,
+    "approximate": true,
+    "page_policy": "fixed",
+    "target_slide_count": 32,
+    "timing_notes": [
+      "本文件是一页一布局的视觉画廊，不是正式开题或中期答辩的页序与时长建议。",
+      "正式项目的页数、目录、章节和正文构图由论文、研究计划和实际进展决定。"
+    ]
+  },
+  "theme": {
+    "id": "proposal-midterm-academic-blue",
+    "mode": "preset",
+    "institution": null,
+    "verified_logo_asset_id": null,
+    "colors": {
+      "primary": "#183A6A",
+      "primary_dark": "#10294C",
+      "primary_light": "#E8EDF4",
+      "accent": "#B77A2E",
+      "background": "#FFFFFF",
+      "surface": "#F5F7FA",
+      "text": "#111827",
+      "muted_text": "#596273",
+      "warning": "#B56A2E",
+      "chart_series": [
+        "#183A6A",
+        "#5877A2",
+        "#39786E",
+        "#B77A2E",
+        "#725A8B",
+        "#A5424A"
+      ]
+    },
+    "fonts": {
+      "heading": "Microsoft YaHei",
+      "body": "Microsoft YaHei",
+      "latin": "Arial",
+      "math": "Latin Modern Math"
+    }
+  },
+  "sections": [
+    {
+      "id": "orientation",
+      "order": 1,
+      "title": "起始与导航",
+      "short_title": "起始与导航",
+      "role": "opening",
+      "purpose": "建立答辩阶段、论证路线和评审焦点。"
+    },
+    {
+      "id": "question-logic",
+      "order": 2,
+      "title": "问题与研究逻辑",
+      "short_title": "问题与逻辑",
+      "role": "problem",
+      "purpose": "从背景、文献、缺口推到问题、目标和边界。"
+    },
+    {
+      "id": "method-feasibility",
+      "order": 3,
+      "title": "方法、验证与可行性",
+      "short_title": "方法与可行性",
+      "role": "method",
+      "purpose": "说明方法闭环、数据条件、验证、公式、风险和资源。"
+    },
+    {
+      "id": "proposal-review",
+      "order": 4,
+      "title": "开题专属评审",
+      "short_title": "开题专属",
+      "role": "contribution",
+      "purpose": "展示创新、预期成果、基线计划和评审请求。"
+    },
+    {
+      "id": "midterm-review",
+      "order": 5,
+      "title": "中期专属评审",
+      "short_title": "中期专属",
+      "role": "progress",
+      "purpose": "展示实际进展、阶段证据、偏差、纠偏和更新计划。"
+    }
+  ],
+  "sources": [
+    {
+      "id": "layout-registry",
+      "type": "user_material",
+      "title": "开题·中期答辩通用版式注册表",
+      "citation": "academic-slides/assets/proposal-midterm-universal/layout-registry.json",
+      "document_id": null,
+      "paper_id": null,
+      "path": "layout-registry.json",
+      "url": null,
+      "creator": "academic-slides",
+      "published_at": null,
+      "accessed_at": null,
+      "source_nature": "author_original",
+      "verification_status": "verified",
+      "notes": "定义32种布局的语义、模式支持、证据要求和使用边界。"
+    },
+    {
+      "id": "design-tokens",
+      "type": "user_material",
+      "title": "开题·中期答辩设计令牌",
+      "citation": "academic-slides/assets/proposal-midterm-universal/design-tokens.json",
+      "document_id": null,
+      "paper_id": null,
+      "path": "design-tokens.json",
+      "url": null,
+      "creator": "academic-slides",
+      "published_at": null,
+      "accessed_at": null,
+      "source_nature": "author_original",
+      "verification_status": "verified",
+      "notes": "定义字体、色彩、间距、状态和开题/中期叙事语义。"
+    },
+    {
+      "id": "template-heritage",
+      "type": "user_material",
+      "title": "开题·中期通用布局 clean-generated 迁移记录",
+      "citation": "academic-slides/assets/proposal-midterm-universal/template-map.json",
+      "document_id": null,
+      "paper_id": null,
+      "path": "template-map.json",
+      "url": null,
+      "creator": "academic-slides",
+      "published_at": null,
+      "accessed_at": null,
+      "source_nature": "author_original",
+      "verification_status": "verified",
+      "notes": "只记录抽象视觉 heritage；不复制参考幻灯片对象、学校品牌、科研图片、事实或本机路径。"
+    }
+  ],
+  "slides": [
+    {
+      "id": "sample-cover-short-title",
+      "order": 1,
+      "kind": "title",
+      "section_id": "orientation",
+      "purpose": "示范 cover-short-title 在开题场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 cover-short-title？",
+      "takeaway": "短题目封面只交代课题、答辩阶段和正式身份信息。",
+      "priority": "supporting",
+      "content": {
+        "title": "可解释机器学习风险预测研究",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "title",
+        "variant": "cover-short-title",
+        "rationale": "只有当内容关系自然匹配 cover-short-title 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“可解释机器学习风险预测研究”。短题目封面只交代课题、答辩阶段和正式身份信息。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“面向复杂场景的多源异构数据融合、机制解释与可验证决策方法研究”。",
+        "estimated_seconds": 8,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=cover-short-title",
+            "citation": "开题·中期答辩通用版式注册表：cover-short-title",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=cover-short-title",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "proposal",
+        "mode_label": "开题答辩",
+        "subtitle": "Research Proposal",
+        "presenter": "示范姓名",
+        "advisor": "示范导师",
+        "institution": "示范学术机构",
+        "date": "20XX 年 X 月"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-cover-long-title",
+      "order": 2,
+      "kind": "title",
+      "section_id": "orientation",
+      "purpose": "示范 cover-long-title 在中期场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 cover-long-title？",
+      "takeaway": "长题目封面扩大标题区，不通过缩小字号强行塞入。",
+      "priority": "supporting",
+      "content": {
+        "title": "面向复杂场景的多源异构数据融合、机制解释与可验证决策方法研究",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "title",
+        "variant": "cover-long-title",
+        "rationale": "只有当内容关系自然匹配 cover-long-title 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“面向复杂场景的多源异构数据融合、机制解释与可验证决策方法研究”。长题目封面扩大标题区，不通过缩小字号强行塞入。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“汇报结构由证据链决定”。",
+        "estimated_seconds": 8,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=cover-long-title",
+            "citation": "开题·中期答辩通用版式注册表：cover-long-title",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=cover-long-title",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "midterm",
+        "mode_label": "中期答辩",
+        "subtitle": "Midterm Progress Review",
+        "presenter": "示范姓名",
+        "advisor": "示范导师",
+        "institution": "示范学术机构",
+        "date": "20XX 年 X 月"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-agenda-adaptive",
+      "order": 3,
+      "kind": "agenda",
+      "section_id": "orientation",
+      "purpose": "示范 agenda-adaptive 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 agenda-adaptive？",
+      "takeaway": "目录可以3至7部分自适应，不固定开题或中期的章节数。",
+      "priority": "supporting",
+      "content": {
+        "title": "汇报结构由证据链决定",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "agenda",
+        "variant": "agenda-adaptive",
+        "rationale": "只有当内容关系自然匹配 agenda-adaptive 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“汇报结构由证据链决定”。目录可以3至7部分自适应，不固定开题或中期的章节数。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“方法与验证”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=agenda-adaptive",
+            "citation": "开题·中期答辩通用版式注册表：agenda-adaptive",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=agenda-adaptive",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "sections": [
+          {
+            "number": "01",
+            "title": "问题与缺口",
+            "detail": "为什么值得研究"
+          },
+          {
+            "number": "02",
+            "title": "目标与设计",
+            "detail": "准备如何回答"
+          },
+          {
+            "number": "03",
+            "title": "方法与验证",
+            "detail": "证据如何建立"
+          },
+          {
+            "number": "04",
+            "title": "可行性与风险",
+            "detail": "能否按计划交付"
+          },
+          {
+            "number": "05",
+            "title": "计划与评审请求",
+            "detail": "需要形成什么判断"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-section-divider",
+      "order": 4,
+      "kind": "section",
+      "section_id": "orientation",
+      "purpose": "示范 section-divider 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 section-divider？",
+      "takeaway": "章节页用一个桥接问题建立节奏，不承担正文证据。",
+      "priority": "supporting",
+      "content": {
+        "title": "方法与验证",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "section",
+        "variant": "section-divider",
+        "rationale": "只有当内容关系自然匹配 section-divider 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“方法与验证”。章节页用一个桥接问题建立节奏，不承担正文证据。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“本次评审需要形成三个判断”。",
+        "estimated_seconds": 8,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=section-divider",
+            "citation": "开题·中期答辩通用版式注册表：section-divider",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=section-divider",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "section_number": "03",
+        "section_title": "方法与验证",
+        "bridge": "怎样的证据组合，才足以回答核心研究问题？"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-evaluation-focus",
+      "order": 5,
+      "kind": "content",
+      "section_id": "orientation",
+      "purpose": "示范 evaluation-focus 在开题场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 evaluation-focus？",
+      "takeaway": "开题关心价值与可行性，中期关心实际证据与剩余交付。",
+      "priority": "supporting",
+      "content": {
+        "title": "本次评审需要形成三个判断",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "free_canvas",
+        "variant": "evaluation-focus",
+        "rationale": "只有当内容关系自然匹配 evaluation-focus 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“本次评审需要形成三个判断”。开题关心价值与可行性，中期关心实际证据与剩余交付。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“敬请各位老师批评指正”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=evaluation-focus",
+            "citation": "开题·中期答辩通用版式注册表：evaluation-focus",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=evaluation-focus",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "proposal",
+        "question": "本研究是否已形成值得开展、可被验证且能按期交付的闭环？",
+        "criteria": [
+          {
+            "title": "问题是否成立",
+            "body": "缺口和边界是否有证据支持"
+          },
+          {
+            "title": "方案是否闭环",
+            "body": "方法、数据与验证能否对应问题"
+          },
+          {
+            "title": "计划是否可交付",
+            "body": "资源、风险和里程碑是否可控"
+          }
+        ],
+        "request": "请评委重点判断核心假设、验证强度和时间边界。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-closing-feedback",
+      "order": 6,
+      "kind": "closing",
+      "section_id": "orientation",
+      "purpose": "示范 closing-feedback 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 closing-feedback？",
+      "takeaway": "结束页简洁收束，实质结论和评审请求应在前一页完成。",
+      "priority": "supporting",
+      "content": {
+        "title": "敬请各位老师批评指正",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "closing",
+        "variant": "closing-feedback",
+        "rationale": "只有当内容关系自然匹配 closing-feedback 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“敬请各位老师批评指正”。结束页简洁收束，实质结论和评审请求应在前一页完成。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“现实信号和技术限制共同定义了研究问题”。",
+        "estimated_seconds": 8,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=closing-feedback",
+            "citation": "开题·中期答辩通用版式注册表：closing-feedback",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=closing-feedback",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "prompts": [
+          "研究问题与边界",
+          "方法与验证闭环",
+          "进度、风险与下一步"
+        ],
+        "presenter": "示范姓名 · 学术答辩"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-context-stakes",
+      "order": 7,
+      "kind": "content",
+      "section_id": "question-logic",
+      "purpose": "示范 context-stakes 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 context-stakes？",
+      "takeaway": "背景页必须从可核对证据推到核心问题。",
+      "priority": "supporting",
+      "content": {
+        "title": "现实信号和技术限制共同定义了研究问题",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "context-stakes",
+        "rationale": "只有当内容关系自然匹配 context-stakes 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“现实信号和技术限制共同定义了研究问题”。背景页必须从可核对证据推到核心问题。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“三条研究路线在证据直接性上仍有断层”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=context-stakes",
+            "citation": "开题·中期答辩通用版式注册表：context-stakes",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=context-stakes",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "evidence_items": [
+          {
+            "title": "现实信号",
+            "value": "XX%",
+            "body": "来源明确的趋势或影响"
+          },
+          {
+            "title": "技术约束",
+            "value": "3 项",
+            "body": "当前方法的关键失效点"
+          },
+          {
+            "title": "研究切口",
+            "value": "1 个",
+            "body": "本项目能直接验证的问题"
+          }
+        ],
+        "conclusion": "真正的研究必要性来自证据之间的张力，不是泛化意义。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-literature-landscape",
+      "order": 8,
+      "kind": "content",
+      "section_id": "question-logic",
+      "purpose": "示范 literature-landscape 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 literature-landscape？",
+      "takeaway": "文献综述应按共同维度比较，而不是默认分成国内与国外。",
+      "priority": "supporting",
+      "content": {
+        "title": "三条研究路线在证据直接性上仍有断层",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "case_matrix",
+        "variant": "literature-landscape",
+        "rationale": "只有当内容关系自然匹配 literature-landscape 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三条研究路线在证据直接性上仍有断层”。文献综述应按共同维度比较，而不是默认分成国内与国外。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“已知结论无法直接回答目标场景中的机制问题”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=literature-landscape",
+            "citation": "开题·中期答辩通用版式注册表：literature-landscape",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=literature-landscape",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "streams": [
+          {
+            "title": "理论解释",
+            "consensus": "确认关键关系",
+            "limit": "缺少直接操作化"
+          },
+          {
+            "title": "数据驱动",
+            "consensus": "可以提升预测",
+            "limit": "外部适用性不清"
+          },
+          {
+            "title": "机制验证",
+            "consensus": "提供因果线索",
+            "limit": "样本与情境有限"
+          }
+        ],
+        "synthesis": "当前缺口是一条可跨样本验证的解释链。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-evidence-gap",
+      "order": 9,
+      "kind": "content",
+      "section_id": "question-logic",
+      "purpose": "示范 evidence-gap 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 evidence-gap？",
+      "takeaway": "缺口必须由已知证据、边界和未解问题逐步推出。",
+      "priority": "supporting",
+      "content": {
+        "title": "已知结论无法直接回答目标场景中的机制问题",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "evidence-gap",
+        "rationale": "只有当内容关系自然匹配 evidence-gap 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“已知结论无法直接回答目标场景中的机制问题”。缺口必须由已知证据、边界和未解问题逐步推出。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“核心假设将研究问题转化为可否证的预测”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=evidence-gap",
+            "citation": "开题·中期答辩通用版式注册表：evidence-gap",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=evidence-gap",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "known": "现有研究在单一数据源上已证明现象存在。",
+        "boundary": "测量时间窗、样本结构和对照方式不一致。",
+        "gap": "仍不清楚哪条机制驱动差异，也缺少外部验证。",
+        "question": "哪个可检验机制能同时解释差异和适用边界？"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-question-hypothesis",
+      "order": 10,
+      "kind": "content",
+      "section_id": "question-logic",
+      "purpose": "示范 question-hypothesis 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 question-hypothesis？",
+      "takeaway": "问题、假设、预测和判据应能在一页上互相对应。",
+      "priority": "supporting",
+      "content": {
+        "title": "核心假设将研究问题转化为可否证的预测",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "question-hypothesis",
+        "rationale": "只有当内容关系自然匹配 question-hypothesis 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“核心假设将研究问题转化为可否证的预测”。问题、假设、预测和判据应能在一页上互相对应。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“三个工作包逐步回答总目标，但数量不由模板固定”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=question-hypothesis",
+            "citation": "开题·中期答辩通用版式注册表：question-hypothesis",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=question-hypothesis",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "question": "在目标条件下，关键因素 X 是否通过机制 M 改变结果 Y？",
+        "hypothesis": "若 X 通过 M 作用，则控制 M 后 X 对 Y 的效应应显著减弱。",
+        "predictions": [
+          "关键中介随 X 变化",
+          "干预中介后 Y 同步变化",
+          "独立样本中方向一致"
+        ],
+        "criterion": "预测中任一关键环节失败时，必须修正或否定假设。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-objectives-workpackages",
+      "order": 11,
+      "kind": "content",
+      "section_id": "question-logic",
+      "purpose": "示范 objectives-workpackages 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 objectives-workpackages？",
+      "takeaway": "每个工作包必须有独立问题、方法和交付证据。",
+      "priority": "supporting",
+      "content": {
+        "title": "三个工作包逐步回答总目标，但数量不由模板固定",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "method_design",
+        "variant": "objectives-workpackages",
+        "rationale": "只有当内容关系自然匹配 objectives-workpackages 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三个工作包逐步回答总目标，但数量不由模板固定”。每个工作包必须有独立问题、方法和交付证据。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“输入通过核心机制影响结果，并受边界条件调节”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=objectives-workpackages",
+            "citation": "开题·中期答辩通用版式注册表：objectives-workpackages",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=objectives-workpackages",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "objective": "建立可解释、可验证并能跨场景检验的方法体系。",
+        "work_packages": [
+          {
+            "title": "WP1｜数据与表征",
+            "question": "现象是否稳定存在？",
+            "output": "标准化数据与基线"
+          },
+          {
+            "title": "WP2｜机制与方法",
+            "question": "哪条机制能解释差异？",
+            "output": "可检验模型与假设"
+          },
+          {
+            "title": "WP3｜验证与边界",
+            "question": "结论在何种条件下成立？",
+            "output": "外部验证与边界"
+          }
+        ],
+        "output": "形成从数据基线、机制方法到外部验证的完整证据链。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-conceptual-framework",
+      "order": 12,
+      "kind": "content",
+      "section_id": "question-logic",
+      "purpose": "示范 conceptual-framework 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 conceptual-framework？",
+      "takeaway": "概念框架只显示可被证据追踪的真实关系。",
+      "priority": "supporting",
+      "content": {
+        "title": "输入通过核心机制影响结果，并受边界条件调节",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "system_architecture",
+        "variant": "conceptual-framework",
+        "rationale": "只有当内容关系自然匹配 conceptual-framework 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": true,
+        "reason": "内容存在三步以上的真实顺序、依赖或调节关系。",
+        "source_refs": [
+          "template-heritage"
+        ],
+        "type": "process",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "input",
+            "label": "研究输入",
+            "role": "input",
+            "detail": "从研究问题与证据出发",
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "mechanism",
+            "label": "核心机制",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "outcome",
+            "label": "可观测结果",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "boundary",
+            "label": "边界条件",
+            "role": "context",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "input",
+            "to": "mechanism",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "mechanism",
+            "to": "outcome",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "outcome",
+            "to": "boundary",
+            "relation": "sequence",
+            "label": null
+          }
+        ],
+        "output": "形成可追踪的研究证据关系",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“输入通过核心机制影响结果，并受边界条件调节”。概念框架只显示可被证据追踪的真实关系。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“结论的有效范围由对象、情境和时间窗共同限定”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=conceptual-framework",
+            "citation": "开题·中期答辩通用版式注册表：conceptual-framework",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=conceptual-framework",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "relations": [
+          {
+            "from": "研究输入",
+            "to": "核心机制",
+            "label": "触发"
+          },
+          {
+            "from": "核心机制",
+            "to": "可观测结果",
+            "label": "影响"
+          },
+          {
+            "from": "边界条件",
+            "to": "机制→结果",
+            "label": "调节"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-scope-boundaries",
+      "order": 13,
+      "kind": "content",
+      "section_id": "question-logic",
+      "purpose": "示范 scope-boundaries 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 scope-boundaries？",
+      "takeaway": "明确边界是提升可信度，不是削弱研究价值。",
+      "priority": "supporting",
+      "content": {
+        "title": "结论的有效范围由对象、情境和时间窗共同限定",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "case_matrix",
+        "variant": "scope-boundaries",
+        "rationale": "只有当内容关系自然匹配 scope-boundaries 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“结论的有效范围由对象、情境和时间窗共同限定”。明确边界是提升可信度，不是削弱研究价值。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“研究价值来自可验证的新解释，而不是泛化的学术意义”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=scope-boundaries",
+            "citation": "开题·中期答辩通用版式注册表：scope-boundaries",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=scope-boundaries",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "included": [
+          "目标人群或对象",
+          "明确场景与工况",
+          "可观测时间窗"
+        ],
+        "excluded": [
+          "不具备必要数据的对象",
+          "与主要问题无关的特殊情境"
+        ],
+        "implication": "研究结论先针对定义范围成立，外推需要独立验证。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-contribution-value",
+      "order": 14,
+      "kind": "content",
+      "section_id": "question-logic",
+      "purpose": "示范 contribution-value 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 contribution-value？",
+      "takeaway": "贡献与价值必须连接缺口、新做法、验证和边界。",
+      "priority": "supporting",
+      "content": {
+        "title": "研究价值来自可验证的新解释，而不是泛化的学术意义",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "contribution-value",
+        "rationale": "只有当内容关系自然匹配 contribution-value 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“研究价值来自可验证的新解释，而不是泛化的学术意义”。贡献与价值必须连接缺口、新做法、验证和边界。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“技术路线从问题出发，通过验证和边界检查形成结论”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=contribution-value",
+            "citation": "开题·中期答辩通用版式注册表：contribution-value",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=contribution-value",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "contributions": [
+          {
+            "title": "理论价值",
+            "body": "把现象性相关转成可检验机制命题",
+            "boundary": "待外部样本验证"
+          },
+          {
+            "title": "方法价值",
+            "body": "建立方法—证据—边界的闭环",
+            "boundary": "依赖数据质量"
+          },
+          {
+            "title": "实践价值",
+            "body": "给出可复核的决策指标与适用条件",
+            "boundary": "不直接替代现场判断"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-technical-route",
+      "order": 15,
+      "kind": "content",
+      "section_id": "method-feasibility",
+      "purpose": "示范 technical-route 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 technical-route？",
+      "takeaway": "步骤数量由真实依赖决定，不固定为五步。",
+      "priority": "supporting",
+      "content": {
+        "title": "技术路线从问题出发，通过验证和边界检查形成结论",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "technical-route",
+        "rationale": "只有当内容关系自然匹配 technical-route 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": true,
+        "reason": "内容存在三步以上的真实顺序、依赖或调节关系。",
+        "source_refs": [
+          "template-heritage"
+        ],
+        "type": "process",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "q",
+            "label": "研究问题",
+            "role": "input",
+            "detail": "从研究问题与证据出发",
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "data",
+            "label": "数据与样本",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "method",
+            "label": "核心方法",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "validation",
+            "label": "验证与稳健性",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "boundary",
+            "label": "结论与边界",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "q",
+            "to": "data",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "data",
+            "to": "method",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "method",
+            "to": "validation",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "validation",
+            "to": "boundary",
+            "relation": "sequence",
+            "label": null
+          }
+        ],
+        "output": "形成可追踪的研究证据关系",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“技术路线从问题出发，通过验证和边界检查形成结论”。步骤数量由真实依赖决定，不固定为五步。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“三层方法架构把数据、分析和验证连成可追踪闭环”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=technical-route",
+            "citation": "开题·中期答辩通用版式注册表：technical-route",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=technical-route",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "stage_labels": [
+          "问题定义",
+          "证据准备",
+          "方法实施",
+          "交叉验证",
+          "边界判断"
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-method-architecture",
+      "order": 16,
+      "kind": "content",
+      "section_id": "method-feasibility",
+      "purpose": "示范 method-architecture 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 method-architecture？",
+      "takeaway": "架构页强调模块之间的输入输出和验证接口。",
+      "priority": "supporting",
+      "content": {
+        "title": "三层方法架构把数据、分析和验证连成可追踪闭环",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "system_architecture",
+        "variant": "method-architecture",
+        "rationale": "只有当内容关系自然匹配 method-architecture 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": true,
+        "reason": "内容存在三步以上的真实顺序、依赖或调节关系。",
+        "source_refs": [
+          "template-heritage"
+        ],
+        "type": "process",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "data",
+            "label": "数据层",
+            "role": "input",
+            "detail": "从研究问题与证据出发",
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "analysis",
+            "label": "分析层",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "validation",
+            "label": "验证层",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "decision",
+            "label": "结论与边界",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "data",
+            "to": "analysis",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "analysis",
+            "to": "validation",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "validation",
+            "to": "decision",
+            "relation": "sequence",
+            "label": null
+          }
+        ],
+        "output": "形成可追踪的研究证据关系",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三层方法架构把数据、分析和验证连成可追踪闭环”。架构页强调模块之间的输入输出和验证接口。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“对照、处理和判据共同决定研究设计是否能回答问题”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=method-architecture",
+            "citation": "开题·中期答辩通用版式注册表：method-architecture",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=method-architecture",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "layers": [
+          {
+            "title": "数据层",
+            "modules": [
+              "数据源 A",
+              "数据源 B",
+              "质量控制"
+            ]
+          },
+          {
+            "title": "分析层",
+            "modules": [
+              "表征构建",
+              "核心模型",
+              "机制解释"
+            ]
+          },
+          {
+            "title": "验证层",
+            "modules": [
+              "对照检验",
+              "稳健性",
+              "外部复核"
+            ]
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-study-design",
+      "order": 17,
+      "kind": "content",
+      "section_id": "method-feasibility",
+      "purpose": "示范 study-design 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 study-design？",
+      "takeaway": "设计页不罗列工具，只保留影响证据强度的关键选择。",
+      "priority": "supporting",
+      "content": {
+        "title": "对照、处理和判据共同决定研究设计是否能回答问题",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "method_design",
+        "variant": "study-design",
+        "rationale": "只有当内容关系自然匹配 study-design 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“对照、处理和判据共同决定研究设计是否能回答问题”。设计页不罗列工具，只保留影响证据强度的关键选择。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“样本结构和质量控制决定结论能够外推多远”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=study-design",
+            "citation": "开题·中期答辩通用版式注册表：study-design",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=study-design",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "design": [
+          {
+            "title": "对象与分组",
+            "body": "纳入条件、分层和对照"
+          },
+          {
+            "title": "处理与测量",
+            "body": "干预、时间窗和观察指标"
+          },
+          {
+            "title": "分析与验证",
+            "body": "主要模型、负对照和稳健性"
+          },
+          {
+            "title": "结论判据",
+            "body": "支持、修正或否定假设的条件"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-data-sample-variables",
+      "order": 18,
+      "kind": "content",
+      "section_id": "method-feasibility",
+      "purpose": "示范 data-sample-variables 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 data-sample-variables？",
+      "takeaway": "先交代对象、规模、变量和质量，再进入模型结果。",
+      "priority": "supporting",
+      "content": {
+        "title": "样本结构和质量控制决定结论能够外推多远",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [
+          {
+            "label": "样本量",
+            "value": "N=XXX",
+            "unit": null,
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          },
+          {
+            "label": "关键分组",
+            "value": "3",
+            "unit": "组",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          },
+          {
+            "label": "数据模态",
+            "value": "4",
+            "unit": "类",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          },
+          {
+            "label": "观察窗口",
+            "value": "12",
+            "unit": "月",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          }
+        ],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "method_design",
+        "variant": "data-sample-variables",
+        "rationale": "只有当内容关系自然匹配 data-sample-variables 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“样本结构和质量控制决定结论能够外推多远”。先交代对象、规模、变量和质量，再进入模型结果。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“核心模型用一个参数表达目标关系，其余细节留在论文中”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=data-sample-variables",
+            "citation": "开题·中期答辩通用版式注册表：data-sample-variables",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=data-sample-variables",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "layers": [
+          {
+            "title": "来源与纳入",
+            "body": "来源、抽样、纳入排除与代表性"
+          },
+          {
+            "title": "变量与测量",
+            "body": "输入、结果、共变量、单位和时间尺度"
+          },
+          {
+            "title": "质量与偏差",
+            "body": "缺失、批次、测量误差和偏差控制"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-model-formula",
+      "order": 19,
+      "kind": "content",
+      "section_id": "method-feasibility",
+      "purpose": "示范 model-formula 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 model-formula？",
+      "takeaway": "公式页只解释答辩需要理解的变量、方向、单位和边界。",
+      "priority": "supporting",
+      "content": {
+        "title": "核心模型用一个参数表达目标关系，其余细节留在论文中",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "figure_formula",
+        "variant": "model-formula",
+        "rationale": "只有当内容关系自然匹配 model-formula 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": true,
+        "reason": "该页专门验证核心方法公式的空间与解释层级；公式由本地 LaTeX 同源生成 TEX、路径化 SVG 与高分辨率透明 PNG，本库采用 PNG 以兼顾 PowerPoint/WPS 兼容性。",
+        "equation_ref": "gallery:equation-1",
+        "latex": "y = \\beta_0 + \\beta_1 x + \\varepsilon",
+        "render_method": "latex_png",
+        "role": "method_core",
+        "variables_to_explain": [
+          {
+            "symbol": "β₁",
+            "meaning": "在控制其他条件后 x 对 y 的边际影响",
+            "unit": null
+          }
+        ],
+        "plain_meaning": "β₁ 的方向和不确定性用于检验核心假设。",
+        "source_refs": [
+          "template-heritage"
+        ],
+        "asset_ref": "formulas/gallery-core-model.png",
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“核心模型用一个参数表达目标关系，其余细节留在论文中”。公式页只解释答辩需要理解的变量、方向、单位和边界。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“验证矩阵同时交代方法、判据和实际状态”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=model-formula",
+            "citation": "开题·中期答辩通用版式注册表：model-formula",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=model-formula",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "assumption": "样例公式仅用于布局画廊，不构成实际研究结论。",
+        "evidence_link": "正式答辩中应将公式与研究问题、变量和验证直接连接。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-validation-plan-status",
+      "order": 20,
+      "kind": "content",
+      "section_id": "method-feasibility",
+      "purpose": "示范 validation-plan-status 在中期场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 validation-plan-status？",
+      "takeaway": "开题显示拟验证路径，中期必须追加实际证据和未通过项。",
+      "priority": "supporting",
+      "content": {
+        "title": "验证矩阵同时交代方法、判据和实际状态",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "validation_matrix",
+        "variant": "validation-plan-status",
+        "rationale": "只有当内容关系自然匹配 validation-plan-status 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“验证矩阵同时交代方法、判据和实际状态”。开题显示拟验证路径，中期必须追加实际证据和未通过项。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“数据、方法和先行证据共同支撑方案可行”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=validation-plan-status",
+            "citation": "开题·中期答辩通用版式注册表：validation-plan-status",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=validation-plan-status",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "midterm",
+        "validations": [
+          {
+            "target": "基线效应",
+            "method": "主分析",
+            "criterion": "效应与方向达到预定判据",
+            "status": "complete",
+            "evidence": "图 3 / 表 2"
+          },
+          {
+            "target": "稳健性",
+            "method": "替代参数与负对照",
+            "criterion": "核心结论不反转",
+            "status": "inProgress",
+            "evidence": "已完成2/3"
+          },
+          {
+            "target": "外部适用性",
+            "method": "独立样本复核",
+            "criterion": "方向一致且边界可解释",
+            "status": "atRisk",
+            "evidence": "样本到位延迟"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-feasibility-resources",
+      "order": 21,
+      "kind": "content",
+      "section_id": "method-feasibility",
+      "purpose": "示范 feasibility-resources 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 feasibility-resources？",
+      "takeaway": "可行性需要可核对证据，不能只写‘条件成熟’。",
+      "priority": "supporting",
+      "content": {
+        "title": "数据、方法和先行证据共同支撑方案可行",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "feasibility-resources",
+        "rationale": "只有当内容关系自然匹配 feasibility-resources 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“数据、方法和先行证据共同支撑方案可行”。可行性需要可核对证据，不能只写‘条件成熟’。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“关键风险必须有触发指标、缓解动作和备选路径”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=feasibility-resources",
+            "citation": "开题·中期答辩通用版式注册表：feasibility-resources",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=feasibility-resources",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "dimensions": [
+          {
+            "title": "数据可得",
+            "evidence": "已完成授权或获取流程",
+            "boundary": "后续样本增量依赖外部协作"
+          },
+          {
+            "title": "方法可执行",
+            "evidence": "核心方法已完成最小原型",
+            "boundary": "大规模验证仍需优化"
+          },
+          {
+            "title": "前期证据",
+            "evidence": "先导结果支持研究方向",
+            "boundary": "当前不足以支持最终结论"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-risk-ethics-contingency",
+      "order": 22,
+      "kind": "content",
+      "section_id": "method-feasibility",
+      "purpose": "示范 risk-ethics-contingency 在开题和中期共享场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 risk-ethics-contingency？",
+      "takeaway": "风险页不追求穷尽所有问题，只处理会改变研究结论或交付的事项。",
+      "priority": "supporting",
+      "content": {
+        "title": "关键风险必须有触发指标、缓解动作和备选路径",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "case_matrix",
+        "variant": "risk-ethics-contingency",
+        "rationale": "只有当内容关系自然匹配 risk-ethics-contingency 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“关键风险必须有触发指标、缓解动作和备选路径”。风险页不追求穷尽所有问题，只处理会改变研究结论或交付的事项。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“创新点必须能回到缺口、新做法和验证路径”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=risk-ethics-contingency",
+            "citation": "开题·中期答辩通用版式注册表：risk-ethics-contingency",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=risk-ethics-contingency",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "shared",
+        "risks": [
+          {
+            "risk": "样本到位不足",
+            "trigger": "关键分层低于最小数量",
+            "response": "扩展协作来源；若仍不足，将结论限定为探索性",
+            "owner": "数据负责人"
+          },
+          {
+            "risk": "核心方法不稳定",
+            "trigger": "负对照下结果反转",
+            "response": "定位假设与数据质量，必要时切换替代模型并降低结论强度",
+            "owner": "方法负责人"
+          },
+          {
+            "risk": "伦理或数据合规",
+            "trigger": "授权范围与分析用途不一致",
+            "response": "暂停相关分析并补充审查，必要时使用合规替代数据",
+            "owner": "项目负责人"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-innovation-claims",
+      "order": 23,
+      "kind": "content",
+      "section_id": "proposal-review",
+      "purpose": "示范 innovation-claims 在开题场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 innovation-claims？",
+      "takeaway": "不使用没有检索与证据支持的‘首次’或‘填补空白’。",
+      "priority": "supporting",
+      "content": {
+        "title": "创新点必须能回到缺口、新做法和验证路径",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "innovation-claims",
+        "rationale": "只有当内容关系自然匹配 innovation-claims 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“创新点必须能回到缺口、新做法和验证路径”。不使用没有检索与证据支持的‘首次’或‘填补空白’。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“预期成果用可验收交付物表达，不把计划写成既成事实”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=innovation-claims",
+            "citation": "开题·中期答辩通用版式注册表：innovation-claims",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=innovation-claims",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "proposal",
+        "innovations": [
+          {
+            "gap": "现有研究只给出相关",
+            "novelty": "提出可操作的机制假设",
+            "validation": "通过干预和负对照验证"
+          },
+          {
+            "gap": "结论限于单一数据源",
+            "novelty": "建立跨场景边界检验",
+            "validation": "在独立样本中复核"
+          },
+          {
+            "gap": "方法结果缺少解释",
+            "novelty": "将解释纳入方法约束",
+            "validation": "比较预测与机制一致性"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-expected-outcomes",
+      "order": 24,
+      "kind": "content",
+      "section_id": "proposal-review",
+      "purpose": "示范 expected-outcomes 在开题场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 expected-outcomes？",
+      "takeaway": "每个交付物都需对应研究目标和验收判据。",
+      "priority": "supporting",
+      "content": {
+        "title": "预期成果用可验收交付物表达，不把计划写成既成事实",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "expected-outcomes",
+        "rationale": "只有当内容关系自然匹配 expected-outcomes 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“预期成果用可验收交付物表达，不把计划写成既成事实”。每个交付物都需对应研究目标和验收判据。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“基线计划用里程碑和交付物组织，而不是日常任务清单”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=expected-outcomes",
+            "citation": "开题·中期答辩通用版式注册表：expected-outcomes",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=expected-outcomes",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "proposal",
+        "outcomes": [
+          {
+            "title": "数据与规范",
+            "deliverable": "可复核数据字典与质控报告",
+            "acceptance": "关键字段、来源和处理可追溯"
+          },
+          {
+            "title": "方法与证据",
+            "deliverable": "核心模型、对照与外部验证",
+            "acceptance": "结论方向、不确定性和边界明确"
+          },
+          {
+            "title": "学术与实践",
+            "deliverable": "论文、软件或方法指南",
+            "acceptance": "与实际证据强度匹配"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-baseline-gantt",
+      "order": 25,
+      "kind": "content",
+      "section_id": "proposal-review",
+      "purpose": "示范 baseline-gantt 在开题场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 baseline-gantt？",
+      "takeaway": "甘特图必须显示阶段、依赖、里程碑和可评审交付物。",
+      "priority": "supporting",
+      "content": {
+        "title": "基线计划用里程碑和交付物组织，而不是日常任务清单",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "baseline-gantt",
+        "rationale": "只有当内容关系自然匹配 baseline-gantt 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“基线计划用里程碑和交付物组织，而不是日常任务清单”。甘特图必须显示阶段、依赖、里程碑和可评审交付物。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“开题评审最终需要判断价值、闭环、可行性与风险”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=baseline-gantt",
+            "citation": "开题·中期答辩通用版式注册表：baseline-gantt",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=baseline-gantt",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "proposal",
+        "periods": [
+          "Q1",
+          "Q2",
+          "Q3",
+          "Q4",
+          "Q5",
+          "Q6"
+        ],
+        "tasks": [
+          {
+            "title": "WP1｜数据与基线",
+            "start": 0,
+            "end": 2,
+            "status": "planned",
+            "deliverable": "M1｜基线冻结"
+          },
+          {
+            "title": "WP2｜方法与机制",
+            "start": 1,
+            "end": 4,
+            "status": "planned",
+            "deliverable": "M2｜核心方法锁定"
+          },
+          {
+            "title": "WP3｜验证与边界",
+            "start": 3,
+            "end": 5,
+            "status": "planned",
+            "deliverable": "M3｜外部验证"
+          },
+          {
+            "title": "整合与交付",
+            "start": 4,
+            "end": 6,
+            "status": "planned",
+            "deliverable": "M4｜论文与交付物"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-proposal-decision-check",
+      "order": 26,
+      "kind": "content",
+      "section_id": "proposal-review",
+      "purpose": "示范 proposal-decision-check 在开题场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 proposal-decision-check？",
+      "takeaway": "一页收回开场问题，并明确请评委对哪些权衡给出意见。",
+      "priority": "supporting",
+      "content": {
+        "title": "开题评审最终需要判断价值、闭环、可行性与风险",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "proposal-decision-check",
+        "rationale": "只有当内容关系自然匹配 proposal-decision-check 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“开题评审最终需要判断价值、闭环、可行性与风险”。一页收回开场问题，并明确请评委对哪些权衡给出意见。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“三个里程碑已有两个形成可验证交付，外部验证存在风险”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=proposal-decision-check",
+            "citation": "开题·中期答辩通用版式注册表：proposal-decision-check",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=proposal-decision-check",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "proposal",
+        "checks": [
+          {
+            "title": "价值",
+            "verdict": "问题重要且缺口可验证",
+            "evidence": "背景与文献证据"
+          },
+          {
+            "title": "方法",
+            "verdict": "任务、数据、方法和验证闭环",
+            "evidence": "技术路线与设计"
+          },
+          {
+            "title": "可行性",
+            "verdict": "前期基础与资源能支撑计划",
+            "evidence": "先行证据与资源清单"
+          },
+          {
+            "title": "风险",
+            "verdict": "关键风险有触发条件和备选路径",
+            "evidence": "风险与应对表"
+          }
+        ],
+        "request": "请评委重点对核心假设、验证强度和计划边界提出意见。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-progress-snapshot",
+      "order": 27,
+      "kind": "content",
+      "section_id": "midterm-review",
+      "purpose": "示范 progress-snapshot 在中期场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 progress-snapshot？",
+      "takeaway": "中期概览用实际证据和状态说明进展，不使用无基线百分比。",
+      "priority": "supporting",
+      "content": {
+        "title": "三个里程碑已有两个形成可验证交付，外部验证存在风险",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "validation_matrix",
+        "variant": "progress-snapshot",
+        "rationale": "只有当内容关系自然匹配 progress-snapshot 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三个里程碑已有两个形成可验证交付，外部验证存在风险”。中期概览用实际证据和状态说明进展，不使用无基线百分比。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“核心方法按计划完成，外部验证延迟一个周期”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=progress-snapshot",
+            "citation": "开题·中期答辩通用版式注册表：progress-snapshot",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=progress-snapshot",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "midterm",
+        "as_of_date": "20XX-XX-XX",
+        "work_packages": [
+          {
+            "title": "M1｜数据基线",
+            "status": "complete",
+            "body": "已形成数据字典与质控报告"
+          },
+          {
+            "title": "M2｜核心方法",
+            "status": "complete",
+            "body": "已交付模型、对照和初步结果"
+          },
+          {
+            "title": "M3｜外部验证",
+            "status": "atRisk",
+            "body": "样本延迟，已启动备选来源"
+          },
+          {
+            "title": "M4｜整合交付",
+            "status": "notStarted",
+            "body": "依赖 M3 完成"
+          }
+        ],
+        "focus": "当前最大不确定性是外部样本时间。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-plan-vs-actual",
+      "order": 28,
+      "kind": "content",
+      "section_id": "midterm-review",
+      "purpose": "示范 plan-vs-actual 在中期场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 plan-vs-actual？",
+      "takeaway": "计划与实际的差异要同时解释原因、影响和处理。",
+      "priority": "supporting",
+      "content": {
+        "title": "核心方法按计划完成，外部验证延迟一个周期",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "comparison",
+        "variant": "plan-vs-actual",
+        "rationale": "只有当内容关系自然匹配 plan-vs-actual 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“核心方法按计划完成，外部验证延迟一个周期”。计划与实际的差异要同时解释原因、影响和处理。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“核心干预在主要对照下改变了目标结果”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=plan-vs-actual",
+            "citation": "开题·中期答辩通用版式注册表：plan-vs-actual",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=plan-vs-actual",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "midterm",
+        "rows": [
+          {
+            "title": "数据基线",
+            "plan": "Q1 完成",
+            "actual": "Q1 完成",
+            "delta": "0｜无影响"
+          },
+          {
+            "title": "核心方法",
+            "plan": "Q2 锁定",
+            "actual": "Q2 锁定",
+            "delta": "0｜无影响"
+          },
+          {
+            "title": "外部验证",
+            "plan": "Q3 完成",
+            "actual": "预计 Q4",
+            "delta": "+1 周期｜挤压综合时间"
+          },
+          {
+            "title": "论文整合",
+            "plan": "Q4 启动",
+            "actual": "已提前启动",
+            "delta": "-1 周期｜部分对冲延迟"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-leading-result-single",
+      "order": 29,
+      "kind": "content",
+      "section_id": "midterm-review",
+      "purpose": "示范 leading-result-single 在中期场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 leading-result-single？",
+      "takeaway": "一张主图承担证据，旁边只保留读图方法、主结论和边界。",
+      "priority": "supporting",
+      "content": {
+        "title": "核心干预在主要对照下改变了目标结果",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "同一坐标与对照下比较",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "text": "报告方向、效应和不确定性",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "text": "限定当前结果的适用范围",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "metrics": [
+          {
+            "label": "相对基线",
+            "value": "+24",
+            "unit": "%",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          }
+        ],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "hero_figure",
+        "variant": "leading-result-single",
+        "rationale": "只有当内容关系自然匹配 leading-result-single 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [
+        {
+          "id": "leading-result-single-visual-1",
+          "type": "figure",
+          "role": "primary_evidence",
+          "include": true,
+          "rationale": "布局画廊使用占位资产验证证据面积和解释层级；正式项目必须替换为真实论文、数据或实验证据。",
+          "asset_ref": "sample:leading-result-single-evidence-1",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 1",
+          "alt_text": "开题或中期答辩证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "text_emphasis": [
+        {
+          "text": "+24",
+          "role": "result"
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“核心干预在主要对照下改变了目标结果”。一张主图承担证据，旁边只保留读图方法、主结论和边界。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“现象、机制与稳健性证据共同支持阶段结论”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=leading-result-single",
+            "citation": "开题·中期答辩通用版式注册表：leading-result-single",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=leading-result-single",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "midterm",
+        "conclusion": "阶段证据支持核心方向，但外部适用性仍待复核。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-leading-results-multipanel",
+      "order": 30,
+      "kind": "content",
+      "section_id": "midterm-review",
+      "purpose": "示范 leading-results-multipanel 在中期场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 leading-results-multipanel？",
+      "takeaway": "每个面板承担不同证据角色，但必须共同回答一个问题。",
+      "priority": "supporting",
+      "content": {
+        "title": "现象、机制与稳健性证据共同支持阶段结论",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "comparison",
+        "variant": "leading-results-multipanel",
+        "rationale": "只有当内容关系自然匹配 leading-results-multipanel 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [
+        {
+          "id": "leading-results-multipanel-visual-1",
+          "type": "figure",
+          "role": "comparison",
+          "include": true,
+          "rationale": "布局画廊使用占位资产验证证据面积和解释层级；正式项目必须替换为真实论文、数据或实验证据。",
+          "asset_ref": "sample:leading-results-multipanel-evidence-1",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 1",
+          "alt_text": "开题或中期答辩证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        },
+        {
+          "id": "leading-results-multipanel-visual-2",
+          "type": "figure",
+          "role": "comparison",
+          "include": true,
+          "rationale": "布局画廊使用占位资产验证证据面积和解释层级；正式项目必须替换为真实论文、数据或实验证据。",
+          "asset_ref": "sample:leading-results-multipanel-evidence-2",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 2",
+          "alt_text": "开题或中期答辩证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        },
+        {
+          "id": "leading-results-multipanel-visual-3",
+          "type": "figure",
+          "role": "comparison",
+          "include": true,
+          "rationale": "布局画廊使用占位资产验证证据面积和解释层级；正式项目必须替换为真实论文、数据或实验证据。",
+          "asset_ref": "sample:leading-results-multipanel-evidence-3",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 3",
+          "alt_text": "开题或中期答辩证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“现象、机制与稳健性证据共同支持阶段结论”。每个面板承担不同证据角色，但必须共同回答一个问题。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“外部样本延迟源于数据授权，已通过备选来源和并行分析纠偏”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=leading-results-multipanel",
+            "citation": "开题·中期答辩通用版式注册表：leading-results-multipanel",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=leading-results-multipanel",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "midterm",
+        "panels": [
+          {
+            "title": "现象证据",
+            "body": "主要变化在对照下稳定出现"
+          },
+          {
+            "title": "机制证据",
+            "body": "关键中介随干预同步变化"
+          },
+          {
+            "title": "稳健性证据",
+            "body": "替代参数下结论方向不反转"
+          }
+        ],
+        "boundary": "当前外部样本尚未完成，暂不做广泛外推。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-deviation-cause-action",
+      "order": 31,
+      "kind": "content",
+      "section_id": "midterm-review",
+      "purpose": "示范 deviation-cause-action 在中期场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 deviation-cause-action？",
+      "takeaway": "中期偏差页必须说明基线、实际、根因、影响、动作和复查点。",
+      "priority": "supporting",
+      "content": {
+        "title": "外部样本延迟源于数据授权，已通过备选来源和并行分析纠偏",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "deviation-cause-action",
+        "rationale": "只有当内容关系自然匹配 deviation-cause-action 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“外部样本延迟源于数据授权，已通过备选来源和并行分析纠偏”。中期偏差页必须说明基线、实际、根因、影响、动作和复查点。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“剩余工作围绕外部验证、边界收敛和论文整合展开”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=deviation-cause-action",
+            "citation": "开题·中期答辩通用版式注册表：deviation-cause-action",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=deviation-cause-action",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "midterm",
+        "items": [
+          {
+            "deviation": "外部样本验证较基线计划延迟一个周期",
+            "cause": "数据授权边界变更，不是分析方法失败",
+            "action": "启用备选数据源，并提前完成不依赖外部样本的论文部分"
+          },
+          {
+            "deviation": "外部适用性结论暂时不能按原强度表述",
+            "cause": "关键分层尚未达到预定样本量",
+            "action": "两周后按有效样本数重新判断结论强度和时间表"
+          }
+        ],
+        "review_point": "20XX-XX-XX｜检查有效样本数与关键分层"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-remaining-work-updated-plan",
+      "order": 32,
+      "kind": "content",
+      "section_id": "midterm-review",
+      "purpose": "示范 remaining-work-updated-plan 在中期场景中的语义、证据要求与视觉层级。",
+      "audience_question": "什么证据关系适合使用 remaining-work-updated-plan？",
+      "takeaway": "更新计划必须显示新时间、依赖、风险、交付物和待决问题。",
+      "priority": "supporting",
+      "content": {
+        "title": "剩余工作围绕外部验证、边界收敛和论文整合展开",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "remaining-work-updated-plan",
+        "rationale": "只有当内容关系自然匹配 remaining-work-updated-plan 的 useWhen 时才使用；否则改用其他候选或 free_canvas。",
+        "reading_order": [
+          "标题与主结论",
+          "主证据或关系",
+          "解释、偏差或边界"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有公式承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“剩余工作围绕外部验证、边界收敛和论文整合展开”。更新计划必须显示新时间、依赖、风险、交付物和待决问题。正式使用时，先判断当前是开题计划性叙事还是中期实绩性叙事，再根据真实证据选择布局；不自然匹配时使用自由画布。",
+        "transition": "下一页进入“敬请批评指正”。",
+        "estimated_seconds": 13,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=remaining-work-updated-plan",
+            "citation": "开题·中期答辩通用版式注册表：remaining-work-updated-plan",
+            "purpose": "版式语义、模式支持和使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=remaining-work-updated-plan",
+            "citation": "开题·中期通用布局的 clean-generated 抽象视觉 heritage",
+            "purpose": "视觉语言与去品牌、去科研素材边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明当页要解决的评审问题，再说证据、影响与边界。"
+        ]
+      },
+      "render_data": {
+        "mode": "midterm",
+        "periods": [
+          "T0",
+          "+1",
+          "+2",
+          "+3",
+          "+4"
+        ],
+        "tasks": [
+          {
+            "title": "备选样本接入",
+            "start": 0,
+            "end": 2,
+            "status": "inProgress",
+            "deliverable": "可用数据与质控报告"
+          },
+          {
+            "title": "外部验证",
+            "start": 1,
+            "end": 3,
+            "status": "atRisk",
+            "deliverable": "效应、不确定性与边界"
+          },
+          {
+            "title": "结果整合与补充",
+            "start": 1,
+            "end": 4,
+            "status": "inProgress",
+            "deliverable": "完整证据链"
+          },
+          {
+            "title": "论文和答辩交付",
+            "start": 3,
+            "end": 5,
+            "status": "notStarted",
+            "deliverable": "论文初稿与答辩材料"
+          }
+        ],
+        "decision": "请评委判断：若外部样本仍延迟，是否接受限定性结论并优先保证论文交付？"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    }
+  ],
+  "claim_evidence_map": [],
+  "qa": {
+    "status": "not_checked",
+    "issues": [],
+    "checks": {
+      "schema": "not_checked",
+      "evidence": "not_checked",
+      "narrative": "not_checked",
+      "visual": "not_checked",
+      "technical": "not_checked",
+      "notes_sources": "not_checked"
+    },
+    "checked_at": null
+  }
+}

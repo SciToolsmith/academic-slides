@@ -1,0 +1,35 @@
+name: Portable validation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portable-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate skill scaffold
+        run: node scripts/validate-skill-assets.mjs . --profile scaffold --strict
+
+      - name: Run deterministic contract evals
+        run: node scripts/run-skill-evals.mjs --skill-dir .
+
+      - name: Check portable release package
+        run: node scripts/package-skill.mjs --skill-dir . --check

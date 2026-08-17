@@ -1,0 +1,39 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Dependencies and local environments
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Generated and temporary output
+tmp/
+dist/
+staging/
+coverage/
+*.log
+*.tmp
+
+# Generated layout inspection and preview artifacts
+assets/*-universal/layout-library.build.json
+assets/*-universal/layout-library*.inspect.ndjson
+assets/*-universal/previews/
+
+# Runtime-fetched institutional branding
+assets/branding/university-logos/raw/
+assets/branding/university-logos/catalog.json
+
+# LaTeX intermediates
+*.aux
+*.dvi
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Python caches used by optional helper tooling
+__pycache__/
+*.py[cod]

@@ -1,0 +1,348 @@
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "proposal-midterm-universal",
+  "profile": "proposal_midterm",
+  "supportedModes": [
+    "proposal",
+    "midterm"
+  ],
+  "displayName": "开题·中期答辩｜学术通用",
+  "expectedLayoutCount": 32,
+  "selectionRule": "本库是高质量语义候选目录，不是正文白名单或固定页序。先确定答辩阶段、页面要回答的问题、中心结论和证据形态，再查询2至4个候选布局。不得为适配模板改变真实项目数、流程、因果关系、证据强度或目录章节数。",
+  "freeCompositionPolicy": {
+    "allowed": true,
+    "family": "free_canvas",
+    "useWhen": [
+      "任何注册布局都会改变真实证据数量、顺序、层级或比较尺度",
+      "论文原图、公式、史料、访谈或混合证据需要特殊构图才能忠实表达",
+      "学科语义需要本库未覆盖的原创画布"
+    ],
+    "constraints": [
+      "遵守设计令牌、投影字号、页边距、色彩对比和品牌真实性要求",
+      "保留标题、主结论、主证据、解释、边界和来源的清晰阅读顺序",
+      "不得以自由构图为由堆叠无关卡片、装饰流程或不可读整页截图"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "cover-short-title",
+      "family": "opening",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["题目在一至两行内可清晰呈现，需交代答辩阶段、答辩人、导师、机构与日期"],
+      "avoidWhen": ["长题目需要三行以上", "在封面堆入摘要、目录、结果图或制作说明"],
+      "requiredEvidence": ["正式题目", "答辩阶段与身份信息"],
+      "densityBudget": "low",
+      "fallbackFamily": "opening"
+    },
+    {
+      "id": "cover-long-title",
+      "family": "opening",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["论文或课题题名较长，需要两至三行标题或中英文题名"],
+      "avoidWhen": ["短题目使画布显得空洞", "用过小字号硬塞完整课题说明"],
+      "requiredEvidence": ["正式长题目", "必要的副题或英文题名"],
+      "densityBudget": "low",
+      "fallbackFamily": "opening"
+    },
+    {
+      "id": "agenda-adaptive",
+      "family": "navigation",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["正式汇报有3至7个稳定章节，需要让评委预判论证路线"],
+      "avoidWhen": ["极短汇报没有自然章节", "为了套模板强制固定四、五或六部分"],
+      "requiredEvidence": ["已确定的叙事章节和顺序"],
+      "densityBudget": "low",
+      "fallbackFamily": "navigation"
+    },
+    {
+      "id": "section-divider",
+      "family": "navigation",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["进入一个主要章节，需要用过渡问题或桥接句建立节奏"],
+      "avoidWhen": ["每个小节都插入章节页", "章节页承担正文证据或长段文字"],
+      "requiredEvidence": ["章节名称", "可选的桥接问题"],
+      "densityBudget": "low",
+      "fallbackFamily": "navigation"
+    },
+    {
+      "id": "evaluation-focus",
+      "family": "orientation",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["开场需要说明本次希望评委重点判断的2至4个问题"],
+      "avoidWhen": ["只是换一种说法重复目录", "将内部制作流程或时间脚手架暴露给评委"],
+      "requiredEvidence": ["开题的评审焦点或中期的待决问题"],
+      "densityBudget": "low",
+      "fallbackFamily": "free_canvas"
+    },
+    {
+      "id": "closing-feedback",
+      "family": "closing",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["正式收束、提问和反馈邀请，且前一页已完成实质综合"],
+      "avoidWhen": ["用通用感谢页代替结论、更新计划或评审请求"],
+      "requiredEvidence": ["答辩人身份", "简洁反馈邀请"],
+      "densityBudget": "low",
+      "fallbackFamily": "closing"
+    },
+    {
+      "id": "context-stakes",
+      "family": "problem-framing",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["有可核对的数据、政策、现象或工程约束说明问题重要性"],
+      "avoidWhen": ["只有‘十分重要’等泛化表述", "使用与研究问题无关的装饰图"],
+      "requiredEvidence": ["现实信号或定量数据", "与研究问题的直接联系"],
+      "densityBudget": "medium",
+      "fallbackFamily": "evidence_chain"
+    },
+    {
+      "id": "literature-landscape",
+      "family": "literature-synthesis",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["需按理论、方法、对象或结论综合多组文献并显示关系"],
+      "avoidWhen": ["默认做‘国内/国外’地理二分", "只按发表顺序罗列摘要"],
+      "requiredEvidence": ["代表性文献集", "统一综合维度", "可追溯文献定位"],
+      "densityBudget": "high",
+      "fallbackFamily": "case_matrix"
+    },
+    {
+      "id": "evidence-gap",
+      "family": "problem-framing",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["已有证据能够推出一个明确未解决问题或证据断裂"],
+      "avoidWhen": ["仅以‘研究较少’、‘鲜有报道’制造缺口", "将作者预期结论当成已知事实"],
+      "requiredEvidence": ["已知结论", "关键边界或冲突", "未解问题"],
+      "densityBudget": "medium",
+      "fallbackFamily": "evidence_chain"
+    },
+    {
+      "id": "question-hypothesis",
+      "family": "research-question",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["存在清晰研究问题、命题或可检验假设，且需区分条件、关系与结果"],
+      "avoidWhen": ["研究本身不需要假设却强造因果图", "把研究目标或方法名称写成问题"],
+      "requiredEvidence": ["研究问题", "可选的假设、命题或判据"],
+      "densityBudget": "medium",
+      "fallbackFamily": "evidence_chain"
+    },
+    {
+      "id": "objectives-workpackages",
+      "family": "research-design",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["总目标能自然分解为2至5个工作包，且每个工作包有输出或验证关系"],
+      "avoidWhen": ["为套固定三栏改写真实任务", "工作包只是论文章节名称"],
+      "requiredEvidence": ["总目标", "工作包", "每包交付物或验证问题"],
+      "densityBudget": "medium",
+      "fallbackFamily": "method_design"
+    },
+    {
+      "id": "conceptual-framework",
+      "family": "conceptual-framework",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["存在变量、概念、机制、理论层级或边界条件的真实关系"],
+      "avoidWhen": ["内容实际是时间流程或任务清单", "连线不能用明确关系动词解释"],
+      "requiredEvidence": ["核心构念或变量", "已有或拟验证关系", "边界条件"],
+      "densityBudget": "medium",
+      "fallbackFamily": "system_architecture"
+    },
+    {
+      "id": "scope-boundaries",
+      "family": "research-boundary",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["研究对象、时间、空间、工况、语料或纳入排除范围影响结论外推"],
+      "avoidWhen": ["边界简单且不影响评委判断", "把局限、风险和研究范围混成一页"],
+      "requiredEvidence": ["纳入范围", "排除范围", "外推或解释边界"],
+      "densityBudget": "medium",
+      "fallbackFamily": "case_matrix"
+    },
+    {
+      "id": "contribution-value",
+      "family": "contribution",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["需区分理论、方法、实践或工程价值，并将每项价值连到问题和证据"],
+      "avoidWhen": ["尚未验证的预期贡献被写成既成成果", "与研究缺口无关的泛化意义"],
+      "requiredEvidence": ["已识别的问题或缺口", "预期或阶段贡献", "必要的限定语"],
+      "densityBudget": "medium",
+      "fallbackFamily": "contribution_limits"
+    },
+    {
+      "id": "technical-route",
+      "family": "research-design",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["从研究问题到数据、方法、验证和输出存在真实顺序与依赖"],
+      "avoidWhen": ["内容是并列观点或章节目录", "为满足固定五步而拆分或合并真实步骤"],
+      "requiredEvidence": ["流程节点", "节点依赖或判据", "最终产出的证据"],
+      "densityBudget": "medium",
+      "fallbackFamily": "process_flow"
+    },
+    {
+      "id": "method-architecture",
+      "family": "research-design",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["多数据源、多方法模块或多层验证共同支撑一个研究结论"],
+      "avoidWhen": ["单一方法或简单顺序流程", "用中心辐射图强造独立方法"],
+      "requiredEvidence": ["方法模块", "模块间接口或依赖", "综合输出"],
+      "densityBudget": "medium",
+      "fallbackFamily": "system_architecture"
+    },
+    {
+      "id": "study-design",
+      "family": "method-design",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["实验组、对照、变量、观察窗口、样本或编码策略需要一页说清"],
+      "avoidWhen": ["纯概念论证没有可操作设计", "只罗列软件或仪器名称"],
+      "requiredEvidence": ["研究对象或样本", "处理与对照", "测量或编码", "评价判据"],
+      "densityBudget": "medium",
+      "fallbackFamily": "method_design"
+    },
+    {
+      "id": "data-sample-variables",
+      "family": "method-design",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["数据来源、抽样、样本量、变量定义或质量控制直接影响可信度"],
+      "avoidWhen": ["只显示一个样本数字而不解释结构", "把数据条件与研究结果混在一页"],
+      "requiredEvidence": ["数据或样本来源", "规模与分组", "核心变量或指标", "质量控制"],
+      "densityBudget": "medium",
+      "fallbackFamily": "method_design"
+    },
+    {
+      "id": "model-formula",
+      "family": "quantitative-method",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["一个核心公式定义目标函数、约束、方法或结果解释，且答辩必须理解其含义"],
+      "avoidWhen": ["公式仅用作装饰或与当页结论无关", "一页堆叠多个推导或未解释变量"],
+      "requiredEvidence": ["经核对的公式", "变量和单位", "一句自然语言含义", "公式来源"],
+      "densityBudget": "medium",
+      "fallbackFamily": "figure_formula"
+    },
+    {
+      "id": "validation-plan-status",
+      "family": "validation",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["存在多项指标、多数据源、多方法互证或稳健性检验；开题显示计划，中期显示状态与证据"],
+      "avoidWhen": ["一个结果即可说明问题", "中期只标‘已完成’却没有证据定位"],
+      "requiredEvidence": ["验证目标", "方法或指标", "通过判据", "中期模式的实际状态"],
+      "densityBudget": "high",
+      "fallbackFamily": "validation_matrix"
+    },
+    {
+      "id": "feasibility-resources",
+      "family": "feasibility",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["数据、设备、方法、团队、先行结果或访问权能为方案提供可核验支撑"],
+      "avoidWhen": ["只写‘条件成熟’、‘技术可行’等主观判断", "把一般实验室设备当成独特优势"],
+      "requiredEvidence": ["前期基础", "资源可得性", "方法成熟度", "关键边界"],
+      "densityBudget": "medium",
+      "fallbackFamily": "evidence_chain"
+    },
+    {
+      "id": "risk-ethics-contingency",
+      "family": "risk-and-governance",
+      "supportedModes": ["proposal", "midterm"],
+      "useWhen": ["存在伦理、数据、样本、技术、进度或外部依赖风险，需要给出触发条件与备选路径"],
+      "avoidWhen": ["为填目录列出没有实质影响的普通事项", "只列问题不给检测指标和缓解动作"],
+      "requiredEvidence": ["关键风险", "触发指标", "缓解措施", "备选方案或责任人"],
+      "densityBudget": "medium",
+      "fallbackFamily": "case_matrix"
+    },
+    {
+      "id": "innovation-claims",
+      "family": "proposal-decision",
+      "supportedModes": ["proposal"],
+      "useWhen": ["开题需要说明新问题、新视角、新方法或新证据，且每项都能连到缺口和验证路径"],
+      "avoidWhen": ["没有来源却使用‘首次’、‘填补空白’、‘国际领先’", "只把研究内容换名为创新点"],
+      "requiredEvidence": ["对应缺口", "新做法", "可验证差异", "限定语"],
+      "densityBudget": "medium",
+      "fallbackFamily": "contribution_limits"
+    },
+    {
+      "id": "expected-outcomes",
+      "family": "proposal-decision",
+      "supportedModes": ["proposal"],
+      "useWhen": ["开题需将研究产出表达为可核验的数据集、模型、理论命题、系统、论文或实践交付物"],
+      "avoidWhen": ["将预期产出写成已获得结果", "仅列发表数量而不说明学术或实践价值"],
+      "requiredEvidence": ["交付物", "验收标准", "与研究目标的对应关系"],
+      "densityBudget": "medium",
+      "fallbackFamily": "contribution_limits"
+    },
+    {
+      "id": "baseline-gantt",
+      "family": "proposal-planning",
+      "supportedModes": ["proposal"],
+      "useWhen": ["开题需展示未来阶段、里程碑、关键依赖和交付物"],
+      "avoidWhen": ["把日常小任务逐条塞入甘特图", "只显示时间条不显示里程碑和依赖"],
+      "requiredEvidence": ["工作包", "起止时间", "里程碑", "依赖和交付物"],
+      "densityBudget": "high",
+      "fallbackFamily": "timeline"
+    },
+    {
+      "id": "proposal-decision-check",
+      "family": "proposal-decision",
+      "supportedModes": ["proposal"],
+      "useWhen": ["开题结尾需回收价值、方法、可行性和风险，明确请求开题评审意见"],
+      "avoidWhen": ["重复目录或通用总结", "隐藏关键未决问题或需要评委判断的权衡"],
+      "requiredEvidence": ["价值判断", "方法闭环", "可行性证据", "关键风险与评审请求"],
+      "densityBudget": "medium",
+      "fallbackFamily": "contribution_limits"
+    },
+    {
+      "id": "progress-snapshot",
+      "family": "midterm-progress",
+      "supportedModes": ["midterm"],
+      "useWhen": ["中期开场需用里程碑和交付物概括当前状态，让评委快速知道进展结构"],
+      "avoidWhen": ["没有基线却使用主观百分比", "将所有日常活动写成成果"],
+      "requiredEvidence": ["原定里程碑", "实际状态", "可验证交付物", "主要风险"],
+      "densityBudget": "medium",
+      "fallbackFamily": "validation_matrix"
+    },
+    {
+      "id": "plan-vs-actual",
+      "family": "midterm-progress",
+      "supportedModes": ["midterm"],
+      "useWhen": ["原计划与实际执行存在可比较的任务、时间、交付物或质量指标"],
+      "avoidWhen": ["没有原计划基线", "将所有差异都简化为红绿状态而不解释影响"],
+      "requiredEvidence": ["原计划", "实际情况", "差异", "差异影响"],
+      "densityBudget": "high",
+      "fallbackFamily": "comparison"
+    },
+    {
+      "id": "leading-result-single",
+      "family": "midterm-evidence",
+      "supportedModes": ["midterm"],
+      "useWhen": ["一项关键阶段结果能独立支撑一条主要结论，且图表在投影尺度可读"],
+      "avoidWhen": ["图像模糊、统计或对照不足", "用多张小图稀释一个强结果"],
+      "requiredEvidence": ["主结果图或表", "对照与单位", "一句阶段结论", "质量或边界说明"],
+      "densityBudget": "medium",
+      "fallbackFamily": "hero_figure"
+    },
+    {
+      "id": "leading-results-multipanel",
+      "family": "midterm-evidence",
+      "supportedModes": ["midterm"],
+      "useWhen": ["2至4个相关证据分别承担现象、机制、稳健性或外部验证角色，共同支持一条结论"],
+      "avoidWhen": ["拼贴无关图片或每张图对应不同结论", "小图内部标注在投影上无法阅读"],
+      "requiredEvidence": ["共同主结论", "2至4个证据面板", "每个面板的证据角色", "综合边界"],
+      "densityBudget": "high",
+      "fallbackFamily": "comparison"
+    },
+    {
+      "id": "deviation-cause-action",
+      "family": "midterm-correction",
+      "supportedModes": ["midterm"],
+      "useWhen": ["进度、数据、方法、结果或资源存在实质偏差，需要说明根因、影响和纠偏动作"],
+      "avoidWhen": ["用‘存在困难’等模糊文字掩盖影响", "偏差尚未证实却提前归因于单一原因"],
+      "requiredEvidence": ["基线与实际偏差", "根因证据", "对交付物的影响", "纠偏动作与复查点"],
+      "densityBudget": "medium",
+      "fallbackFamily": "evidence_chain"
+    },
+    {
+      "id": "remaining-work-updated-plan",
+      "family": "midterm-planning",
+      "supportedModes": ["midterm"],
+      "useWhen": ["中期结尾需说明剩余任务、依赖、风险、下一里程碑和需要的决策"],
+      "avoidWhen": ["原样复制开题时的旧甘特图", "只列未完成任务而不显示优先级、责任、风险和交付物"],
+      "requiredEvidence": ["剩余任务", "更新时间", "依赖和风险", "下一里程碑", "评委待决事项"],
+      "densityBudget": "high",
+      "fallbackFamily": "timeline"
+    }
+  ]
+}

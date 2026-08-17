@@ -1,0 +1,3776 @@
+{
+  "schema_version": "1.0",
+  "project_id": "group-meeting-literature-layout-library",
+  "profile": "group_meeting_literature",
+  "literature": {
+    "mode": "multi_paper",
+    "focal_paper_ids": [
+      "paper-a",
+      "paper-b",
+      "paper-c"
+    ],
+    "synthesis_question": "哪些证据真正改变了我们对共同问题的判断？"
+  },
+  "title": "组会文献汇报·学术通用｜布局库",
+  "language": "zh-CN",
+  "slide_size": {
+    "ratio": "16:9",
+    "width_inches": 13.333,
+    "height_inches": 7.5
+  },
+  "timing": {
+    "duration_minutes": 8,
+    "usable_fraction": 0.75,
+    "target_seconds": 360,
+    "estimated_seconds": 348,
+    "approximate": true,
+    "page_policy": "fixed",
+    "target_slide_count": 30,
+    "timing_notes": [
+      "本文件是一页一布局的视觉画廊，不是正式组会页序或时长建议。",
+      "页数、论文数与章节数由真实证据结构决定。"
+    ]
+  },
+  "theme": {
+    "id": "group-meeting-literature-blue",
+    "mode": "preset",
+    "institution": null,
+    "verified_logo_asset_id": null,
+    "colors": {
+      "primary": "#32497B",
+      "primary_dark": "#24355D",
+      "primary_light": "#E8EDF6",
+      "accent": "#C7922C",
+      "background": "#FFFFFF",
+      "surface": "#F4F6F9",
+      "text": "#17213A",
+      "muted_text": "#5D667A",
+      "warning": "#B46A2C",
+      "chart_series": [
+        "#32497B",
+        "#6C86B3",
+        "#2F766D",
+        "#C7922C",
+        "#7B5A8E",
+        "#A63C45"
+      ]
+    },
+    "fonts": {
+      "heading": "Microsoft YaHei",
+      "body": "Microsoft YaHei",
+      "latin": "Arial",
+      "math": "Latin Modern Math"
+    }
+  },
+  "sections": [
+    {
+      "id": "identity",
+      "order": 1,
+      "title": "起始与选文",
+      "short_title": "起始与选文",
+      "role": "publication",
+      "purpose": "说明共同问题、论文范围与论文身份。"
+    },
+    {
+      "id": "method-evidence",
+      "order": 2,
+      "title": "方法与证据",
+      "short_title": "方法与证据",
+      "role": "method",
+      "purpose": "呈现研究设计、方法和核心结果。"
+    },
+    {
+      "id": "judgment-synthesis",
+      "order": 3,
+      "title": "判断与综合",
+      "short_title": "判断与综合",
+      "role": "synthesis",
+      "purpose": "区分主张、证据、边界并完成跨论文综合。"
+    },
+    {
+      "id": "discussion-closing",
+      "order": 4,
+      "title": "讨论与收束",
+      "short_title": "讨论与收束",
+      "role": "discussion",
+      "purpose": "把阅读转化为讨论、决策和下一步。"
+    }
+  ],
+  "sources": [
+    {
+      "id": "layout-registry",
+      "type": "user_material",
+      "title": "组会文献汇报通用版式注册表",
+      "citation": "academic-slides/assets/group-meeting-literature-universal/layout-registry.json",
+      "document_id": null,
+      "paper_id": null,
+      "path": "layout-registry.json",
+      "url": null,
+      "creator": "academic-slides",
+      "published_at": null,
+      "accessed_at": null,
+      "source_nature": "author_original",
+      "verification_status": "verified",
+      "notes": "定义布局语义和使用边界。"
+    },
+    {
+      "id": "design-tokens",
+      "type": "user_material",
+      "title": "组会文献汇报设计令牌",
+      "citation": "academic-slides/assets/group-meeting-literature-universal/design-tokens.json",
+      "document_id": null,
+      "paper_id": null,
+      "path": "design-tokens.json",
+      "url": null,
+      "creator": "academic-slides",
+      "published_at": null,
+      "accessed_at": null,
+      "source_nature": "author_original",
+      "verification_status": "verified",
+      "notes": "定义字体、色彩、间距和投影安全尺度。"
+    },
+    {
+      "id": "template-heritage",
+      "type": "user_material",
+      "title": "K105 参考模板迁移映射",
+      "citation": "academic-slides/assets/group-meeting-literature-universal/template-map.json",
+      "document_id": null,
+      "paper_id": null,
+      "path": "template-map.json",
+      "url": null,
+      "creator": "academic-slides",
+      "published_at": null,
+      "accessed_at": null,
+      "source_nature": "author_original",
+      "verification_status": "verified",
+      "notes": "只记录视觉 heritage；新库为 clean-generated，不复制示例论文事实或对象 ID。"
+    }
+  ],
+  "slides": [
+    {
+      "id": "sample-group-cover",
+      "order": 1,
+      "kind": "title",
+      "section_id": "identity",
+      "purpose": "示范 group-cover 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 group-cover？",
+      "takeaway": "封面只交代共同问题、汇报身份与阅读范围。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "组会文献汇报·学术通用｜布局库",
+        "subtitle": "GROUP MEETING · LITERATURE REVIEW",
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "title",
+        "variant": "group-cover",
+        "rationale": "仅当内容关系自然匹配 group-cover 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“组会文献汇报·学术通用｜布局库”。封面只交代共同问题、汇报身份与阅读范围。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“文献地图”。",
+        "estimated_seconds": 8,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=group-cover",
+            "citation": "组会文献汇报通用版式注册表：group-cover",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=group-cover",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "kicker": "GROUP MEETING · LITERATURE REVIEW",
+        "subtitle": "单篇精读与多篇综合的通用视觉语言",
+        "presenter": "示范姓名",
+        "research_group": "示范课题组",
+        "date": "20XX 年 X 月"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-paper-agenda",
+      "order": 2,
+      "kind": "agenda",
+      "section_id": "identity",
+      "purpose": "示范 paper-agenda 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 paper-agenda？",
+      "takeaway": "论文数量和顺序由共同问题决定，不由模板固定。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "文献地图",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "agenda",
+        "variant": "paper-agenda",
+        "rationale": "仅当内容关系自然匹配 paper-agenda 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“文献地图”。论文数量和顺序由共同问题决定，不由模板固定。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“PAPER 01｜论文精读”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=paper-agenda",
+            "citation": "组会文献汇报通用版式注册表：paper-agenda",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=paper-agenda",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "papers": [
+          {
+            "number": "01",
+            "title": "论文 A｜机制证据",
+            "detail": "回答“是否存在”"
+          },
+          {
+            "number": "02",
+            "title": "论文 B｜方法证据",
+            "detail": "回答“如何测量”"
+          },
+          {
+            "number": "03",
+            "title": "论文 C｜外部验证",
+            "detail": "回答“能否迁移”"
+          },
+          {
+            "number": "Q",
+            "title": "共同问题｜哪些证据会改变我们的判断？",
+            "detail": "跨论文综合"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-paper-divider",
+      "order": 3,
+      "kind": "section",
+      "section_id": "identity",
+      "purpose": "示范 paper-divider 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 paper-divider？",
+      "takeaway": "章节页用于切换问题或论文，不承担正文。",
+      "priority": "supporting",
+      "content": {
+        "kicker": "PAPER / TOPIC TRANSITION",
+        "title": "PAPER 01｜论文精读",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "section",
+        "variant": "paper-divider",
+        "rationale": "仅当内容关系自然匹配 paper-divider 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“PAPER 01｜论文精读”。章节页用于切换问题或论文，不承担正文。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“论文档案：先核对身份，再讨论结论”。",
+        "estimated_seconds": 8,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=paper-divider",
+            "citation": "组会文献汇报通用版式注册表：paper-divider",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=paper-divider",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "part": "PAPER 01",
+        "subtitle": "From question to evidence",
+        "bridge": "先弄清论文试图解决什么，再判断证据是否足够。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-paper-profile",
+      "order": 4,
+      "kind": "content",
+      "section_id": "identity",
+      "purpose": "示范 paper-profile 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 paper-profile？",
+      "takeaway": "书目信息、研究问题与一句话贡献在同一页完成定位。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "论文档案：先核对身份，再讨论结论",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "free_canvas",
+        "variant": "paper-profile",
+        "rationale": "仅当内容关系自然匹配 paper-profile 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [
+        {
+          "id": "paper-profile-visual-1",
+          "type": "figure",
+          "role": "primary_evidence",
+          "include": true,
+          "rationale": "版式画廊用占位资产验证图片面积、比例与解释层级；正式项目必须替换为真实论文证据。",
+          "asset_ref": "sample:paper-profile-evidence-1",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 1",
+          "alt_text": "论文证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“论文档案：先核对身份，再讨论结论”。书目信息、研究问题与一句话贡献在同一页完成定位。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“为什么选这些论文”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=paper-profile",
+            "citation": "组会文献汇报通用版式注册表：paper-profile",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=paper-profile",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "paper": {
+          "title": "论文题目：用一句话说明研究对象与核心关系",
+          "authors": "第一作者；共同作者；通讯作者",
+          "venue": "期刊 / 会议 / 学位来源",
+          "year": "20XX",
+          "publication_type": "研究论文",
+          "doi": "DOI / PMID / arXiv（如有）",
+          "keywords": [
+            "关键词一",
+            "关键词二",
+            "关键词三"
+          ],
+          "research_question": "在明确对象与条件下，作者究竟想回答什么？",
+          "one_line_contribution": "用新的证据链解释关键现象，并给出可验证预测。"
+        }
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-selection-rationale",
+      "order": 5,
+      "kind": "content",
+      "section_id": "identity",
+      "purpose": "示范 selection-rationale 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 selection-rationale？",
+      "takeaway": "选文必须服务共同问题，而不是按下载顺序罗列。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "为什么选这些论文",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "selection-rationale",
+        "rationale": "仅当内容关系自然匹配 selection-rationale 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“为什么选这些论文”。选文必须服务共同问题，而不是按下载顺序罗列。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“从已知到缺口，再到研究问题”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=selection-rationale",
+            "citation": "组会文献汇报通用版式注册表：selection-rationale",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=selection-rationale",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "criteria": [
+          {
+            "title": "问题相关",
+            "body": "直接回应本组当前关心的科学问题。"
+          },
+          {
+            "title": "证据互补",
+            "body": "补充机制、方法或外部验证。"
+          },
+          {
+            "title": "存在张力",
+            "body": "结论有冲突，或边界不同。"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-known-gap-question",
+      "order": 6,
+      "kind": "content",
+      "section_id": "identity",
+      "purpose": "示范 known-gap-question 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 known-gap-question？",
+      "takeaway": "研究问题必须由证据缺口自然推出。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "从已知到缺口，再到研究问题",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "known-gap-question",
+        "rationale": "仅当内容关系自然匹配 known-gap-question 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“从已知到缺口，再到研究问题”。研究问题必须由证据缺口自然推出。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“概念框架：变量如何共同形成可检验解释”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=known-gap-question",
+            "citation": "组会文献汇报通用版式注册表：known-gap-question",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=known-gap-question",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "known": "既有研究已确认现象存在，但主要依赖单一场景与替代指标。",
+        "gap": "缺少直接机制证据，也不清楚结论能否跨样本迁移。",
+        "question": "哪条机制链真正驱动该现象，且在什么边界内成立？",
+        "boundary": "已知、缺口和问题应来自论文文本与证据，而不是套用固定三段式。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-concept-framework",
+      "order": 7,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 concept-framework 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 concept-framework？",
+      "takeaway": "只有真实存在输入—机制—输出—边界关系时才绘制框架。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "概念框架：变量如何共同形成可检验解释",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "system_architecture",
+        "variant": "concept-framework",
+        "rationale": "仅当内容关系自然匹配 concept-framework 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": true,
+        "reason": "内容包含三步以上的顺序或依赖关系，关系图比列表更清楚。",
+        "source_refs": [
+          "template-heritage"
+        ],
+        "type": "process",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "context",
+            "label": "研究情境",
+            "role": "input",
+            "detail": "从问题与证据出发",
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "mechanism",
+            "label": "核心机制",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "outcome",
+            "label": "可观测结果",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "boundary",
+            "label": "适用边界",
+            "role": "context",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "evidence",
+            "label": "关键证据",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "context",
+            "to": "mechanism",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "mechanism",
+            "to": "outcome",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "outcome",
+            "to": "boundary",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "boundary",
+            "to": "evidence",
+            "relation": "sequence",
+            "label": null
+          }
+        ],
+        "output": "形成可追踪的证据关系",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“概念框架：变量如何共同形成可检验解释”。只有真实存在输入—机制—输出—边界关系时才绘制框架。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“研究设计：从样本到结论的证据链”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=concept-framework",
+            "citation": "组会文献汇报通用版式注册表：concept-framework",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=concept-framework",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-study-design",
+      "order": 8,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 study-design 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 study-design？",
+      "takeaway": "把设计顺序、关键控制和最终输出一起展示。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "研究设计：从样本到结论的证据链",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "method_design",
+        "variant": "study-design",
+        "rationale": "仅当内容关系自然匹配 study-design 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": true,
+        "reason": "内容包含三步以上的顺序或依赖关系，关系图比列表更清楚。",
+        "source_refs": [
+          "template-heritage"
+        ],
+        "type": "process",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "sample",
+            "label": "样本与分组",
+            "role": "input",
+            "detail": "从问题与证据出发",
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "measure",
+            "label": "测量与干预",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "analysis",
+            "label": "分析与对照",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "validation",
+            "label": "稳健性检查",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "result",
+            "label": "主要结论",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "sample",
+            "to": "measure",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "measure",
+            "to": "analysis",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "analysis",
+            "to": "validation",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "validation",
+            "to": "result",
+            "relation": "sequence",
+            "label": null
+          }
+        ],
+        "output": "形成可追踪的证据关系",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“研究设计：从样本到结论的证据链”。把设计顺序、关键控制和最终输出一起展示。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“方法时间线：每一步解决一个不确定性”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=study-design",
+            "citation": "组会文献汇报通用版式注册表：study-design",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=study-design",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-method-sequence",
+      "order": 9,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 method-sequence 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 method-sequence？",
+      "takeaway": "方法页强调为什么这样做，不罗列软件按钮。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "方法时间线：每一步解决一个不确定性",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "method-sequence",
+        "rationale": "仅当内容关系自然匹配 method-sequence 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": true,
+        "reason": "内容包含三步以上的顺序或依赖关系，关系图比列表更清楚。",
+        "source_refs": [
+          "template-heritage"
+        ],
+        "type": "process",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "m1",
+            "label": "构建数据集",
+            "role": "input",
+            "detail": "从问题与证据出发",
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "m2",
+            "label": "识别关键模式",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "m3",
+            "label": "机制验证",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "id": "m4",
+            "label": "外部复核",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "m1",
+            "to": "m2",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "m2",
+            "to": "m3",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "m3",
+            "to": "m4",
+            "relation": "sequence",
+            "label": null
+          }
+        ],
+        "output": "形成可追踪的证据关系",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“方法时间线：每一步解决一个不确定性”。方法页强调为什么这样做，不罗列软件按钮。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“方法比较：不同路径回答不同问题”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=method-sequence",
+            "citation": "组会文献汇报通用版式注册表：method-sequence",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=method-sequence",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "events": [
+          {
+            "title": "样本准备",
+            "caption": "定义对象与排除标准"
+          },
+          {
+            "title": "模式识别",
+            "caption": "发现候选关系"
+          },
+          {
+            "title": "机制检验",
+            "caption": "排除替代解释"
+          },
+          {
+            "title": "外部验证",
+            "caption": "检查可迁移性"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-method-comparison",
+      "order": 10,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 method-comparison 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 method-comparison？",
+      "takeaway": "选择方法要与研究问题和证据强度匹配。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "方法比较：不同路径回答不同问题",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "case_matrix",
+        "variant": "method-comparison",
+        "rationale": "仅当内容关系自然匹配 method-comparison 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“方法比较：不同路径回答不同问题”。选择方法要与研究问题和证据强度匹配。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“样本与数据：先交代可比性，再解释结果”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=method-comparison",
+            "citation": "组会文献汇报通用版式注册表：method-comparison",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=method-comparison",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "table": {
+          "headers": [
+            "方法",
+            "回答的问题",
+            "优势",
+            "主要风险"
+          ],
+          "rows": [
+            [
+              "观察研究",
+              "是否相关",
+              "真实场景",
+              "混杂偏倚"
+            ],
+            [
+              "干预实验",
+              "是否因果",
+              "控制明确",
+              "外部效度"
+            ],
+            [
+              "模型分析",
+              "机制是否自洽",
+              "可检验预测",
+              "假设依赖"
+            ]
+          ]
+        }
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-sample-data-profile",
+      "order": 11,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 sample-data-profile 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 sample-data-profile？",
+      "takeaway": "样本结构与质量控制决定结论可以外推多远。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "样本与数据：先交代可比性，再解释结果",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [
+          {
+            "label": "样本规模",
+            "value": "N=XX",
+            "unit": null,
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          },
+          {
+            "label": "数据模态",
+            "value": "3",
+            "unit": "类",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          },
+          {
+            "label": "关键分组",
+            "value": "2",
+            "unit": "组",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          },
+          {
+            "label": "时间点",
+            "value": "4",
+            "unit": "个",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          }
+        ],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "method_design",
+        "variant": "sample-data-profile",
+        "rationale": "仅当内容关系自然匹配 sample-data-profile 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“样本与数据：先交代可比性，再解释结果”。样本结构与质量控制决定结论可以外推多远。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“单一关键结果：主图占据视觉中心”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=sample-data-profile",
+            "citation": "组会文献汇报通用版式注册表：sample-data-profile",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=sample-data-profile",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "data_layers": [
+          {
+            "title": "研究对象",
+            "body": "来源、纳入标准与关键分层。"
+          },
+          {
+            "title": "测量与数据",
+            "body": "指标、数据模态与时间尺度。"
+          },
+          {
+            "title": "质量控制",
+            "body": "缺失处理、批次效应与偏倚控制。"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-single-result-evidence",
+      "order": 12,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 single-result-evidence 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 single-result-evidence？",
+      "takeaway": "主结果在核心条件下显著改变，并由独立分析支持。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "单一关键结果：主图占据视觉中心",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "先读坐标和对照",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "text": "再说差异方向与量级",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "text": "说明结果意义",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "metrics": [
+          {
+            "label": "效应变化",
+            "value": "+32",
+            "unit": "%",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          }
+        ],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "hero_figure",
+        "variant": "single-result-evidence",
+        "rationale": "仅当内容关系自然匹配 single-result-evidence 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [
+        {
+          "id": "single-result-evidence-visual-1",
+          "type": "figure",
+          "role": "primary_evidence",
+          "include": true,
+          "rationale": "版式画廊用占位资产验证图片面积、比例与解释层级；正式项目必须替换为真实论文证据。",
+          "asset_ref": "sample:single-result-evidence-evidence-1",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 1",
+          "alt_text": "论文证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“单一关键结果：主图占据视觉中心”。主结果在核心条件下显著改变，并由独立分析支持。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“结果对照：同一尺度下比较才有意义”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=single-result-evidence",
+            "citation": "组会文献汇报通用版式注册表：single-result-evidence",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=single-result-evidence",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "conclusion_text": "作者据此提出核心机制，但仍需结合样本边界判断。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-result-compare",
+      "order": 13,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 result-compare 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 result-compare？",
+      "takeaway": "差异来自关键条件变化，而非坐标或样本口径不同。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "结果对照：同一尺度下比较才有意义",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "comparison",
+        "variant": "result-compare",
+        "rationale": "仅当内容关系自然匹配 result-compare 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [
+        {
+          "id": "result-compare-visual-1",
+          "type": "figure",
+          "role": "comparison",
+          "include": true,
+          "rationale": "版式画廊用占位资产验证图片面积、比例与解释层级；正式项目必须替换为真实论文证据。",
+          "asset_ref": "sample:result-compare-evidence-1",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 1",
+          "alt_text": "论文证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        },
+        {
+          "id": "result-compare-visual-2",
+          "type": "figure",
+          "role": "comparison",
+          "include": true,
+          "rationale": "版式画廊用占位资产验证图片面积、比例与解释层级；正式项目必须替换为真实论文证据。",
+          "asset_ref": "sample:result-compare-evidence-2",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 2",
+          "alt_text": "论文证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“结果对照：同一尺度下比较才有意义”。差异来自关键条件变化，而非坐标或样本口径不同。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“多证据并列：每张图承担不同证据角色”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=result-compare",
+            "citation": "组会文献汇报通用版式注册表：result-compare",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=result-compare",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "left_label": "基线 / 对照",
+        "right_label": "干预 / 目标条件",
+        "left_text": "共同尺度下的基线观察",
+        "right_text": "共同尺度下的差异观察"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-multi-result-evidence",
+      "order": 14,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 multi-result-evidence 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 multi-result-evidence？",
+      "takeaway": "现象、机制和外部验证共同决定结论可信度。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "多证据并列：每张图承担不同证据角色",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "comparison",
+        "variant": "multi-result-evidence",
+        "rationale": "仅当内容关系自然匹配 multi-result-evidence 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [
+        {
+          "id": "multi-result-evidence-visual-1",
+          "type": "figure",
+          "role": "comparison",
+          "include": true,
+          "rationale": "版式画廊用占位资产验证图片面积、比例与解释层级；正式项目必须替换为真实论文证据。",
+          "asset_ref": "sample:multi-result-evidence-evidence-1",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 1",
+          "alt_text": "论文证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        },
+        {
+          "id": "multi-result-evidence-visual-2",
+          "type": "figure",
+          "role": "comparison",
+          "include": true,
+          "rationale": "版式画廊用占位资产验证图片面积、比例与解释层级；正式项目必须替换为真实论文证据。",
+          "asset_ref": "sample:multi-result-evidence-evidence-2",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 2",
+          "alt_text": "论文证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        },
+        {
+          "id": "multi-result-evidence-visual-3",
+          "type": "figure",
+          "role": "comparison",
+          "include": true,
+          "rationale": "版式画廊用占位资产验证图片面积、比例与解释层级；正式项目必须替换为真实论文证据。",
+          "asset_ref": "sample:multi-result-evidence-evidence-3",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 3",
+          "alt_text": "论文证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“多证据并列：每张图承担不同证据角色”。现象、机制和外部验证共同决定结论可信度。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“图表结果：趋势之后必须给出解释”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=multi-result-evidence",
+            "citation": "组会文献汇报通用版式注册表：multi-result-evidence",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=multi-result-evidence",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "items": [
+          {
+            "title": "现象证据",
+            "body": "先确认主要变化。"
+          },
+          {
+            "title": "机制证据",
+            "body": "解释变化如何发生。"
+          },
+          {
+            "title": "验证证据",
+            "body": "检查是否可复现。"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-table-chart-result",
+      "order": 15,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 table-chart-result 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 table-chart-result？",
+      "takeaway": "效应随条件增强，但在高水平区域出现平台。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "图表结果：趋势之后必须给出解释",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [
+          {
+            "label": "相对基线",
+            "value": "+23.8",
+            "unit": "%",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          }
+        ],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "chart_insight",
+        "variant": "table-chart-result",
+        "rationale": "仅当内容关系自然匹配 table-chart-result 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“图表结果：趋势之后必须给出解释”。效应随条件增强，但在高水平区域出现平台。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“机制解释：图中关系必须能被口头逐步追踪”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=table-chart-result",
+            "citation": "组会文献汇报通用版式注册表：table-chart-result",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=table-chart-result",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "chart": {
+          "type": "bar",
+          "categories": [
+            "基线",
+            "低",
+            "中",
+            "高"
+          ],
+          "series": [
+            {
+              "name": "相对响应",
+              "values": [
+                42,
+                48,
+                51,
+                52
+              ]
+            }
+          ]
+        }
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-mechanism-explanation",
+      "order": 16,
+      "kind": "content",
+      "section_id": "method-evidence",
+      "purpose": "示范 mechanism-explanation 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 mechanism-explanation？",
+      "takeaway": "关键中介连接输入与输出，并受边界条件调节。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "机制解释：图中关系必须能被口头逐步追踪",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "输入首先改变关键中介",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "text": "中介再驱动可观测输出",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          },
+          {
+            "text": "边界条件决定效应是否成立",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "template-heritage"
+            ]
+          }
+        ],
+        "metrics": [
+          {
+            "label": "关键路径",
+            "value": "1",
+            "unit": "条",
+            "comparison": null,
+            "evidence_ref": "template-heritage"
+          }
+        ],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "hero_figure",
+        "variant": "mechanism-explanation",
+        "rationale": "仅当内容关系自然匹配 mechanism-explanation 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [
+        {
+          "id": "mechanism-explanation-visual-1",
+          "type": "figure",
+          "role": "primary_evidence",
+          "include": true,
+          "rationale": "版式画廊用占位资产验证图片面积、比例与解释层级；正式项目必须替换为真实论文证据。",
+          "asset_ref": "sample:mechanism-explanation-evidence-1",
+          "source_refs": [
+            "template-heritage"
+          ],
+          "caption": "证据图 1",
+          "alt_text": "论文证据图示意槽位",
+          "placement": "主证据区",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“机制解释：图中关系必须能被口头逐步追踪”。关键中介连接输入与输出，并受边界条件调节。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“把作者主张、证据与边界分开”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=mechanism-explanation",
+            "citation": "组会文献汇报通用版式注册表：mechanism-explanation",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=mechanism-explanation",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-claim-evidence-boundary",
+      "order": 17,
+      "kind": "content",
+      "section_id": "judgment-synthesis",
+      "purpose": "示范 claim-evidence-boundary 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 claim-evidence-boundary？",
+      "takeaway": "作者声称不等于汇报者认同。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "把作者主张、证据与边界分开",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "claim-evidence-boundary",
+        "rationale": "仅当内容关系自然匹配 claim-evidence-boundary 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [
+        {
+          "text": "因果强度",
+          "role": "key"
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“把作者主张、证据与边界分开”。作者声称不等于汇报者认同。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“单篇论文结论：发现、依据与未证明内容”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=claim-evidence-boundary",
+            "citation": "组会文献汇报通用版式注册表：claim-evidence-boundary",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=claim-evidence-boundary",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "claim": "作者认为关键中介是现象变化的主要驱动因素。",
+        "evidence": [
+          {
+            "title": "直接证据",
+            "body": "干预中介后主要结果同步变化。"
+          },
+          {
+            "title": "一致性证据",
+            "body": "独立方法得到相同方向结果。"
+          }
+        ],
+        "boundary": "现有证据尚不能排除长期适应与样本选择的影响。",
+        "verdict": "可接受机制方向，但因果强度和适用范围仍需验证。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-paper-conclusion",
+      "order": 18,
+      "kind": "content",
+      "section_id": "judgment-synthesis",
+      "purpose": "示范 paper-conclusion 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 paper-conclusion？",
+      "takeaway": "一页完成“发现—证据—边界”的论文收束。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "单篇论文结论：发现、依据与未证明内容",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "summary",
+        "variant": "paper-conclusion",
+        "rationale": "仅当内容关系自然匹配 paper-conclusion 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“单篇论文结论：发现、依据与未证明内容”。一页完成“发现—证据—边界”的论文收束。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“批判性阅读：同时回答可信与不可信之处”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=paper-conclusion",
+            "citation": "组会文献汇报通用版式注册表：paper-conclusion",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=paper-conclusion",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "finding": "关键中介在目标条件下改变主要结果。",
+        "support": "干预、对照和独立样本提供方向一致的证据。",
+        "not_proven": "尚未证明该机制在所有场景或长期尺度都成立。",
+        "one_line": "核心结论可作为工作假设，而不是无条件事实。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-critical-appraisal",
+      "order": 19,
+      "kind": "content",
+      "section_id": "judgment-synthesis",
+      "purpose": "示范 critical-appraisal 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 critical-appraisal？",
+      "takeaway": "综合判断哪些结论可采纳，哪些仍需本组验证。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "批判性阅读：同时回答可信与不可信之处",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "critical-appraisal",
+        "rationale": "仅当内容关系自然匹配 critical-appraisal 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“批判性阅读：同时回答可信与不可信之处”。综合判断哪些结论可采纳，哪些仍需本组验证。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“可复现性：从数据可得走到外部验证”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=critical-appraisal",
+            "citation": "组会文献汇报通用版式注册表：critical-appraisal",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=critical-appraisal",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "strengths": [
+          "研究问题与设计匹配",
+          "关键对照充分",
+          "结论边界较清楚"
+        ],
+        "risks": [
+          "样本外推受限",
+          "替代解释未完全排除",
+          "部分复现信息缺失"
+        ],
+        "verdict": "证据足以支持方向性判断，但不足以支持广泛因果外推。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-reproducibility-check",
+      "order": 20,
+      "kind": "content",
+      "section_id": "judgment-synthesis",
+      "purpose": "示范 reproducibility-check 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 reproducibility-check？",
+      "takeaway": "可复现性不是一个标签，而是四层逐步核查。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "可复现性：从数据可得走到外部验证",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "validation_matrix",
+        "variant": "reproducibility-check",
+        "rationale": "仅当内容关系自然匹配 reproducibility-check 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“可复现性：从数据可得走到外部验证”。可复现性不是一个标签，而是四层逐步核查。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“跨论文矩阵：统一比较轴后再综合”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=reproducibility-check",
+            "citation": "组会文献汇报通用版式注册表：reproducibility-check",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=reproducibility-check",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "checks": [
+          {
+            "title": "数据可得",
+            "body": "原始数据、纳排规则与预处理。",
+            "status": "部分"
+          },
+          {
+            "title": "方法可复现",
+            "body": "参数、代码、软件版本与随机性。",
+            "status": "可核"
+          },
+          {
+            "title": "结果可重算",
+            "body": "主要图表与统计口径能够追踪。",
+            "status": "待做"
+          },
+          {
+            "title": "外部可验证",
+            "body": "独立样本或替代方法支持。",
+            "status": "不足"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-cross-paper-matrix",
+      "order": 21,
+      "kind": "content",
+      "section_id": "judgment-synthesis",
+      "purpose": "示范 cross-paper-matrix 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 cross-paper-matrix？",
+      "takeaway": "样本、方法和结论口径不同，不能只比较标题结论。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "跨论文矩阵：统一比较轴后再综合",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "case_matrix",
+        "variant": "cross-paper-matrix",
+        "rationale": "仅当内容关系自然匹配 cross-paper-matrix 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“跨论文矩阵：统一比较轴后再综合”。样本、方法和结论口径不同，不能只比较标题结论。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“一致、冲突与原因要同时出现”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=cross-paper-matrix",
+            "citation": "组会文献汇报通用版式注册表：cross-paper-matrix",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=cross-paper-matrix",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "table": {
+          "headers": [
+            "论文",
+            "对象 / 样本",
+            "方法",
+            "核心结论",
+            "主要边界"
+          ],
+          "rows": [
+            [
+              "论文 A",
+              "对象 1",
+              "干预实验",
+              "支持机制",
+              "单一场景"
+            ],
+            [
+              "论文 B",
+              "对象 2",
+              "观察数据",
+              "方向一致",
+              "混杂风险"
+            ],
+            [
+              "论文 C",
+              "外部样本",
+              "复现研究",
+              "部分支持",
+              "效应较弱"
+            ]
+          ]
+        }
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-consensus-divergence",
+      "order": 22,
+      "kind": "content",
+      "section_id": "judgment-synthesis",
+      "purpose": "示范 consensus-divergence 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 consensus-divergence？",
+      "takeaway": "冲突往往来自样本、测量或边界，而非简单的“谁对谁错”。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "一致、冲突与原因要同时出现",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "consensus-divergence",
+        "rationale": "仅当内容关系自然匹配 consensus-divergence 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“一致、冲突与原因要同时出现”。冲突往往来自样本、测量或边界，而非简单的“谁对谁错”。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“证据地图：强度与适用性是两个维度”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=consensus-divergence",
+            "citation": "组会文献汇报通用版式注册表：consensus-divergence",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=consensus-divergence",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "consensus": [
+          "关键现象方向一致",
+          "核心中介被多方法观察到"
+        ],
+        "divergence": [
+          "效应量差异明显",
+          "外部样本仅部分复现"
+        ],
+        "explanations": [
+          "样本构成不同",
+          "测量时间窗不同",
+          "控制变量不一致"
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-evidence-quality-map",
+      "order": 23,
+      "kind": "content",
+      "section_id": "judgment-synthesis",
+      "purpose": "示范 evidence-quality-map 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 evidence-quality-map？",
+      "takeaway": "优先讨论证据强但迁移边界不清的关键论文。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "证据地图：强度与适用性是两个维度",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "chart_insight",
+        "variant": "evidence-quality-map",
+        "rationale": "仅当内容关系自然匹配 evidence-quality-map 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“证据地图：强度与适用性是两个维度”。优先讨论证据强但迁移边界不清的关键论文。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“研究演进：问题如何被一轮轮收窄”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=evidence-quality-map",
+            "citation": "组会文献汇报通用版式注册表：evidence-quality-map",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=evidence-quality-map",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "points": [
+          {
+            "label": "论文 A",
+            "x": 0.78,
+            "y": 0.55,
+            "size": 36
+          },
+          {
+            "label": "论文 B",
+            "x": 0.52,
+            "y": 0.78,
+            "size": 30
+          },
+          {
+            "label": "论文 C",
+            "x": 0.36,
+            "y": 0.44,
+            "size": 28
+          }
+        ],
+        "criteria": [
+          {
+            "title": "横轴",
+            "body": "设计、对照、统计与复现决定证据强度。"
+          },
+          {
+            "title": "纵轴",
+            "body": "样本与情境决定外部适用性。"
+          },
+          {
+            "title": "用途",
+            "body": "把高价值不确定性变成讨论重点。"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-research-evolution",
+      "order": 24,
+      "kind": "content",
+      "section_id": "judgment-synthesis",
+      "purpose": "示范 research-evolution 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 research-evolution？",
+      "takeaway": "时间线展示证据演进，不机械罗列发表年份。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "研究演进：问题如何被一轮轮收窄",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "research-evolution",
+        "rationale": "仅当内容关系自然匹配 research-evolution 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“研究演进：问题如何被一轮轮收窄”。时间线展示证据演进，不机械罗列发表年份。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“从论文结论迁移到本组动作”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=research-evolution",
+            "citation": "组会文献汇报通用版式注册表：research-evolution",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=research-evolution",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "events": [
+          {
+            "title": "现象发现",
+            "caption": "确认问题存在"
+          },
+          {
+            "title": "候选机制",
+            "caption": "提出可检验解释"
+          },
+          {
+            "title": "因果干预",
+            "caption": "排除替代解释"
+          },
+          {
+            "title": "外部复核",
+            "caption": "明确适用边界"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-transfer-to-our-work",
+      "order": 25,
+      "kind": "content",
+      "section_id": "discussion-closing",
+      "purpose": "示范 transfer-to-our-work 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 transfer-to-our-work？",
+      "takeaway": "迁移前先核对对象、尺度、工况与评价指标。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "从论文结论迁移到本组动作",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "transfer-to-our-work",
+        "rationale": "仅当内容关系自然匹配 transfer-to-our-work 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“从论文结论迁移到本组动作”。迁移前先核对对象、尺度、工况与评价指标。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“讨论问题：形成新的判断”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=transfer-to-our-work",
+            "citation": "组会文献汇报通用版式注册表：transfer-to-our-work",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=transfer-to-our-work",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "paper_finding": "论文给出可检验机制与测量路径。",
+        "transfer_logic": "对象相似，但尺度和边界不同。",
+        "next_action": "先完成最小验证，再决定是否扩展。",
+        "caveat": "可借鉴的是证据逻辑，不是把论文结论原封不动搬到本组。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-discussion-questions",
+      "order": 26,
+      "kind": "questions",
+      "section_id": "discussion-closing",
+      "purpose": "示范 discussion-questions 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 discussion-questions？",
+      "takeaway": "讨论题应能改变判断、实验或阅读计划。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "讨论问题：形成新的判断",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "free_canvas",
+        "variant": "discussion-questions",
+        "rationale": "仅当内容关系自然匹配 discussion-questions 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“讨论问题：形成新的判断”。讨论题应能改变判断、实验或阅读计划。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“需要组会形成什么决定”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=discussion-questions",
+            "citation": "组会文献汇报通用版式注册表：discussion-questions",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=discussion-questions",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "questions": [
+          "哪个替代解释最值得优先排除？",
+          "若迁移到本组对象，首个验证实验应是什么？",
+          "哪项证据最可能改变我们的判断？",
+          "不同论文冲突的最小解释是什么？"
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-decision-request",
+      "order": 27,
+      "kind": "content",
+      "section_id": "discussion-closing",
+      "purpose": "示范 decision-request 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 decision-request？",
+      "takeaway": "本次组会希望确定下一步验证优先级。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "需要组会形成什么决定",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "free_canvas",
+        "variant": "decision-request",
+        "rationale": "仅当内容关系自然匹配 decision-request 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“需要组会形成什么决定”。本次组会希望确定下一步验证优先级。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“下一步阅读与验证安排”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=decision-request",
+            "citation": "组会文献汇报通用版式注册表：decision-request",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=decision-request",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "decision": "我们是否应把这条机制列为下一阶段的优先验证假设？",
+        "options": [
+          {
+            "title": "立即验证",
+            "body": "科学价值高，已有最小实验条件"
+          },
+          {
+            "title": "先补证据",
+            "body": "先核对关键参数与外部数据"
+          },
+          {
+            "title": "暂不推进",
+            "body": "与本组主线或资源不匹配"
+          }
+        ],
+        "criterion": "按科学价值、可验证性和资源成本共同决策。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-next-reading-actions",
+      "order": 28,
+      "kind": "content",
+      "section_id": "discussion-closing",
+      "purpose": "示范 next-reading-actions 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 next-reading-actions？",
+      "takeaway": "把组会结论转成责任明确、输出清楚的后续动作。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "下一步阅读与验证安排",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "summary",
+        "variant": "next-reading-actions",
+        "rationale": "仅当内容关系自然匹配 next-reading-actions 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“下一步阅读与验证安排”。把组会结论转成责任明确、输出清楚的后续动作。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“本次汇报精选来源”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=next-reading-actions",
+            "citation": "组会文献汇报通用版式注册表：next-reading-actions",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=next-reading-actions",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "actions": [
+          {
+            "title": "补读关键方法",
+            "body": "参数、假设与可复用步骤",
+            "owner": "成员 A｜下次组会前"
+          },
+          {
+            "title": "核对冲突证据",
+            "body": "统一比较矩阵与差异解释",
+            "owner": "成员 B｜本周"
+          },
+          {
+            "title": "形成验证方案",
+            "body": "最小实验、判据与资源清单",
+            "owner": "成员 C｜两周内"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-selected-sources",
+      "order": 29,
+      "kind": "content",
+      "section_id": "discussion-closing",
+      "purpose": "示范 selected-sources 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 selected-sources？",
+      "takeaway": "只列真正进入论证链的论文、数据和方法来源。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "本次汇报精选来源",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "summary",
+        "variant": "selected-sources",
+        "rationale": "仅当内容关系自然匹配 selected-sources 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“本次汇报精选来源”。只列真正进入论证链的论文、数据和方法来源。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“讨论与下一步”。",
+        "estimated_seconds": 12,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=selected-sources",
+            "citation": "组会文献汇报通用版式注册表：selected-sources",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=selected-sources",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "group_labels": [
+          "焦点论文",
+          "方法与背景来源"
+        ],
+        "references": [
+          "[1] 焦点论文 A：完整作者. 完整题名. 期刊/会议, 年份. DOI.",
+          "[2] 焦点论文 B：完整作者. 完整题名. 期刊/会议, 年份. DOI.",
+          "[3] 焦点论文 C：完整作者. 完整题名. 期刊/会议, 年份. DOI.",
+          "[4] 关键方法来源：作者. 题名. 来源, 年份.",
+          "[5] 数据或标准来源：机构. 名称. 版本/年份.",
+          "[6] 补充材料或代码仓库：名称与稳定链接."
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-group-closing",
+      "order": 30,
+      "kind": "closing",
+      "section_id": "discussion-closing",
+      "purpose": "示范 group-closing 的通用语义、布局边界与视觉层级。",
+      "audience_question": "什么内容关系适合使用 group-closing？",
+      "takeaway": "把阅读结论转成可检验假设和明确行动。",
+      "priority": "supporting",
+      "content": {
+        "kicker": null,
+        "title": "讨论与下一步",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "closing",
+        "variant": "group-closing",
+        "rationale": "仅当内容关系自然匹配 group-closing 的 useWhen 时采用；否则改用其他布局或自由画布。",
+        "reading_order": [
+          "标题",
+          "主证据或关系",
+          "解释与边界"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "claim_ids": [],
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens",
+        "template-heritage"
+      ],
+      "visuals": [],
+      "text_emphasis": [],
+      "formula": {
+        "include": false,
+        "reason": "本页不需要公式；只有承担核心定义、方法、约束或结果解释时才加入。",
+        "equation_ref": null,
+        "latex": null,
+        "role": "none",
+        "variables_to_explain": [],
+        "plain_meaning": null,
+        "source_refs": [],
+        "asset_ref": null,
+        "fallback_asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本页不需要额外关系图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null,
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“讨论与下一步”。把阅读结论转成可检验假设和明确行动。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“讨论与下一步”。",
+        "estimated_seconds": 8,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=group-closing",
+            "citation": "组会文献汇报通用版式注册表：group-closing",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "template-heritage",
+            "locator": "layoutId=group-closing",
+            "citation": "K105 组会文献汇报参考模板的 clean-generated 迁移记录",
+            "purpose": "视觉语言来源与去污染边界"
+          }
+        ],
+        "delivery_cues": [
+          "先说明这一页解决的交流问题，再说明证据与边界。"
+        ]
+      },
+      "render_data": {
+        "synthesis": "这组论文支持一条可检验的机制方向，但外部适用性仍是当前最大不确定性。",
+        "prompts": [
+          "接受哪项结论？",
+          "还缺哪项证据？",
+          "下一步由谁完成？"
+        ],
+        "presenter": "示范课题组 · 文献汇报"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    }
+  ],
+  "claim_evidence_map": [],
+  "qa": {
+    "status": "not_checked",
+    "issues": [],
+    "checks": {
+      "schema": "not_checked",
+      "evidence": "not_checked",
+      "narrative": "not_checked",
+      "visual": "not_checked",
+      "technical": "not_checked",
+      "notes_sources": "not_checked"
+    },
+    "checked_at": null
+  }
+}

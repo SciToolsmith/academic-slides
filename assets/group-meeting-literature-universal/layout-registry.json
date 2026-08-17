@@ -1,0 +1,1021 @@
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "group-meeting-literature-universal",
+  "profile": "group_meeting_literature",
+  "displayName": "组会文献汇报·学术通用",
+  "expectedLayoutCount": 30,
+  "selectionRule": "本库是高质量语义候选目录，不是正文白名单。先判断研究问题、证据关系与组内讨论任务，再选择版式；不得按论文数量、章节数量或版面空位机械套用。没有自然匹配时，允许依据设计令牌重新组织自由证据画布。",
+  "freeCompositionPolicy": {
+    "allowed": true,
+    "useWhen": [
+      "注册布局会改变真实证据数量、顺序、层级、比较尺度或因果边界",
+      "论文原图、文本证据或混合材料需要特殊构图才能保持可读性"
+    ],
+    "constraints": [
+      "遵守设计令牌、页边距、标题层级和投影字号",
+      "保留清晰的主张、证据、解释与来源关系",
+      "不得以自由构图为由堆叠无关卡片、装饰流程或缩小原论文整页"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "group-cover",
+      "family": "opening",
+      "useWhen": [
+        "组会文献汇报开场，需要交代主题、汇报人、机构或课题组与日期",
+        "单篇、多篇或主题综述均可使用"
+      ],
+      "avoidWhen": [
+        "把摘要、目录、完整引文或结果图塞进封面",
+        "使用与真实论文无关的装饰性期刊封面"
+      ],
+      "requiredSlots": [
+        "title",
+        "presenter",
+        "date"
+      ],
+      "optionalSlots": [
+        "subtitle",
+        "institution",
+        "lab",
+        "logo",
+        "guidingQuestion",
+        "paperSetLabel"
+      ],
+      "densityBudget": "low",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          1
+        ],
+        "adaptation": "保留蓝白横带、汇报身份与日期的开场层级，移除模板销售语言与固定多篇标识。"
+      }
+    },
+    {
+      "id": "paper-agenda",
+      "family": "navigation",
+      "useWhen": [
+        "汇报存在多个稳定的分析阶段，需要让听众预判论证路线",
+        "目录可按问题、证据主题或讨论任务组织，而不必按论文逐篇罗列"
+      ],
+      "avoidWhen": [
+        "极短汇报没有自然章节",
+        "为了填满版式而固定章节数或直接复制超长论文题名"
+      ],
+      "requiredSlots": [
+        "title",
+        "sections"
+      ],
+      "optionalSlots": [
+        "guidingQuestion",
+        "paperSetLabel",
+        "activeSection",
+        "continued"
+      ],
+      "densityBudget": "low",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          2
+        ],
+        "adaptation": "继承编号目录的清晰扫描路径，改为自适应分析章节并支持连续目录。"
+      }
+    },
+    {
+      "id": "paper-divider",
+      "family": "navigation",
+      "useWhen": [
+        "进入一个主要问题、证据主题或综合阶段，需要建立节奏",
+        "多篇汇报中某篇论文确实承担独立证据角色时可作为轻量分隔"
+      ],
+      "avoidWhen": [
+        "每篇论文都机械插入完整目录式章节页",
+        "小节切换或连续结果页"
+      ],
+      "requiredSlots": [
+        "sectionTitle"
+      ],
+      "optionalSlots": [
+        "sectionNumber",
+        "bridgeQuestion",
+        "paperRole",
+        "progressLabel"
+      ],
+      "densityBudget": "low",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          3,
+          10,
+          15,
+          20
+        ],
+        "adaptation": "保留章节编号与当前项强调，删除对所有论文长标题的重复展示。"
+      }
+    },
+    {
+      "id": "paper-profile",
+      "family": "paper-identity",
+      "useWhen": [
+        "首次介绍一篇焦点论文，需要快速建立可验证的文献信息与研究问题",
+        "论文身份、研究设计或版本状态会影响后续判断"
+      ],
+      "avoidWhen": [
+        "把影响因子或分区当作论文质量结论",
+        "使用虚构期刊封面、不可读网页整页或与论文不符的出版信息"
+      ],
+      "requiredSlots": [
+        "title",
+        "paperTitle",
+        "authors",
+        "venueYear",
+        "researchQuestion"
+      ],
+      "optionalSlots": [
+        "affiliations",
+        "doiOrIdentifier",
+        "articleType",
+        "paperPreview",
+        "coreClaim",
+        "keywords",
+        "rankingMetadata",
+        "openScienceStatus",
+        "versionStatus",
+        "selectionReason"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          4,
+          11,
+          16
+        ],
+        "adaptation": "保留文献信息、真实论文页面与主要内容的组合，去除假封面并将评价性指标降为可选元数据。"
+      }
+    },
+    {
+      "id": "selection-rationale",
+      "family": "paper-identity",
+      "useWhen": [
+        "需要说明为什么选择这篇或这组论文，以及它们分别承担什么证据角色",
+        "多篇论文的纳入范围、互补关系或代表性需要透明化"
+      ],
+      "avoidWhen": [
+        "选择理由只是期刊名气或影响因子",
+        "论文集合没有共同问题却被强行包装成主题"
+      ],
+      "requiredSlots": [
+        "title",
+        "selectionQuestion",
+        "selectionRationale"
+      ],
+      "optionalSlots": [
+        "scope",
+        "paperRoles",
+        "inclusionLogic",
+        "exclusions",
+        "coverageBoundary"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "参考稿缺少选文逻辑页；新增主题、范围与证据角色的透明说明。"
+      }
+    },
+    {
+      "id": "known-gap-question",
+      "family": "problem-framing",
+      "useWhen": [
+        "需要把已有认识、关键缺口和论文真正回答的问题连成一条逻辑链",
+        "背景图或引文能够直接解释缺口，而非仅作装饰"
+      ],
+      "avoidWhen": [
+        "泛泛介绍领域意义而没有可检验的问题",
+        "把作者结论提前写成研究缺口"
+      ],
+      "requiredSlots": [
+        "title",
+        "known",
+        "gap",
+        "question"
+      ],
+      "optionalSlots": [
+        "backgroundVisual",
+        "hypothesis",
+        "stakes",
+        "boundary",
+        "sourceLine"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          5,
+          12,
+          17
+        ],
+        "adaptation": "把‘背景与意义’改造为已知—缺口—问题，并保留左图右释等证据友好画布。"
+      }
+    },
+    {
+      "id": "concept-framework",
+      "family": "problem-framing",
+      "useWhen": [
+        "理论概念、变量、机制假设或论证模块之间存在可解释的关系",
+        "人文社科的概念框架或理工医的工作模型需要在结果前建立"
+      ],
+      "avoidWhen": [
+        "照搬论文目录树",
+        "节点与连线只是装饰，无法说明关系语义"
+      ],
+      "requiredSlots": [
+        "title",
+        "concepts",
+        "relations",
+        "takeaway"
+      ],
+      "optionalSlots": [
+        "frameworkVisual",
+        "legend",
+        "assumptions",
+        "evidenceStatus",
+        "boundary"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          5,
+          12,
+          17
+        ],
+        "adaptation": "继承机制图与解释并置的思路，但要求所有关系来自论文或明确标记为汇报者推断。"
+      }
+    },
+    {
+      "id": "study-design",
+      "family": "method",
+      "useWhen": [
+        "研究设计是判断论文结论能否成立的核心，需要概括对象、条件、测量与分析关系",
+        "实验、观察、计算、文本、案例或综述研究均可按真实设计表达"
+      ],
+      "avoidWhen": [
+        "逐条复制材料与方法章节",
+        "强行把方法拆成固定数量的等宽卡片"
+      ],
+      "requiredSlots": [
+        "title",
+        "studyQuestion",
+        "design",
+        "evidencePath"
+      ],
+      "optionalSlots": [
+        "units",
+        "conditions",
+        "measures",
+        "analysis",
+        "controls",
+        "validation",
+        "designVisual"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-rebuilt",
+        "sourceSlides": [
+          6,
+          13,
+          18
+        ],
+        "adaptation": "吸收方法分区的阅读节奏，取消固定四列或六列，改为研究问题驱动的自适应设计图。"
+      }
+    },
+    {
+      "id": "method-sequence",
+      "family": "method",
+      "useWhen": [
+        "采样、处理、实验、建模、验证或解释存在真实先后顺序",
+        "输入与输出的变化是理解方法可靠性的关键"
+      ],
+      "avoidWhen": [
+        "方法只是并列选择",
+        "为了使用流程图而虚构方向、反馈或固定步骤数"
+      ],
+      "requiredSlots": [
+        "title",
+        "steps",
+        "input",
+        "output"
+      ],
+      "optionalSlots": [
+        "branch",
+        "control",
+        "validation",
+        "decisionPoint",
+        "takeaway"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-rebuilt",
+        "sourceSlides": [
+          13
+        ],
+        "adaptation": "保留横向阅读方向，但步骤数量与分支完全由论文真实方法决定。"
+      }
+    },
+    {
+      "id": "method-comparison",
+      "family": "method",
+      "useWhen": [
+        "两种或多种方法、数据来源、基线或论文设计需要按共同标准比较",
+        "比较能解释结果差异或证据可信度"
+      ],
+      "avoidWhen": [
+        "比较维度不一致",
+        "只是把多个方法名称并排列出而没有判断"
+      ],
+      "requiredSlots": [
+        "title",
+        "methods",
+        "comparisonCriteria",
+        "takeaway"
+      ],
+      "optionalSlots": [
+        "strengths",
+        "tradeoffs",
+        "applicability",
+        "evidenceRefs",
+        "recommendedUse"
+      ],
+      "densityBudget": "high",
+      "sourceHeritage": {
+        "kind": "reference-rebuilt",
+        "sourceSlides": [
+          6,
+          13,
+          18
+        ],
+        "adaptation": "从多列方法卡提取比较意图，改成共同标准驱动的自适应比较。"
+      }
+    },
+    {
+      "id": "sample-data-profile",
+      "family": "method",
+      "useWhen": [
+        "样本、数据集、语料、案例或纳排标准决定结论的外推边界",
+        "需要让听众快速识别规模、来源、时间范围与偏差风险"
+      ],
+      "avoidWhen": [
+        "只列样本量而不解释代表性或缺失",
+        "把完整基线大表缩小粘贴"
+      ],
+      "requiredSlots": [
+        "title",
+        "populationOrCorpus",
+        "sampleOrDataset",
+        "scope"
+      ],
+      "optionalSlots": [
+        "sampleSize",
+        "timeWindow",
+        "inclusionExclusion",
+        "outcomes",
+        "missingness",
+        "biasRisk",
+        "generalizability"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "参考稿没有独立的数据与样本画像；新增用于支撑外推性判断的布局。"
+      }
+    },
+    {
+      "id": "single-result-evidence",
+      "family": "evidence",
+      "useWhen": [
+        "一张核心图、表、文本片段或案例承担本页主要证据",
+        "需要通过少量标注把观察结果连接到一个明确结论"
+      ],
+      "avoidWhen": [
+        "原图过密但未裁切到关键面板",
+        "图片只是装饰或标题没有写出结果"
+      ],
+      "requiredSlots": [
+        "title",
+        "evidenceVisual",
+        "takeaway"
+      ],
+      "optionalSlots": [
+        "caption",
+        "annotations",
+        "effectSize",
+        "statistics",
+        "methodNote",
+        "caveat",
+        "sourceLine"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          19
+        ],
+        "adaptation": "保留大图与结论区的证据优先结构，改用结论式标题和可追溯来源。"
+      }
+    },
+    {
+      "id": "result-compare",
+      "family": "evidence",
+      "useWhen": [
+        "结果构成条件、组别、时间、方法或论文之间的直接对照",
+        "比较对象拥有共同尺度，或差异尺度已明确说明"
+      ],
+      "avoidWhen": [
+        "对象不可比却被并排制造视觉暗示",
+        "各结果分别回答不同问题而没有共同结论"
+      ],
+      "requiredSlots": [
+        "title",
+        "comparisonEvidence",
+        "comparisonBasis",
+        "takeaway"
+      ],
+      "optionalSlots": [
+        "labels",
+        "captions",
+        "metrics",
+        "annotations",
+        "caveat",
+        "sourceLines"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          9
+        ],
+        "adaptation": "继承双结果并置，但将虚线卡框降级为辅助边界，优先保证共同尺度与差异解释。"
+      }
+    },
+    {
+      "id": "multi-result-evidence",
+      "family": "evidence",
+      "useWhen": [
+        "多项互补结果共同支持同一结论，且每项证据仍需独立识别",
+        "结果数量由论文真实证据链决定，并可跨页延续"
+      ],
+      "avoidWhen": [
+        "为了填满画布而加入次要结果",
+        "每项结果需要独立推理却被压缩成小图墙"
+      ],
+      "requiredSlots": [
+        "title",
+        "evidenceSet",
+        "synthesis"
+      ],
+      "optionalSlots": [
+        "captions",
+        "annotations",
+        "evidenceRoles",
+        "statistics",
+        "boundary",
+        "sourceLines",
+        "continued"
+      ],
+      "densityBudget": "high",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          8,
+          14
+        ],
+        "adaptation": "保留多证据与综合结论的关系，取消固定双图或三卡数量，防止结果缩成不可读缩略图。"
+      }
+    },
+    {
+      "id": "table-chart-result",
+      "family": "evidence",
+      "useWhen": [
+        "少量精确值与趋势图互补，二者共同回答同一结果问题",
+        "表格负责核对数值，图表负责显示模式"
+      ],
+      "avoidWhen": [
+        "表格与图表重复表达同一信息",
+        "直接粘贴密集原表或未简化的默认图表"
+      ],
+      "requiredSlots": [
+        "title",
+        "table",
+        "chart",
+        "takeaway"
+      ],
+      "optionalSlots": [
+        "highlightCells",
+        "chartAnnotation",
+        "methodNote",
+        "caveat",
+        "sourceLine"
+      ],
+      "densityBudget": "high",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          7
+        ],
+        "adaptation": "沿用表格与图表双证据，但只在两者互补时使用，并以一句结论收束。"
+      }
+    },
+    {
+      "id": "mechanism-explanation",
+      "family": "evidence",
+      "useWhen": [
+        "论文提出机制、理论路径或因果链，需要区分观察、推断与已验证环节",
+        "机制图能帮助听众理解多个结果为何共同支持结论"
+      ],
+      "avoidWhen": [
+        "把相关性包装成因果机制",
+        "照搬过密机制图而不突出本次汇报相关路径"
+      ],
+      "requiredSlots": [
+        "title",
+        "mechanismVisual",
+        "mechanismClaim"
+      ],
+      "optionalSlots": [
+        "nodes",
+        "relations",
+        "evidenceStatus",
+        "alternativeMechanism",
+        "annotations",
+        "boundary",
+        "sourceLine"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          5,
+          12
+        ],
+        "adaptation": "继承机制图主导画布，新增证据状态与替代解释，避免把作者示意图当成已证实事实。"
+      }
+    },
+    {
+      "id": "claim-evidence-boundary",
+      "family": "synthesis",
+      "useWhen": [
+        "需要判断作者主张中哪些部分被证据直接支持，哪些依赖外推或假设",
+        "结论强度与研究设计之间存在值得讨论的边界"
+      ],
+      "avoidWhen": [
+        "只是重复结果摘要",
+        "没有区分数据观察、作者解释与汇报者判断"
+      ],
+      "requiredSlots": [
+        "title",
+        "claim",
+        "supportingEvidence",
+        "boundaryOrAlternative"
+      ],
+      "optionalSlots": [
+        "authorsClaim",
+        "ourJudgment",
+        "evidenceStrength",
+        "unsupportedExtension",
+        "decisiveTest",
+        "sourceRefs"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-rebuilt",
+        "sourceSlides": [
+          8,
+          19
+        ],
+        "adaptation": "从‘结果—结论’收束升级为主张—证据—边界，避免结论色带掩盖推断跨度。"
+      }
+    },
+    {
+      "id": "paper-conclusion",
+      "family": "synthesis",
+      "useWhen": [
+        "一篇焦点论文的核心发现、证据支点和适用边界需要集中收束",
+        "多篇汇报中需要明确该论文在总体证据链中的角色"
+      ],
+      "avoidWhen": [
+        "逐页重复所有结果",
+        "只写作者结论而没有汇报者的证据判断"
+      ],
+      "requiredSlots": [
+        "title",
+        "conclusion",
+        "evidenceRefs",
+        "boundary"
+      ],
+      "optionalSlots": [
+        "authorsClaim",
+        "ourJudgment",
+        "paperRole",
+        "implication",
+        "confidence"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          8,
+          19
+        ],
+        "adaptation": "保留结果后收束功能，改为证据索引、判断与边界三位一体。"
+      }
+    },
+    {
+      "id": "critical-appraisal",
+      "family": "critical-review",
+      "useWhen": [
+        "需要从研究设计、证据质量、偏差、外推性与贡献增量评价论文",
+        "组会目标不仅是复述论文，还要形成可辩护的独立判断"
+      ],
+      "avoidWhen": [
+        "用空泛优缺点代替证据",
+        "把个人偏好写成方法缺陷"
+      ],
+      "requiredSlots": [
+        "title",
+        "strengths",
+        "limitations",
+        "overallJudgment"
+      ],
+      "optionalSlots": [
+        "internalValidity",
+        "externalValidity",
+        "biasRisk",
+        "statisticalReliability",
+        "noveltyIncrement",
+        "generalizability",
+        "evidenceRefs"
+      ],
+      "densityBudget": "high",
+      "sourceHeritage": {
+        "kind": "reference-rebuilt",
+        "sourceSlides": [
+          23
+        ],
+        "adaptation": "将泛化的‘阅读反思’改为有证据锚点的批判性评价。"
+      }
+    },
+    {
+      "id": "reproducibility-check",
+      "family": "critical-review",
+      "useWhen": [
+        "数据、代码、材料、协议、统计细节或外部验证会显著影响论文可信度",
+        "需要区分可获得、可复现、已复现与尚未验证"
+      ],
+      "avoidWhen": [
+        "把缺少开源材料自动判定为结果错误",
+        "用没有来源的总分替代逐项证据"
+      ],
+      "requiredSlots": [
+        "title",
+        "reproducibilityDimensions",
+        "judgment"
+      ],
+      "optionalSlots": [
+        "dataAvailability",
+        "codeAvailability",
+        "protocolDetail",
+        "preregistration",
+        "externalValidation",
+        "replicationEvidence",
+        "missingInformation",
+        "sourceRefs"
+      ],
+      "densityBudget": "high",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "参考稿没有开放科学与可复现性评价；新增证据化检查布局。"
+      }
+    },
+    {
+      "id": "cross-paper-matrix",
+      "family": "cross-paper-synthesis",
+      "useWhen": [
+        "多篇论文需要按共同维度核对研究问题、对象、方法、结果、局限或相关性",
+        "矩阵能够减少逐篇重复并暴露真正可比与不可比之处"
+      ],
+      "avoidWhen": [
+        "论文无法使用共同维度比较",
+        "列数和文字密度会使矩阵失去投影可读性；此时拆页或只保留关键维度"
+      ],
+      "requiredSlots": [
+        "title",
+        "papers",
+        "dimensions",
+        "synthesis"
+      ],
+      "optionalSlots": [
+        "highlightCells",
+        "evidenceStrength",
+        "comparabilityNotes",
+        "continued",
+        "sourceRefs"
+      ],
+      "densityBudget": "high",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "替代参考稿逐篇重复的四页结构，用共同维度完成真正的跨论文比较。"
+      }
+    },
+    {
+      "id": "consensus-divergence",
+      "family": "cross-paper-synthesis",
+      "useWhen": [
+        "多篇论文对同一问题既有一致结论也有冲突或未覆盖部分",
+        "需要解释分歧是否来自对象、方法、尺度、时间或统计不确定性"
+      ],
+      "avoidWhen": [
+        "把不同研究问题误判为结论冲突",
+        "只列共同点与不同点而不解释原因"
+      ],
+      "requiredSlots": [
+        "title",
+        "consensus",
+        "divergence",
+        "interpretation"
+      ],
+      "optionalSlots": [
+        "paperRefs",
+        "differenceDrivers",
+        "unresolvedQuestions",
+        "confidence",
+        "decisiveEvidence"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "新增跨论文一致性与冲突解释，避免简单并列多个论文摘要。"
+      }
+    },
+    {
+      "id": "evidence-quality-map",
+      "family": "cross-paper-synthesis",
+      "useWhen": [
+        "不同证据在设计强度、直接性、重复性或适用范围上存在明显差异",
+        "需要给出总体置信判断并展示不确定性来源"
+      ],
+      "avoidWhen": [
+        "用漂亮坐标或总分伪装主观印象",
+        "评价标准没有定义或无法由论文信息支持"
+      ],
+      "requiredSlots": [
+        "title",
+        "evidenceItems",
+        "qualityCriteria",
+        "overallConfidence"
+      ],
+      "optionalSlots": [
+        "directness",
+        "riskOfBias",
+        "precision",
+        "replication",
+        "uncertainty",
+        "sensitivity",
+        "sourceRefs"
+      ],
+      "densityBudget": "high",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "新增证据质量地图，用于把跨论文综合从数量汇总提升为可信度判断。"
+      }
+    },
+    {
+      "id": "research-evolution",
+      "family": "cross-paper-synthesis",
+      "useWhen": [
+        "研究问题、理论、方法或证据随时间发生可解释的演进",
+        "论文集合代表连续阶段而非任意年份列表"
+      ],
+      "avoidWhen": [
+        "时间不是理解差异的关键",
+        "把普通流程或参考文献年份伪装成研究演进"
+      ],
+      "requiredSlots": [
+        "title",
+        "milestones",
+        "change",
+        "currentFrontier"
+      ],
+      "optionalSlots": [
+        "turningPoints",
+        "methodShifts",
+        "unresolvedGap",
+        "paperRefs",
+        "futureDirection"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "新增研究演进布局，服务主题型多篇文献而非固定论文章节。"
+      }
+    },
+    {
+      "id": "transfer-to-our-work",
+      "family": "application",
+      "useWhen": [
+        "需要把论文的方法、数据、理论、控制或分析策略转化为本课题可执行的借鉴",
+        "迁移前提和适用边界能够被明确说明"
+      ],
+      "avoidWhen": [
+        "只写泛泛启发或口号",
+        "忽略本课题对象、资源或假设与原论文的差异"
+      ],
+      "requiredSlots": [
+        "title",
+        "transferableInsight",
+        "proposedUse",
+        "adaptationBoundary"
+      ],
+      "optionalSlots": [
+        "methodOrResource",
+        "expectedGain",
+        "requiredControl",
+        "risk",
+        "pilotTest",
+        "evidenceRef"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          22
+        ],
+        "adaptation": "保留‘借鉴点’意图，取消固定三项，并补充迁移条件、风险与验证。"
+      }
+    },
+    {
+      "id": "discussion-questions",
+      "family": "discussion",
+      "useWhen": [
+        "希望组内围绕证据、替代解释、关键控制或研究方向展开讨论",
+        "问题能够引用前文证据并影响理解或行动"
+      ],
+      "avoidWhen": [
+        "使用‘大家怎么看’等没有证据锚点的通用提问",
+        "把尚未讲清的事实包装成讨论题"
+      ],
+      "requiredSlots": [
+        "title",
+        "questions",
+        "evidenceAnchors"
+      ],
+      "optionalSlots": [
+        "assumptions",
+        "decisionAxis",
+        "candidateAnswers",
+        "unresolvedEvidence",
+        "facilitationPrompt"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-rebuilt",
+        "sourceSlides": [
+          23
+        ],
+        "adaptation": "将‘阅读反思’改为证据锚定、可推动组内判断的讨论问题。"
+      }
+    },
+    {
+      "id": "decision-request",
+      "family": "discussion",
+      "useWhen": [
+        "汇报需要组内对阅读方向、实验选择、方法采用或资源投入形成明确决定",
+        "选项、标准与权衡能够在本页透明呈现"
+      ],
+      "avoidWhen": [
+        "只是邀请自由讨论而没有待决事项",
+        "决策所需证据尚未呈现"
+      ],
+      "requiredSlots": [
+        "title",
+        "decisionNeeded",
+        "options",
+        "criteria"
+      ],
+      "optionalSlots": [
+        "recommendation",
+        "tradeoffs",
+        "evidenceRefs",
+        "owner",
+        "nextStep"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "新增组会决策页，使文献汇报能够自然转化为课题组行动。"
+      }
+    },
+    {
+      "id": "next-reading-actions",
+      "family": "action",
+      "useWhen": [
+        "现有论文留下明确知识缺口，需要安排下一轮检索、阅读、复核或资料获取",
+        "需要给出优先级和停止条件，避免无限扩展文献范围"
+      ],
+      "avoidWhen": [
+        "把所有相关文献都列成待办",
+        "下一步与当前证据缺口没有关系"
+      ],
+      "requiredSlots": [
+        "title",
+        "learningGaps",
+        "nextSourcesOrActions",
+        "priority"
+      ],
+      "optionalSlots": [
+        "searchTerms",
+        "owner",
+        "deadline",
+        "stopCriteria",
+        "expectedDecision",
+        "dependencies"
+      ],
+      "densityBudget": "medium",
+      "sourceHeritage": {
+        "kind": "reference-rebuilt",
+        "sourceSlides": [
+          24
+        ],
+        "adaptation": "将固定六个改进方向改为由知识缺口驱动的自适应阅读与验证行动。"
+      }
+    },
+    {
+      "id": "selected-sources",
+      "family": "reference",
+      "useWhen": [
+        "需要集中列出汇报中真正使用、对论证关键的论文、数据、标准或档案",
+        "正文来源已经在备注中逐页记录，末页只保留精选来源"
+      ],
+      "avoidWhen": [
+        "把全部参考文献缩小塞进一页",
+        "列出未在汇报中使用的来源"
+      ],
+      "requiredSlots": [
+        "title",
+        "sources"
+      ],
+      "optionalSlots": [
+        "groupLabels",
+        "doiOrLinks",
+        "continued",
+        "selectionNote"
+      ],
+      "densityBudget": "high",
+      "sourceHeritage": {
+        "kind": "clean-generated",
+        "sourceSlides": [],
+        "adaptation": "参考稿缺少规范来源页；新增精选引文布局，并与逐页备注来源块配合。"
+      }
+    },
+    {
+      "id": "group-closing",
+      "family": "closing",
+      "useWhen": [
+        "汇报结束，需要回扣总体判断、保留一个关键开放问题并进入讨论",
+        "可与封面形成视觉呼应"
+      ],
+      "avoidWhen": [
+        "只有通用感谢语而没有学术收束",
+        "在结束页首次加入新证据"
+      ],
+      "requiredSlots": [
+        "title",
+        "synthesis"
+      ],
+      "optionalSlots": [
+        "openQuestion",
+        "discussionPrompt",
+        "nextAction",
+        "presenter",
+        "institution",
+        "logo"
+      ],
+      "densityBudget": "low",
+      "sourceHeritage": {
+        "kind": "reference-adapted",
+        "sourceSlides": [
+          25
+        ],
+        "adaptation": "保留蓝白横带收束与讨论邀请，增加总体判断和开放问题，避免只显示感谢语。"
+      }
+    }
+  ]
+}

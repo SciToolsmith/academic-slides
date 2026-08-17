@@ -1,0 +1,524 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.skills/academic-slides/project-config.schema.json",
+  "title": "Academic Slides Project Configuration",
+  "description": "Configuration inferred from the user's request and source documents before slide planning begins.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "input",
+    "presentation",
+    "academic_profile",
+    "identity",
+    "constraints",
+    "preferences",
+    "output",
+    "assumptions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "language"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "name": {"type": "string", "minLength": 1},
+        "language": {"type": "string", "minLength": 2},
+        "created_at": {"type": "string", "format": "date-time"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["documents"],
+      "properties": {
+        "documents": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/document"}
+        },
+        "provided_asset_directories": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true,
+          "default": []
+        },
+        "logo_library_directory": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "duration_minutes",
+        "page_policy",
+        "theme",
+        "workflow_mode",
+        "aspect_ratio"
+      ],
+      "properties": {
+        "type": {
+          "enum": ["final_defense", "proposal_midterm", "group_meeting_literature"]
+        },
+        "duration_minutes": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Required nominal speaking time; timing remains an approximation."
+        },
+        "page_policy": {"$ref": "#/$defs/pagePolicy"},
+        "theme": {"$ref": "#/$defs/themePolicy"},
+        "workflow_mode": {
+          "enum": ["auto", "outline_first"],
+          "default": "auto"
+        },
+        "aspect_ratio": {
+          "enum": ["16:9", "4:3"],
+          "default": "16:9"
+        },
+        "output_language": {
+          "type": ["string", "null"],
+          "description": "Presentation language when different from project.language."
+        }
+      }
+    },
+    "academic_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["degree_level", "evidence_grammar"],
+      "properties": {
+        "degree_level": {
+          "enum": ["bachelor", "master", "doctor", "professional", "unknown"]
+        },
+        "evidence_grammar": {
+          "enum": ["argument_driven", "empirical", "experimental", "design_driven", "mixed", "unknown"]
+        },
+        "discipline": {"type": ["string", "null"]},
+        "research_topic": {"type": ["string", "null"]},
+        "confidence": {"$ref": "#/$defs/confidence"},
+        "inferred_from": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        }
+      }
+    },
+    "literature_profile": {
+      "$ref": "#/$defs/literatureProfile"
+    },
+    "milestone_profile": {
+      "$ref": "#/$defs/milestoneProfile"
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["institution", "author"],
+      "properties": {
+        "institution": {"type": ["string", "null"]},
+        "campus": {"type": ["string", "null"]},
+        "college": {"type": ["string", "null"]},
+        "program": {"type": ["string", "null"]},
+        "author": {"type": ["string", "null"]},
+        "presenter": {"type": ["string", "null"]},
+        "research_group": {"type": ["string", "null"]},
+        "student_id": {"type": ["string", "null"]},
+        "supervisor": {"type": ["string", "null"]},
+        "co_supervisors": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
+        "defense_date": {
+          "type": ["string", "null"],
+          "description": "Use ISO 8601 when an exact date is known."
+        },
+        "meeting_date": {
+          "type": ["string", "null"],
+          "description": "Group-meeting date; use ISO 8601 when an exact date is known."
+        },
+        "review_date": {
+          "type": ["string", "null"],
+          "description": "Proposal or midterm review date; use ISO 8601 when an exact date is known."
+        },
+        "confidence": {"$ref": "#/$defs/confidence"}
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_sections", "required_content", "excluded_content", "confidential_content"],
+      "properties": {
+        "required_sections": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
+        "required_content": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
+        "excluded_content": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
+        "confidential_content": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
+        "official_template_path": {"type": ["string", "null"]},
+        "must_use_asset_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "notes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["speaker_notes", "sources_in_notes", "editable_output", "include_appendix"],
+      "properties": {
+        "speaker_notes": {"const": true, "default": true},
+        "sources_in_notes": {"const": true, "default": true},
+        "editable_output": {"type": "boolean", "default": true},
+        "include_appendix": {"type": "boolean", "default": true},
+        "agenda_policy": {
+          "enum": ["auto", "include", "omit"],
+          "default": "auto",
+          "description": "Auto derives the need for an agenda from the narrative; it never assumes a fixed section count."
+        },
+        "section_transition_policy": {
+          "enum": ["auto", "full", "integrated", "none"],
+          "default": "auto",
+          "description": "Controls full divider pages versus lightweight integrated transitions without changing the content sections."
+        },
+        "formula_policy": {
+          "enum": ["core_only", "expanded", "none"],
+          "default": "core_only"
+        },
+        "branding_policy": {
+          "enum": ["verified_logo", "text_if_unverified", "no_branding"],
+          "default": "text_if_unverified"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_directory", "filename_stem", "keep_intermediates", "deploy_skill"],
+      "properties": {
+        "project_directory": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Internal working directory. It is never copied wholesale into the customer delivery package."
+        },
+        "delivery_directory": {
+          "type": ["string", "null"],
+          "description": "Optional customer-package target. Its basename equals filename_stem."
+        },
+        "filename_stem": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Concise short-title plus report type, without a person name, date, version, final/latest marker, or revision suffix."
+        },
+        "keep_intermediates": {
+          "type": "boolean",
+          "default": true,
+          "description": "Controls the internal workspace only; intermediates are never customer deliverables."
+        },
+        "deploy_skill": {
+          "type": "boolean",
+          "default": false,
+          "description": "Creating project files does not authorize installing the skill."
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/assumption"},
+      "default": []
+    },
+    "decision_log": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/decision"},
+      "default": []
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "presentation": {
+            "properties": {
+              "type": {"const": "group_meeting_literature"}
+            },
+            "required": ["type"]
+          }
+        },
+        "required": ["presentation"]
+      },
+      "then": {
+        "required": ["literature_profile"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "presentation": {
+            "properties": {
+              "type": {"const": "proposal_midterm"}
+            },
+            "required": ["type"]
+          }
+        },
+        "required": ["presentation"]
+      },
+      "then": {
+        "required": ["milestone_profile"]
+      }
+    }
+  ],
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "role", "format"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "path": {"type": "string", "minLength": 1},
+        "role": {
+          "enum": ["main_thesis", "research_proposal", "approved_plan", "midterm_report", "progress_evidence", "study_protocol", "focal_paper", "background_paper", "supporting_paper", "supplementary_material", "institution_requirements", "official_template", "reference_deck", "asset_source", "other"]
+        },
+        "format": {
+          "enum": ["pdf", "docx", "pptx", "md", "txt", "image", "directory", "other"]
+        },
+        "title": {"type": ["string", "null"]},
+        "parent_document_id": {
+          "type": ["string", "null"],
+          "description": "Stable document ID of the focal paper, plan, report, or other primary source that owns a supplement or related asset."
+        },
+        "sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        },
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "pagePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {"enum": ["auto", "fixed"]},
+        "target_slide_count": {"type": "integer", "minimum": 3},
+        "minimum_slide_count": {"type": "integer", "minimum": 3},
+        "maximum_slide_count": {"type": "integer", "minimum": 3},
+        "include_appendix_in_count": {"type": "boolean", "default": false}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"mode": {"const": "fixed"}}, "required": ["mode"]},
+          "then": {"required": ["target_slide_count"]}
+        }
+      ]
+    },
+    "literatureProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "focal_document_ids", "emphasis"],
+      "properties": {
+        "mode": {
+          "enum": ["single_paper", "multi_paper"]
+        },
+        "focal_document_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "synthesis_question": {
+          "type": ["string", "null"]
+        },
+        "emphasis": {
+          "enum": ["balanced", "methods", "results", "critique", "application"],
+          "default": "balanced"
+        },
+        "audience_context": {
+          "type": ["string", "null"]
+        },
+        "discussion_goal": {
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"mode": {"const": "single_paper"}},
+            "required": ["mode"]
+          },
+          "then": {
+            "properties": {
+              "focal_document_ids": {"minItems": 1, "maxItems": 1}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"mode": {"const": "multi_paper"}},
+            "required": ["mode"]
+          },
+          "then": {
+            "properties": {
+              "focal_document_ids": {"minItems": 2}
+            }
+          }
+        }
+      ]
+    },
+    "milestoneProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "plan_document_ids", "progress_document_ids", "emphasis"],
+      "properties": {
+        "mode": {
+          "enum": ["proposal", "midterm"]
+        },
+        "plan_document_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "progress_document_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "as_of_date": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "Evidence cutoff date; required for midterm mode."
+        },
+        "emphasis": {
+          "enum": ["balanced", "feasibility", "methods", "progress", "risk_recovery", "completion"],
+          "default": "balanced"
+        },
+        "review_question": {
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"mode": {"const": "proposal"}},
+            "required": ["mode"]
+          },
+          "then": {
+            "properties": {
+              "plan_document_ids": {"minItems": 1}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"mode": {"const": "midterm"}},
+            "required": ["mode"]
+          },
+          "then": {
+            "required": ["as_of_date"],
+            "properties": {
+              "progress_document_ids": {"minItems": 1},
+              "as_of_date": {"type": "string", "format": "date"}
+            }
+          }
+        }
+      ]
+    },
+    "themePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {"enum": ["adaptive", "preset", "custom"]},
+        "preset": {"enum": ["blue", "red", "cyan", "purple"]},
+        "custom_colors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary"],
+          "properties": {
+            "primary": {"$ref": "#/$defs/hexColor"},
+            "secondary": {"$ref": "#/$defs/hexColor"},
+            "accent": {"$ref": "#/$defs/hexColor"},
+            "background": {"$ref": "#/$defs/hexColor"},
+            "text": {"$ref": "#/$defs/hexColor"}
+          }
+        },
+        "institution_branding": {"type": "boolean", "default": true}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"mode": {"const": "preset"}}, "required": ["mode"]},
+          "then": {"required": ["preset"]}
+        },
+        {
+          "if": {"properties": {"mode": {"const": "custom"}}, "required": ["mode"]},
+          "then": {"required": ["custom_colors"]}
+        }
+      ]
+    },
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#?[A-Fa-f0-9]{6}$"
+    },
+    "assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "value", "reason", "impact"],
+      "properties": {
+        "field": {"type": "string", "minLength": 1},
+        "value": {},
+        "reason": {"type": "string", "minLength": 1},
+        "impact": {"enum": ["low", "medium", "high"]},
+        "needs_confirmation": {"type": "boolean", "default": false}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "basis"],
+      "properties": {
+        "decision": {"type": "string", "minLength": 1},
+        "basis": {"type": "string", "minLength": 1},
+        "source": {"enum": ["user", "document", "inference", "default"]},
+        "recorded_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

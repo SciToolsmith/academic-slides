@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "final-defense-universal",
+  "displayName": "毕业答辩·学术通用",
+  "slideSize": { "width": 1280, "height": 720, "ratio": "16:9" },
+  "fonts": {
+    "zh": "Microsoft YaHei",
+    "zhFallbacks": ["PingFang SC", "Noto Sans CJK SC", "Source Han Sans SC"],
+    "en": "Arial",
+    "serif": "Times New Roman",
+    "math": "Latin Modern Math"
+  },
+  "typeScale": {
+    "deckTitle": 52,
+    "sectionTitle": 44,
+    "slideTitle": 36,
+    "headline": 30,
+    "subheading": 24,
+    "body": 19,
+    "bodySmall": 16,
+    "caption": 14,
+    "footnote": 12,
+    "metric": 36
+  },
+  "spacing": {
+    "pageLeft": 64,
+    "pageRight": 64,
+    "headerHeight": 66,
+    "titleTop": 78,
+    "titleHeight": 54,
+    "contentTop": 154,
+    "contentBottom": 664,
+    "columnGap": 30,
+    "sectionGap": 24,
+    "safeInset": 12
+  },
+  "radii": { "small": 6, "medium": 10, "large": 16 },
+  "lineWidths": { "hairline": 1, "regular": 2, "emphasis": 4 },
+  "textEmphasis": {
+    "maxSpansPerSlide": 2,
+    "maxCharactersPerSpan": 24,
+    "maxColoredCharactersPerSlide": 32,
+    "excludedKinds": ["title", "agenda", "section", "closing"],
+    "colorAloneForbidden": true,
+    "onePrimaryFocus": true,
+    "roles": {
+      "strong": "bold_only",
+      "key": "emphasis",
+      "result": "emphasis",
+      "decision": "emphasis",
+      "warning": "warning",
+      "critical": "danger",
+      "success": "success"
+    }
+  },
+  "neutral": {
+    "canvas": "#FFFFFF",
+    "surface": "#F6F8FB",
+    "surfaceStrong": "#E9EDF4",
+    "text": "#17213A",
+    "muted": "#5D667A",
+    "subtle": "#8A93A5",
+    "line": "#D5DBE6",
+    "white": "#FFFFFF",
+    "black": "#111827"
+  },
+  "chrome": {
+    "contentHeader": "brand-lockup-plus-segmented-section-nav",
+    "navigationMinSections": 2,
+    "navigationMaxVisibleSections": 6,
+    "navigationOverflow": "current-section-label",
+    "titleUnderlineWidth": 300,
+    "coverSectionClosingBand": true,
+    "officialLogoKeepsOriginalColor": true
+  },
+  "rules": {
+    "maxTitleLines": 1,
+    "maxPrimaryVisuals": 1,
+    "maxBodyWordsZh": 150,
+    "minBodyFontSize": 16,
+    "preferFlatCanvas": true,
+    "avoidUiCardGrid": true,
+    "allowFreeEvidenceCanvas": true,
+    "strongTopologyRequiresSemanticMatch": true,
+    "neverSelectLayoutByItemCountAlone": true
+  }
+}

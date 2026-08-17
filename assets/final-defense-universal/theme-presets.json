@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0.0",
+  "defaultPreset": "blue",
+  "presets": {
+    "blue": {
+      "displayName": "学术蓝",
+      "primary": "#364A7C",
+      "primaryDark": "#25345B",
+      "primaryLight": "#E7EBF4",
+      "secondary": "#6482B5",
+      "accent": "#C88A2C",
+      "emphasis": "#B4233A",
+      "success": "#2F766D",
+      "warning": "#B46A2C",
+      "danger": "#A63C45",
+      "chart": ["#364A7C", "#6482B5", "#2F766D", "#C88A2C", "#7B5A8E", "#A63C45"]
+    },
+    "red": {
+      "displayName": "典雅红",
+      "primary": "#AD2C34",
+      "primaryDark": "#7C2027",
+      "primaryLight": "#F7E7E8",
+      "secondary": "#C9656B",
+      "accent": "#B0812D",
+      "emphasis": "#8A5A00",
+      "success": "#3C7864",
+      "warning": "#B46A2C",
+      "danger": "#8D252C",
+      "chart": ["#AD2C34", "#C9656B", "#3C7864", "#B0812D", "#596C9B", "#7D547F"]
+    },
+    "purple": {
+      "displayName": "沉静紫",
+      "primary": "#671D6F",
+      "primaryDark": "#48144F",
+      "primaryLight": "#F1E6F2",
+      "secondary": "#95619B",
+      "accent": "#B37A32",
+      "emphasis": "#B4233A",
+      "success": "#34756B",
+      "warning": "#B46A2C",
+      "danger": "#A63C45",
+      "chart": ["#671D6F", "#95619B", "#34756B", "#B37A32", "#486B99", "#A63C45"]
+    },
+    "cyan": {
+      "displayName": "清朗青",
+      "primary": "#2F6B76",
+      "primaryDark": "#214B54",
+      "primaryLight": "#E5F0F2",
+      "secondary": "#65939C",
+      "accent": "#B1792F",
+      "emphasis": "#B4233A",
+      "success": "#3C7864",
+      "warning": "#B46A2C",
+      "danger": "#A63C45",
+      "chart": ["#2F6B76", "#65939C", "#465F8E", "#B1792F", "#805D8D", "#A63C45"]
+    }
+  },
+  "adaptivePolicy": {
+    "preserveOfficialLogoColors": true,
+    "minimumTextContrast": 4.5,
+    "derivePrimaryFromVerifiedBrand": true,
+    "fallbackPreset": "blue",
+    "neverSetAllAccentsToOneColor": true
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "proposal-midterm-universal",
+  "profile": "proposal_midterm",
+  "supportedModes": [
+    "proposal",
+    "midterm"
+  ],
+  "displayName": "开题·中期答辩｜学术通用",
+  "slideSize": {
+    "width": 1280,
+    "height": 720,
+    "ratio": "16:9"
+  },
+  "fonts": {
+    "zh": "Microsoft YaHei",
+    "zhFallbacks": [
+      "PingFang SC",
+      "Noto Sans CJK SC",
+      "Source Han Sans SC"
+    ],
+    "en": "Arial",
+    "serif": "Times New Roman",
+    "math": "Latin Modern Math"
+  },
+  "typeScale": {
+    "deckTitle": 50,
+    "deckTitleLong": 42,
+    "sectionTitle": 42,
+    "slideTitle": 35,
+    "headline": 29,
+    "subheading": 23,
+    "body": 19,
+    "bodySmall": 16,
+    "caption": 14,
+    "footnote": 12,
+    "metric": 35
+  },
+  "spacing": {
+    "pageLeft": 56,
+    "pageRight": 56,
+    "headerHeight": 70,
+    "titleTop": 22,
+    "titleHeight": 50,
+    "contentTop": 104,
+    "contentBottom": 668,
+    "columnGap": 28,
+    "sectionGap": 22,
+    "safeInset": 12
+  },
+  "radii": {
+    "small": 4,
+    "medium": 8,
+    "large": 14
+  },
+  "lineWidths": {
+    "hairline": 1,
+    "regular": 2,
+    "emphasis": 4
+  },
+  "textEmphasis": {
+    "maxSpansPerSlide": 2,
+    "maxCharactersPerSpan": 24,
+    "maxColoredCharactersPerSlide": 32,
+    "excludedKinds": ["title", "agenda", "section", "closing"],
+    "colorAloneForbidden": true,
+    "onePrimaryFocus": true,
+    "roles": {
+      "strong": "bold_only",
+      "key": "emphasis",
+      "result": "emphasis",
+      "decision": "emphasis",
+      "warning": "warning",
+      "critical": "danger",
+      "success": "success"
+    }
+  },
+  "neutral": {
+    "canvas": "#FFFFFF",
+    "surface": "#F5F7FA",
+    "surfaceStrong": "#E7EBF0",
+    "text": "#111827",
+    "muted": "#596273",
+    "subtle": "#8791A2",
+    "line": "#D1D8E1",
+    "white": "#FFFFFF",
+    "black": "#0B0F17"
+  },
+  "chrome": {
+    "contentHeader": "compact-section-number-plus-claim-title",
+    "topRule": "single-hairline",
+    "brandPosition": "top-right-authentic-logo-or-text-wordmark",
+    "pageNumberPosition": "bottom-right",
+    "agendaMode": "adaptive-analytical-sections",
+    "sectionDividerMode": "optional-question-led",
+    "officialLogoKeepsOriginalColor": true,
+    "logoOptional": true,
+    "fixedSectionCount": false
+  },
+  "evidence": {
+    "preferredVisualShare": 0.6,
+    "minimumVisualShareOnResultSlides": 0.54,
+    "maximumPrimaryVisuals": 4,
+    "claimTitlePreferred": true,
+    "sourceLineRequiredForExternalEvidence": true,
+    "authenticResearchAssetRequired": true,
+    "fakeInstitutionMarkForbidden": true,
+    "formulaPreference": [
+      "latex_svg",
+      "latex_png",
+      "source_pdf_crop",
+      "mathjax_svg",
+      "unicode_text"
+    ]
+  },
+  "statusSemantics": {
+    "complete": {
+      "color": "#39786E",
+      "labelRequired": true
+    },
+    "inProgress": {
+      "color": "#5479A8",
+      "labelRequired": true
+    },
+    "atRisk": {
+      "color": "#B56A2E",
+      "labelRequired": true
+    },
+    "blocked": {
+      "color": "#A5424A",
+      "labelRequired": true
+    },
+    "notStarted": {
+      "color": "#A8B1BF",
+      "labelRequired": true
+    }
+  },
+  "modeSemantics": {
+    "proposal": {
+      "preferredTense": "拟、计划、预期、将验证",
+      "primaryQuestion": "这个问题是否值得研究，方案是否可执行并能产生可验证证据？",
+      "evidencePriority": [
+        "研究缺口",
+        "方法适配",
+        "前期基础",
+        "风险与可行性"
+      ]
+    },
+    "midterm": {
+      "preferredTense": "已完成、实际、偏差、剩余、下一里程碑",
+      "primaryQuestion": "相对原计划已经取得哪些可验证进展，偏差如何处理，剩余工作是否可交付？",
+      "evidencePriority": [
+        "计划与实际",
+        "阶段结果",
+        "质量与边界",
+        "偏差纠正",
+        "更新计划"
+      ]
+    }
+  },
+  "rules": {
+    "maxTitleLines": 1,
+    "maxBodyWordsZh": 130,
+    "minBodyFontSize": 16,
+    "preferFlatCanvas": true,
+    "avoidUiCardGrid": true,
+    "avoidRepeatedDashedFrames": true,
+    "allowFreeEvidenceCanvas": true,
+    "strongTopologyRequiresSemanticMatch": true,
+    "neverSelectLayoutByItemCountAlone": true,
+    "neverFixSectionCount": true,
+    "neverForceProposalAndMidtermToShareNarrative": true,
+    "neverPresentPlannedWorkAsCompletedEvidence": true,
+    "neverUseUnsourcedInnovationSuperlatives": true,
+    "preferEvidenceDensityOverTextDensity": true,
+    "visibleContentMustServeAudience": true
+  }
+}

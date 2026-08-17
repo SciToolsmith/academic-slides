@@ -1,0 +1,4716 @@
+{
+  "schema_version": "1.0",
+  "profile": "final_defense",
+  "project_id": "final-defense-layout-gallery",
+  "title": "毕业答辩·学术通用｜布局库",
+  "language": "zh-CN",
+  "slide_size": {
+    "ratio": "16:9",
+    "width_inches": 13.333,
+    "height_inches": 7.5
+  },
+  "timing": {
+    "duration_minutes": 8,
+    "usable_fraction": 0.75,
+    "target_seconds": 360,
+    "estimated_seconds": 360,
+    "approximate": true,
+    "page_policy": "fixed",
+    "target_slide_count": 36,
+    "timing_notes": [
+      "本文件是一页一布局的视觉画廊，不是正式答辩内容。",
+      "时间字段只用于校验逐页备注完整性，不构成答辩时长建议。"
+    ]
+  },
+  "theme": {
+    "id": "final-defense-universal-blue",
+    "mode": "preset",
+    "institution": "示范学术机构",
+    "verified_logo_asset_id": null,
+    "colors": {
+      "primary": "#364A7C",
+      "primary_dark": "#25345B",
+      "primary_light": "#E7EBF4",
+      "accent": "#C88A2C",
+      "background": "#FFFFFF",
+      "surface": "#F6F8FB",
+      "text": "#17213A",
+      "muted_text": "#5D667A",
+      "warning": "#B46A2C",
+      "chart_series": [
+        "#364A7C",
+        "#6482B5",
+        "#2F766D",
+        "#C88A2C",
+        "#7B5A8E",
+        "#A63C45"
+      ]
+    },
+    "fonts": {
+      "heading": "Microsoft YaHei",
+      "body": "Microsoft YaHei",
+      "latin": "Arial",
+      "math": "Latin Modern Math"
+    }
+  },
+  "sections": [
+    {
+      "id": "opening-shell",
+      "order": 1,
+      "title": "通用骨架",
+      "short_title": "通用骨架",
+      "role": "opening",
+      "purpose": "封面、目录和章节首页等可跨学科复用的答辩骨架。"
+    },
+    {
+      "id": "evidence-method",
+      "order": 2,
+      "title": "证据与方法",
+      "short_title": "证据方法",
+      "role": "method",
+      "purpose": "主张、图像、图表、表格、公式、流程与框架。"
+    },
+    {
+      "id": "structured-layouts",
+      "order": 3,
+      "title": "结构型版式",
+      "short_title": "结构版式",
+      "role": "framework",
+      "purpose": "从原模板保留并语义化的固定数量与强拓扑版式。"
+    },
+    {
+      "id": "synthesis-closing",
+      "order": 4,
+      "title": "综合与收束",
+      "short_title": "综合收束",
+      "role": "contribution",
+      "purpose": "结论、验证、贡献、边界、参考来源、自由证据和结尾页。"
+    }
+  ],
+  "sources": [
+    {
+      "id": "layout-registry",
+      "type": "user_material",
+      "title": "毕业答辩通用版式注册表",
+      "citation": "academic-slides/assets/final-defense-universal/layout-registry.json",
+      "document_id": null,
+      "path": "layout-registry.json",
+      "url": null,
+      "creator": "academic-slides",
+      "published_at": null,
+      "accessed_at": null,
+      "source_nature": "author_original",
+      "verification_status": "verified",
+      "notes": "只定义版式语义、槽位与使用边界，不陈述论文事实。"
+    },
+    {
+      "id": "design-tokens",
+      "type": "user_material",
+      "title": "毕业答辩通用设计令牌",
+      "citation": "academic-slides/assets/final-defense-universal/design-tokens.json",
+      "document_id": null,
+      "path": "design-tokens.json",
+      "url": null,
+      "creator": "academic-slides",
+      "published_at": null,
+      "accessed_at": null,
+      "source_nature": "author_original",
+      "verification_status": "verified",
+      "notes": "提供画布、字体、颜色、间距和导航约束。"
+    }
+  ],
+  "slides": [
+    {
+      "id": "sample-cover",
+      "order": 1,
+      "kind": "title",
+      "section_id": "opening-shell",
+      "purpose": "示范具有学校品牌槽位、主题色横带与完整答辩身份层级的封面。",
+      "audience_question": "封面如何在数秒内交代题目、身份和机构？",
+      "takeaway": "封面只保留答辩必需身份信息，不承载摘要或结论。",
+      "priority": "supporting",
+      "content": {
+        "kicker": "CLEAN-GENERATED · SEMANTIC LAYOUTS",
+        "title": "毕业答辩·学术通用｜布局库",
+        "subtitle": "FINAL DEFENSE · UNIVERSAL ACADEMIC LAYOUT LIBRARY",
+        "body": [
+          "答辩人：示范姓名",
+          "指导教师：示范姓名",
+          "培养单位：示范机构"
+        ],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "title",
+        "variant": "cover",
+        "rationale": "对应 cover 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "学校品牌",
+          "论文题目",
+          "答辩身份",
+          "机构与日期"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "cover-logo-slot",
+          "type": "logo",
+          "role": "branding",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "学校校徽槽位",
+          "placement": "顶部居中",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“毕业答辩·学术通用｜布局库”。封面只保留答辩必需身份信息，不承载摘要或结论。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“布局库导航”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=cover",
+            "citation": "毕业答辩通用版式注册表：cover",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "author": "示范姓名",
+        "advisor": "示范导师",
+        "degree": "毕业答辩",
+        "date": "20XX 年 X 月"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-agenda",
+      "order": 2,
+      "kind": "agenda",
+      "section_id": "opening-shell",
+      "purpose": "示范左侧目录识别区与右侧自适应编号导航；本页用四项说明目录不绑定固定数量。",
+      "audience_question": "如何让评委快速预判汇报路线？",
+      "takeaway": "目录、章节首页和正文导航必须使用同一组章节名称。",
+      "priority": "supporting",
+      "content": {
+        "kicker": "LAYOUT 02 / 36",
+        "title": "布局库导航",
+        "subtitle": null,
+        "body": [
+          "01 通用骨架",
+          "02 证据与方法",
+          "03 结构型版式",
+          "04 综合与收束"
+        ],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "agenda",
+        "variant": "agenda",
+        "rationale": "对应 agenda 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页用四项示范自适应目录；正式答辩的章节数量由论文叙事决定。目录、章节首页和正文导航使用同一组章节名称；注册版式不自然匹配时，应按证据关系自定义画布。",
+        "transition": "下一页展示“结构型版式”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=agenda",
+            "citation": "毕业答辩通用版式注册表：agenda",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "sections": [
+          {
+            "number": "01",
+            "title": "通用骨架"
+          },
+          {
+            "number": "02",
+            "title": "证据与方法"
+          },
+          {
+            "number": "03",
+            "title": "结构型版式"
+          },
+          {
+            "number": "04",
+            "title": "综合与收束"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-section-divider",
+      "order": 3,
+      "kind": "section",
+      "section_id": "opening-shell",
+      "purpose": "示范主要章节之间的节奏切换与叙事桥接。",
+      "audience_question": "章节首页如何转场而不重复正文？",
+      "takeaway": "章节页只在重要转折出现，编号、名称与是否使用均由叙事决定。",
+      "priority": "supporting",
+      "content": {
+        "kicker": "PART XX",
+        "title": "章节过渡页",
+        "subtitle": "SECTION DIVIDER · ADAPTIVE NARRATIVE",
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "section",
+        "variant": "section-divider",
+        "rationale": "对应 section-divider 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页是中性的章节过渡示例。章节编号、名称和是否出现都由论文叙事决定；短汇报可以用正文导航完成过渡，不必设置独立章节页。",
+        "transition": "下一页展示“主张—证据”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=section-divider",
+            "citation": "毕业答辩通用版式注册表：section-divider",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "bridge": "先识别证据关系，再选择布局；模板不替代论证。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-claim-evidence",
+      "order": 4,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范一条中心主张与三项异质证据的对应关系。",
+      "audience_question": "没有单张大图时，如何建立清晰论证？",
+      "takeaway": "先给结论，再用少量证据回答“凭什么”。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 04 / 36",
+        "title": "主张—证据",
+        "subtitle": null,
+        "body": [
+          "中心主张：这里放一条可以被评委记住的判断。"
+        ],
+        "bullets": [
+          {
+            "text": "证据一｜材料、样本或文本依据",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "证据二｜数据、图表或计算依据",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "证据三｜复核、对照或边界依据",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "claim-evidence",
+        "rationale": "对应 claim-evidence 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“主张—证据”。先给结论，再用少量证据回答“凭什么”。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“左图右文”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=claim-evidence",
+            "citation": "毕业答辩通用版式注册表：claim-evidence",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "synthesis": "材料依据说明来源，结果依据说明发现，边界依据限定结论强度；三者共同完成可辩护的主张。",
+        "boundary": "先给判断，再交代证据链，并明确结论支持到哪里。",
+        "items": [
+          {
+            "title": "材料依据",
+            "body": "说明证据来自哪里",
+            "number": "01"
+          },
+          {
+            "title": "结果依据",
+            "body": "说明观察到什么",
+            "number": "02"
+          },
+          {
+            "title": "边界依据",
+            "body": "说明结论支持到哪里",
+            "number": "03"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-image-left-text-right",
+      "order": 5,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范一张竖向或近方形主证据图与右侧解释。",
+      "audience_question": "图片重要时，如何同时保证读图和结论？",
+      "takeaway": "先指明图中观察位置，再解释其学术意义。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 05 / 36",
+        "title": "左图右文",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "观察任务：请先看标注区域",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "解释：只保留理解图像所需信息",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "结论：一句话收束证据意义",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "hero_figure",
+        "variant": "image-left-text-right",
+        "rationale": "对应 image-left-text-right 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "image-left-slot",
+          "type": "figure",
+          "role": "primary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "竖向主证据图占位",
+          "placement": "正文左侧",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“左图右文”。先指明图中观察位置，再解释其学术意义。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“左文右图”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=image-left-text-right",
+            "citation": "毕业答辩通用版式注册表：image-left-text-right",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-text-left-image-right",
+      "order": 6,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范先建立判断框架，再让右侧横向主图验证。",
+      "audience_question": "结论需要先出现时，如何安排图文顺序？",
+      "takeaway": "左侧告诉评委看什么，右侧证据回答是否成立。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 06 / 36",
+        "title": "左文右图",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "先给观察问题",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "再给判断标准",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "最后用图像验证",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "hero_figure",
+        "variant": "text-left-image-right",
+        "rationale": "对应 text-left-image-right 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "image-right-slot",
+          "type": "figure",
+          "role": "primary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "横向主证据图占位",
+          "placement": "正文右侧",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“左文右图”。左侧告诉评委看什么，右侧证据回答是否成立。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“双图严格对照”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=text-left-image-right",
+            "citation": "毕业答辩通用版式注册表：text-left-image-right",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-image-compare",
+      "order": 7,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范前后、方案A/B或样本对照。",
+      "audience_question": "两张图如何形成可辩护的比较？",
+      "takeaway": "比较必须共享尺度或明确说明不同条件。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 07 / 36",
+        "title": "双图严格对照",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "对照 A｜基线或样本一",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "对照 B｜变化后或样本二",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "comparison",
+        "variant": "image-compare",
+        "rationale": "对应 image-compare 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "compare-left-slot",
+          "type": "figure",
+          "role": "comparison",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "对照图A占位",
+          "placement": "正文左侧",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        },
+        {
+          "id": "compare-right-slot",
+          "type": "figure",
+          "role": "comparison",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "对照图B占位",
+          "placement": "正文右侧",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“双图严格对照”。比较必须共享尺度或明确说明不同条件。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“双图共同证据”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=image-compare",
+            "citation": "毕业答辩通用版式注册表：image-compare",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "left_label": "对照 A",
+        "right_label": "对照 B",
+        "left_text": "共同尺度下的基线观察",
+        "right_text": "共同尺度下的差异观察"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-multi-image-evidence",
+      "order": 8,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范两张相互独立的证据图各自解释，并共同支持一条综合结论。",
+      "audience_question": "两张图不是严格对照时，怎样在同页形成共同证据？",
+      "takeaway": "两幅独立证据图各自有图注，底部综合为同一条结论。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 08 / 36",
+        "title": "双图共同证据",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "证据图 A｜说明对象、材料或方法",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "证据图 B｜说明结果、机制或验证",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "hero_figure",
+        "variant": "multi-image-evidence",
+        "rationale": "对应 multi-image-evidence 的两个独立证据图与底部综合结论；不暗示严格对照。",
+        "reading_order": [
+          "页标题",
+          "证据图 A 与图注",
+          "证据图 B 与图注",
+          "底部综合结论",
+          "来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "multi-evidence-left-slot",
+          "type": "figure",
+          "role": "secondary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "独立证据图A占位",
+          "placement": "正文左侧",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        },
+        {
+          "id": "multi-evidence-right-slot",
+          "type": "figure",
+          "role": "secondary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "独立证据图B占位",
+          "placement": "正文右侧",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式以两张独立证据图为中心，不加入装饰性公式。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "两图为共同支持关系，不额外绘制流程或因果图。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“双图共同证据”。两幅独立证据图各自有图注，底部综合为同一条结论。正式使用时，应先确认两图不是严格同尺度对照，也不是两个各自独立收束的主要结果。",
+        "transition": "下一页展示“图表与洞见”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=multi-image-evidence",
+            "citation": "毕业答辩通用版式注册表：multi-image-evidence",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先分别解释两图，再给出共同结论；不要使用对照性语言。"
+        ]
+      },
+      "render_data": {
+        "captions": [
+          "证据图 A｜说明对象、材料或方法",
+          "证据图 B｜说明结果、机制或验证"
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-chart-insight",
+      "order": 9,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范以趋势、分布或量化变化为主证据的页面。",
+      "audience_question": "如何让图表服务一句结论，而不是成为数据墙？",
+      "takeaway": "较基线提高 24%\n解释仍需限定条件。",
+      "text_emphasis": [
+        {
+          "text": "提高 24%",
+          "role": "result"
+        }
+      ],
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 09 / 36",
+        "title": "图表与洞见",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [
+          {
+            "label": "示例变化",
+            "value": "＋24",
+            "unit": "%",
+            "comparison": "首末值演示",
+            "evidence_ref": "layout-registry"
+          }
+        ],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "chart_insight",
+        "variant": "chart-insight",
+        "rationale": "对应 chart-insight 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "chart-slot",
+          "type": "chart",
+          "role": "primary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "趋势图或统计图占位",
+          "placement": "正文主画布",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“图表与洞见”。图表只突出一条最值得讲述的变化及其边界。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“精确表格与结论”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=chart-insight",
+            "citation": "毕业答辩通用版式注册表：chart-insight",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "chart": {
+          "categories": [
+            "阶段 1",
+            "阶段 2",
+            "阶段 3",
+            "阶段 4"
+          ],
+          "series": [
+            {
+              "name": "示例序列",
+              "values": [
+                50,
+                54,
+                58,
+                62
+              ]
+            }
+          ]
+        }
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-table-insight",
+      "order": 10,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范小型精确值比较表与高亮结论。",
+      "audience_question": "何时应该保留表格而不是转换成图？",
+      "takeaway": "当评委需要跨行列核对精确值时，保留精简表格。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 10 / 36",
+        "title": "精确表格与结论",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "validation_matrix",
+        "variant": "table-insight",
+        "rationale": "对应 table-insight 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“精确表格与结论”。当评委需要跨行列核对精确值时，保留精简表格。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“核心公式—变量—意义”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=table-insight",
+            "citation": "毕业答辩通用版式注册表：table-insight",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "table": {
+          "columns": [
+            "对象",
+            "指标 A",
+            "指标 B",
+            "判定"
+          ],
+          "rows": [
+            [
+              "样本 1",
+              "示例值",
+              "示例值",
+              "通过"
+            ],
+            [
+              "样本 2",
+              "示例值",
+              "示例值",
+              "复核"
+            ],
+            [
+              "样本 3",
+              "示例值",
+              "示例值",
+              "通过"
+            ]
+          ],
+          "highlight": {
+            "row": 1,
+            "column": 3
+          }
+        }
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-formula-visual",
+      "order": 11,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范一个核心公式与变量解释、结果含义的组合。",
+      "audience_question": "哪些公式值得出现在答辩页？",
+      "takeaway": "公式只有在直接解释方法、约束或结果时才出现。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 11 / 36",
+        "title": "核心公式—变量—意义",
+        "subtitle": null,
+        "body": [
+          "一句话解释：输出由输入与参数共同决定。"
+        ],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "figure_formula",
+        "variant": "formula-visual",
+        "rationale": "对应 formula-visual 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": true,
+        "reason": "用抽象函数关系验证公式、变量解释和普通语言含义的版式槽位。",
+        "equation_ref": null,
+        "latex": "Y = f(X; θ)",
+        "render_method": "unicode_text",
+        "role": "method_core",
+        "variables_to_explain": [
+          {
+            "symbol": "X",
+            "meaning": "输入或观测量",
+            "unit": null
+          },
+          {
+            "symbol": "θ",
+            "meaning": "模型或方法参数",
+            "unit": null
+          },
+          {
+            "symbol": "Y",
+            "meaning": "输出或响应量",
+            "unit": null
+          }
+        ],
+        "plain_meaning": "输出由输入和参数共同决定；正式页面必须说明变量及其研究含义。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "asset_ref": null
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“核心公式—变量—意义”。公式只有在直接解释方法、约束或结果时才出现。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“有向流程与反馈”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=formula-visual",
+            "citation": "毕业答辩通用版式注册表：formula-visual",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-process",
+      "order": 12,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范具有真实先后和校核反馈的研究流程。",
+      "audience_question": "哪些内容适合画流程图？",
+      "takeaway": "只有节点和连接具有明确语义时才绘制流程。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 12 / 36",
+        "title": "有向流程与反馈",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "process",
+        "rationale": "对应 process 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": true,
+        "reason": "先后和反馈都是版式表达的真实关系。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "type": "process",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "p-input",
+            "label": "输入",
+            "role": "input",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "p-process",
+            "label": "处理",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "p-check",
+            "label": "校核",
+            "role": "decision",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "p-output",
+            "label": "输出",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "p-input",
+            "to": "p-process",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "p-process",
+            "to": "p-check",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "p-check",
+            "to": "p-output",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "p-check",
+            "to": "p-process",
+            "relation": "feedback",
+            "label": "修正"
+          }
+        ],
+        "output": "形成可复核的研究输出",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“有向流程与反馈”。只有节点和连接具有明确语义时才绘制流程。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“时间轴或阶段演进”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=process",
+            "citation": "毕业答辩通用版式注册表：process",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-timeline",
+      "order": 13,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范时间、阶段或版本变化。",
+      "audience_question": "流程和时间轴怎样区分？",
+      "takeaway": "时间轴回答“何时变化”，流程图回答“怎样发生”。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 13 / 36",
+        "title": "时间轴或阶段演进",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "timeline",
+        "rationale": "对应 timeline 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": true,
+        "reason": "时间关系是理解内容的必要条件。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "type": "timeline",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "t-1",
+            "label": "阶段一",
+            "role": "context",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "t-2",
+            "label": "阶段二",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "t-3",
+            "label": "阶段三",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "t-4",
+            "label": "阶段四",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "t-1",
+            "to": "t-2",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "t-2",
+            "to": "t-3",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "t-3",
+            "to": "t-4",
+            "relation": "sequence",
+            "label": null
+          }
+        ],
+        "output": "呈现研究或对象的时间演进",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“时间轴或阶段演进”。时间轴回答“何时变化”，流程图回答“怎样发生”。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“通用理论或系统框架”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=timeline",
+            "citation": "毕业答辩通用版式注册表：timeline",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "events": [
+          {
+            "title": "阶段一",
+            "caption": "建立问题"
+          },
+          {
+            "title": "阶段二",
+            "caption": "形成方法"
+          },
+          {
+            "title": "阶段三",
+            "caption": "开展验证"
+          },
+          {
+            "title": "阶段四",
+            "caption": "收束结论"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-framework",
+      "order": 14,
+      "kind": "content",
+      "section_id": "evidence-method",
+      "purpose": "示范输入、核心机制、输出、边界与证据之间的关系。",
+      "audience_question": "框架图怎样避免变成论文目录树？",
+      "takeaway": "每条连接都应能说清“支持、影响、包含或产出”。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 14 / 36",
+        "title": "通用理论或系统框架",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "system_architecture",
+        "variant": "framework",
+        "rationale": "对应 framework 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": true,
+        "reason": "节点和连线对应真实理论、变量或系统关系。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "type": "system",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "f-input",
+            "label": "输入",
+            "role": "input",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "f-core",
+            "label": "核心机制",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "f-output",
+            "label": "输出",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "f-boundary",
+            "label": "边界条件",
+            "role": "context",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "f-input",
+            "to": "f-core",
+            "relation": "feeds",
+            "label": null
+          },
+          {
+            "from": "f-core",
+            "to": "f-output",
+            "relation": "causes",
+            "label": null
+          },
+          {
+            "from": "f-boundary",
+            "to": "f-core",
+            "relation": "condition",
+            "label": null
+          }
+        ],
+        "output": "解释变量或模块如何共同形成结果",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“通用理论或系统框架”。每条连接都应能说清“支持、影响、包含或产出”。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“三列并行概览”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=framework",
+            "citation": "毕业答辩通用版式注册表：framework",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-three-column-overview",
+      "order": 15,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范恰好三个同层级维度的概览。",
+      "audience_question": "什么时候可以使用三列卡片？",
+      "takeaway": "三列只用于三个真正并列、结构同构的维度。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 15 / 36",
+        "title": "三列并行概览",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "three-column-overview",
+        "rationale": "对应 three-column-overview 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三列并行概览”。三列只用于三个真正并列、结构同构的维度。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“三层递进分析”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=three-column-overview",
+            "citation": "毕业答辩通用版式注册表：three-column-overview",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "banner": "三个同层级维度并列展开",
+        "columns": [
+          {
+            "title": "维度一",
+            "body": "对象、材料或背景",
+            "number": "01"
+          },
+          {
+            "title": "维度二",
+            "body": "方法、机制或变量",
+            "number": "02"
+          },
+          {
+            "title": "维度三",
+            "body": "结果、影响或边界",
+            "number": "03"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-three-level-analysis",
+      "order": 16,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范从表层到机制再到意义的三级分析。",
+      "audience_question": "怎样证明三层结构不是形式套壳？",
+      "takeaway": "每一层必须对下一层构成包含、推导或抽象关系。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 16 / 36",
+        "title": "三层递进分析",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "system_architecture",
+        "variant": "three-level-analysis",
+        "rationale": "对应 three-level-analysis 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": true,
+        "reason": "恰好存在三个由证据向结论递进的层级。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "type": "hierarchy",
+        "direction": "top_to_bottom",
+        "nodes": [
+          {
+            "id": "l-1",
+            "label": "现象或材料",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "l-2",
+            "label": "机制或关系",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "l-3",
+            "label": "意义或结论",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "l-1",
+            "to": "l-2",
+            "relation": "supports",
+            "label": null
+          },
+          {
+            "from": "l-2",
+            "to": "l-3",
+            "relation": "supports",
+            "label": null
+          }
+        ],
+        "output": "形成可追踪的三级论证",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三层递进分析”。每一层必须对下一层构成包含、推导或抽象关系。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“四点纵列清单”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=three-level-analysis",
+            "citation": "毕业答辩通用版式注册表：three-level-analysis",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "side_label": "分析层级",
+        "levels": [
+          {
+            "title": "第一层｜现象或材料",
+            "body": "说明直接观察到什么",
+            "number": "01"
+          },
+          {
+            "title": "第二层｜机制或关系",
+            "body": "解释为何出现该现象",
+            "number": "02"
+          },
+          {
+            "title": "第三层｜意义或结论",
+            "body": "说明研究贡献与边界",
+            "number": "03"
+          }
+        ],
+        "conclusion": "三层共同完成从证据到结论的推理。",
+        "root_label": "分析层级",
+        "items": [
+          {
+            "title": "第一层｜现象或材料",
+            "body": "说明直接观察到什么",
+            "number": "01"
+          },
+          {
+            "title": "第二层｜机制或关系",
+            "body": "解释为何出现该现象",
+            "number": "02"
+          },
+          {
+            "title": "第三层｜意义或结论",
+            "body": "说明研究贡献与边界",
+            "number": "03"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-four-point-list",
+      "order": 17,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范恰好四个同层级问题、原则、模块或发现的纵向清单。",
+      "audience_question": "四点版式何时比流程图更合适？",
+      "takeaway": "四项是并列关系，不暗示顺序或因果。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 17 / 36",
+        "title": "四点纵列清单",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "four-point-list",
+        "rationale": "对应 four-point-list 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“四点纵列清单”。四项是并列关系，不暗示顺序或因果。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“三条同构内容”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=four-point-list",
+            "citation": "毕业答辩通用版式注册表：four-point-list",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "items": [
+          {
+            "title": "问题 A",
+            "body": "一条必要解释",
+            "number": "A"
+          },
+          {
+            "title": "问题 B",
+            "body": "一条必要解释",
+            "number": "B"
+          },
+          {
+            "title": "问题 C",
+            "body": "一条必要解释",
+            "number": "C"
+          },
+          {
+            "title": "问题 D",
+            "body": "一条必要解释",
+            "number": "D"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-three-row-content",
+      "order": 18,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范三条结构一致、可逐行展开的论点或证据链。",
+      "audience_question": "如何在高信息密度下保持可读性？",
+      "takeaway": "每行采用相同语法：标题、依据、解释与小结。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 18 / 36",
+        "title": "三条同构内容",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "evidence_chain",
+        "variant": "three-row-content",
+        "rationale": "对应 three-row-content 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三条同构内容”。每行采用相同语法：标题、依据、解释与小结。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“四个研究目标”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=three-row-content",
+            "citation": "毕业答辩通用版式注册表：three-row-content",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "rows": [
+          {
+            "title": "论点一",
+            "body": "依据｜观察｜解释｜边界",
+            "number": "01"
+          },
+          {
+            "title": "论点二",
+            "body": "依据｜观察｜解释｜边界",
+            "number": "02"
+          },
+          {
+            "title": "论点三",
+            "body": "依据｜观察｜解释｜边界",
+            "number": "03"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-four-objectives",
+      "order": 19,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范四个相互区分且共同服务总目标的研究任务。",
+      "audience_question": "目标、方法和结果如何避免混写？",
+      "takeaway": "目标写“要解决什么”，交付物写“完成后得到什么”。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 19 / 36",
+        "title": "四个同层级研究目标",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "method_design",
+        "variant": "four-objectives",
+        "rationale": "对应 four-objectives 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“四个研究目标”。目标写“要解决什么”，交付物写“完成后得到什么”。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“论文研究框架”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=four-objectives",
+            "citation": "毕业答辩通用版式注册表：four-objectives",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "overall_goal": "总目标｜用一句话界定研究要解决的问题",
+        "objectives": [
+          {
+            "title": "目标一",
+            "body": "明确对象或范围",
+            "number": "01"
+          },
+          {
+            "title": "目标二",
+            "body": "建立方法或模型",
+            "number": "02"
+          },
+          {
+            "title": "目标三",
+            "body": "完成分析或验证",
+            "number": "03"
+          },
+          {
+            "title": "目标四",
+            "body": "形成结论或方案",
+            "number": "04"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-thesis-framework",
+      "order": 20,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范总问题、研究模块、证据和输出的真实层级。",
+      "audience_question": "论文框架图是否只是章节目录的图形化？",
+      "takeaway": "框架图必须表达研究关系，而不是复刻目录。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 20 / 36",
+        "title": "论文研究框架",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "system_architecture",
+        "variant": "thesis-framework",
+        "rationale": "对应 thesis-framework 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": true,
+        "reason": "只有存在真实层级和可解释连接时才使用树状框架。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "type": "hierarchy",
+        "direction": "top_to_bottom",
+        "nodes": [
+          {
+            "id": "tf-root",
+            "label": "总研究问题",
+            "role": "input",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "tf-b1",
+            "label": "研究模块一",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "tf-b2",
+            "label": "研究模块二",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "tf-b3",
+            "label": "研究模块三",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "tf-o1",
+            "label": "证据输出",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "tf-o2",
+            "label": "结论输出",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "tf-root",
+            "to": "tf-b1",
+            "relation": "contains",
+            "label": null
+          },
+          {
+            "from": "tf-root",
+            "to": "tf-b2",
+            "relation": "contains",
+            "label": null
+          },
+          {
+            "from": "tf-root",
+            "to": "tf-b3",
+            "relation": "contains",
+            "label": null
+          },
+          {
+            "from": "tf-b1",
+            "to": "tf-o1",
+            "relation": "supports",
+            "label": null
+          },
+          {
+            "from": "tf-b2",
+            "to": "tf-o1",
+            "relation": "supports",
+            "label": null
+          },
+          {
+            "from": "tf-b3",
+            "to": "tf-o2",
+            "relation": "supports",
+            "label": null
+          }
+        ],
+        "output": "从总问题追踪到研究模块、证据和结论",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“论文研究框架”。框架图必须表达研究关系，而不是复刻目录。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“中心问题与辐射方法”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=thesis-framework",
+            "citation": "毕业答辩通用版式注册表：thesis-framework",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "root": "总研究问题",
+        "branches": [
+          {
+            "title": "模块一",
+            "body": "对象与边界",
+            "number": "01"
+          },
+          {
+            "title": "模块二",
+            "body": "方法与分析",
+            "number": "02"
+          },
+          {
+            "title": "模块三",
+            "body": "验证与解释",
+            "number": "03"
+          }
+        ],
+        "outputs": [
+          {
+            "title": "输出一",
+            "body": "可复核证据",
+            "number": "A"
+          },
+          {
+            "title": "输出二",
+            "body": "结论与边界",
+            "number": "B"
+          }
+        ],
+        "side_notes": [
+          "软件链、材料链或理论来源可作为侧栏",
+          "成果预告只写已完成交付物"
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-radial-methods",
+      "order": 21,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范多种同层级方法共同服务一个中心问题。",
+      "audience_question": "何时适合使用中心辐射图？",
+      "takeaway": "外圈方法必须共同作用于一个真实中心，且彼此无先后。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 21 / 36",
+        "title": "中心问题与辐射方法",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "method_design",
+        "variant": "radial-methods",
+        "rationale": "对应 radial-methods 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": true,
+        "reason": "方法为并行关系且共享同一中心对象。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "type": "system",
+        "direction": "radial",
+        "nodes": [
+          {
+            "id": "rm-center",
+            "label": "中心研究问题",
+            "role": "input",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "rm-a",
+            "label": "方法 A",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "rm-b",
+            "label": "方法 B",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "rm-c",
+            "label": "方法 C",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "rm-d",
+            "label": "方法 D",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "rm-a",
+            "to": "rm-center",
+            "relation": "supports",
+            "label": null
+          },
+          {
+            "from": "rm-b",
+            "to": "rm-center",
+            "relation": "supports",
+            "label": null
+          },
+          {
+            "from": "rm-c",
+            "to": "rm-center",
+            "relation": "supports",
+            "label": null
+          },
+          {
+            "from": "rm-d",
+            "to": "rm-center",
+            "relation": "supports",
+            "label": null
+          }
+        ],
+        "output": "多种方法共同回答一个问题",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“中心问题与辐射方法”。外圈方法必须共同作用于一个真实中心，且彼此无先后。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“四阶段带状流程”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=radial-methods",
+            "citation": "毕业答辩通用版式注册表：radial-methods",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "center": "中心研究问题",
+        "methods": [
+          {
+            "title": "方法 A",
+            "body": "材料或数据路径",
+            "number": "A"
+          },
+          {
+            "title": "方法 B",
+            "body": "分析或实验路径",
+            "number": "B"
+          },
+          {
+            "title": "方法 C",
+            "body": "比较或验证路径",
+            "number": "C"
+          },
+          {
+            "title": "方法 D",
+            "body": "解释或归纳路径",
+            "number": "D"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-four-step-ribbon",
+      "order": 22,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范正好四个不可颠倒的研究或工程阶段。",
+      "audience_question": "四步流程怎样避免被误读为四点清单？",
+      "takeaway": "箭头和带状连接只在真实顺序存在时出现。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 22 / 36",
+        "title": "四阶段带状流程",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "process_flow",
+        "variant": "four-step-ribbon",
+        "rationale": "对应 four-step-ribbon 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": true,
+        "reason": "步骤数与顺序严格匹配四阶段拓扑。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "type": "process",
+        "direction": "left_to_right",
+        "nodes": [
+          {
+            "id": "r-1",
+            "label": "阶段一",
+            "role": "input",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "r-2",
+            "label": "阶段二",
+            "role": "process",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "r-3",
+            "label": "阶段三",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "r-4",
+            "label": "阶段四",
+            "role": "output",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "r-1",
+            "to": "r-2",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "r-2",
+            "to": "r-3",
+            "relation": "sequence",
+            "label": null
+          },
+          {
+            "from": "r-3",
+            "to": "r-4",
+            "relation": "sequence",
+            "label": null
+          }
+        ],
+        "output": "以四个不可颠倒阶段形成输出",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“四阶段带状流程”。箭头和带状连接只在真实顺序存在时出现。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“三项创新与证据”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=four-step-ribbon",
+            "citation": "毕业答辩通用版式注册表：four-step-ribbon",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "steps": [
+          {
+            "title": "阶段一",
+            "body": "输入与问题界定",
+            "number": "01"
+          },
+          {
+            "title": "阶段二",
+            "body": "方法与方案形成",
+            "number": "02"
+          },
+          {
+            "title": "阶段三",
+            "body": "分析与验证",
+            "number": "03"
+          },
+          {
+            "title": "阶段四",
+            "body": "输出与结论",
+            "number": "04"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-innovation-brackets",
+      "order": 23,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范三项创新分别绑定基线、完成工作和证据。",
+      "audience_question": "创新点如何从口号变成可核验主张？",
+      "takeaway": "每项创新都要回答“相对什么、做了什么、凭什么”。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 23 / 36",
+        "title": "三项创新与证据",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "innovation-brackets",
+        "rationale": "对应 innovation-brackets 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三项创新与证据”。每项创新都要回答“相对什么、做了什么、凭什么”。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“四项结果闭环”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=innovation-brackets",
+            "citation": "毕业答辩通用版式注册表：innovation-brackets",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "innovations": [
+          {
+            "title": "创新一｜对象或问题",
+            "body": "基线 → 完成工作 → 证据页",
+            "number": "01"
+          },
+          {
+            "title": "创新二｜方法或机制",
+            "body": "基线 → 完成工作 → 证据页",
+            "number": "02"
+          },
+          {
+            "title": "创新三｜验证或应用",
+            "body": "基线 → 完成工作 → 证据页",
+            "number": "03"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-four-results-cycle",
+      "order": 24,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范四项结果构成真实循环、相互校核或迭代闭环。",
+      "audience_question": "何时可以把四项结果画成循环？",
+      "takeaway": "只有能够解释闭环方向时才使用循环布局。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 24 / 36",
+        "title": "四项结果闭环",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "summary",
+        "variant": "four-results-cycle",
+        "rationale": "对应 four-results-cycle 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": true,
+        "reason": "循环方向对应真实迭代或相互校核。",
+        "source_refs": [
+          "layout-registry"
+        ],
+        "type": "cycle",
+        "direction": "radial",
+        "nodes": [
+          {
+            "id": "c-center",
+            "label": "共同目标",
+            "role": "context",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "c-1",
+            "label": "结果一",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "c-2",
+            "label": "结果二",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "c-3",
+            "label": "结果三",
+            "role": "evidence",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "id": "c-4",
+            "label": "结果四",
+            "role": "feedback",
+            "detail": null,
+            "source_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "c-1",
+            "to": "c-2",
+            "relation": "feeds",
+            "label": null
+          },
+          {
+            "from": "c-2",
+            "to": "c-3",
+            "relation": "feeds",
+            "label": null
+          },
+          {
+            "from": "c-3",
+            "to": "c-4",
+            "relation": "feeds",
+            "label": null
+          },
+          {
+            "from": "c-4",
+            "to": "c-1",
+            "relation": "feedback",
+            "label": "迭代"
+          }
+        ],
+        "output": "四项结果形成可解释闭环",
+        "asset_ref": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“四项结果闭环”。只有能够解释闭环方向时才使用循环布局。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“双图双结论”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=four-results-cycle",
+            "citation": "毕业答辩通用版式注册表：four-results-cycle",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "center": "共同目标",
+        "results": [
+          {
+            "title": "结果一",
+            "body": "提供输入或约束",
+            "number": "01"
+          },
+          {
+            "title": "结果二",
+            "body": "形成分析或方案",
+            "number": "02"
+          },
+          {
+            "title": "结果三",
+            "body": "完成验证或比较",
+            "number": "03"
+          },
+          {
+            "title": "结果四",
+            "body": "反馈修正或收束",
+            "number": "04"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-two-image-results",
+      "order": 25,
+      "kind": "content",
+      "section_id": "structured-layouts",
+      "purpose": "示范两张并行结果图各自对应一条短结论。",
+      "audience_question": "与严格对照版式有什么不同？",
+      "takeaway": "两图共享研究问题，但每张图保留独立观察结论。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 25 / 36",
+        "title": "双图双结论",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "comparison",
+        "variant": "two-image-results",
+        "rationale": "对应 two-image-results 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "result-left-slot",
+          "type": "figure",
+          "role": "secondary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "结果图A占位",
+          "placement": "正文左侧",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        },
+        {
+          "id": "result-right-slot",
+          "type": "figure",
+          "role": "secondary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "结果图B占位",
+          "placement": "正文右侧",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“双图双结论”。两图共享研究问题，但每张图保留独立观察结论。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“大图与结论侧栏”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=two-image-results",
+            "citation": "毕业答辩通用版式注册表：two-image-results",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "left_label": "结果 A",
+        "right_label": "结果 B",
+        "left_conclusion": "左图的一句话观察",
+        "right_conclusion": "右图的一句话观察",
+        "panels": [
+          {
+            "title": "结果 A｜左图的一句话观察",
+            "body": "与左侧证据图一一对应"
+          },
+          {
+            "title": "结果 B｜右图的一句话观察",
+            "body": "与右侧证据图一一对应"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-figure-conclusion",
+      "order": 26,
+      "kind": "content",
+      "section_id": "synthesis-closing",
+      "purpose": "示范一张大幅结果图与右侧三条结论。",
+      "audience_question": "主图证据很强时，文字应该保留多少？",
+      "takeaway": "大图呈现证据，侧栏说明观察、结论与边界。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 26 / 36",
+        "title": "大图与结论侧栏",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "观察一｜图中最关键区域",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "结论二｜证据支持的判断",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "边界三｜不应外推的范围",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "hero_figure",
+        "variant": "figure-conclusion",
+        "rationale": "对应 figure-conclusion 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "figure-conclusion-slot",
+          "type": "figure",
+          "role": "primary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "大幅结果图占位",
+          "placement": "正文左侧主画布",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“大图与结论侧栏”。大图承担证据，侧栏只负责观察任务、结论和边界。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“最终结论清单”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=figure-conclusion",
+            "citation": "毕业答辩通用版式注册表：figure-conclusion",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "figure_label": "大幅证据图",
+        "conclusions": [
+          {
+            "title": "看哪里",
+            "body": "标注关键区域",
+            "number": "01"
+          },
+          {
+            "title": "说明什么",
+            "body": "收束学术结论",
+            "number": "02"
+          },
+          {
+            "title": "支持到哪里",
+            "body": "明确适用边界",
+            "number": "03"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-conclusion-list",
+      "order": 27,
+      "kind": "summary",
+      "section_id": "synthesis-closing",
+      "purpose": "示范3至6条互不重复、按逻辑或重要度排序的最终结论。",
+      "audience_question": "结论页如何避免重复研究过程？",
+      "takeaway": "每条结论都是回答，不是“做了什么”的过程复述。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 27 / 36",
+        "title": "最终结论清单",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "summary",
+        "variant": "conclusion-list",
+        "rationale": "对应 conclusion-list 的语义槽位；结论数量由论文决定，版式在3至6条间自适应。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页用四条示范自适应结论清单。每条结论都是回答，不是“做了什么”的过程复述；正式数量由论文结论决定。",
+        "transition": "下一页展示“三列可执行展望”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=conclusion-list",
+            "citation": "毕业答辩通用版式注册表：conclusion-list",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "conclusions": [
+          {
+            "title": "结论一",
+            "body": "回答核心研究问题",
+            "number": "01"
+          },
+          {
+            "title": "结论二",
+            "body": "说明关键机制或关系",
+            "number": "02"
+          },
+          {
+            "title": "结论三",
+            "body": "报告主要结果或差异",
+            "number": "03"
+          },
+          {
+            "title": "结论四",
+            "body": "说明贡献或价值",
+            "number": "04"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-three-outlook-columns",
+      "order": 28,
+      "kind": "content",
+      "section_id": "synthesis-closing",
+      "purpose": "示范三条未来方向分别包含边界、行动和验证标准。",
+      "audience_question": "展望如何避免成为愿望清单？",
+      "takeaway": "未来方向必须从当前边界出发，并有可验证交付物。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 28 / 36",
+        "title": "三列可执行展望",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "three-outlook-columns",
+        "rationale": "对应 three-outlook-columns 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“三列可执行展望”。未来方向必须从当前边界出发，并有可验证交付物。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“引文与分析”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=three-outlook-columns",
+            "citation": "毕业答辩通用版式注册表：three-outlook-columns",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "directions": [
+          {
+            "title": "方向一",
+            "body": "当前边界 → 下一行动 → 验证标准",
+            "number": "01"
+          },
+          {
+            "title": "方向二",
+            "body": "当前边界 → 下一行动 → 验证标准",
+            "number": "02"
+          },
+          {
+            "title": "方向三",
+            "body": "当前边界 → 下一行动 → 验证标准",
+            "number": "03"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-quote-analysis",
+      "order": 29,
+      "kind": "content",
+      "section_id": "synthesis-closing",
+      "purpose": "示范短引文、史料、条款或学术观点与分析并置。",
+      "audience_question": "人文社科答辩怎样避免只摘录不分析？",
+      "takeaway": "引文提供证据，分析解释它如何支持论点。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 29 / 36",
+        "title": "引文与分析",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "语境：说明引文出现在哪里",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "关键词：指出要分析的概念",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "论证作用：解释它支持什么",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": {
+          "text": "这里放一段短引文、史料原文或关键观点。",
+          "source_ref": "layout-registry"
+        },
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "quote_analysis",
+        "variant": "quote-analysis",
+        "rationale": "对应 quote-analysis 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“引文与分析”。引文提供原始证据，右侧分析说明其如何支持论点。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“双案例或双文本比较”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=quote-analysis",
+            "citation": "毕业答辩通用版式注册表：quote-analysis",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "quote": "这里放一段短引文、史料原文或关键观点。",
+        "analysis": "分析必须回到研究问题与中心论点。"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-case-compare",
+      "order": 30,
+      "kind": "content",
+      "section_id": "synthesis-closing",
+      "purpose": "示范两个案例、文本、政策或解释框架按共同维度比较。",
+      "audience_question": "双案例比较如何保持同一分析尺度？",
+      "takeaway": "左右两侧必须回答同一组比较问题。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 30 / 36",
+        "title": "双案例或双文本比较",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "共同维度一｜对象或语境",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "共同维度二｜机制或论证",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "共同维度三｜结果或影响",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "case_matrix",
+        "variant": "case-compare",
+        "rationale": "对应 case-compare 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“双案例或双文本比较”。左右两侧必须回答同一组比较问题。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“主张—方法—证据—状态”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=case-compare",
+            "citation": "毕业答辩通用版式注册表：case-compare",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "left_label": "案例 A",
+        "right_label": "案例 B",
+        "left_text": "背景｜证据｜解释",
+        "right_text": "背景｜证据｜解释"
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-validation-matrix",
+      "order": 31,
+      "kind": "content",
+      "section_id": "synthesis-closing",
+      "purpose": "示范三项以上主张或要求与验证路径的映射。",
+      "audience_question": "如何证明关键结论都经过了相应验证？",
+      "takeaway": "矩阵用于暴露证据缺口，不用于掩盖缺口。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 31 / 36",
+        "title": "主张—方法—证据—状态",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "validation_matrix",
+        "variant": "validation-matrix",
+        "rationale": "对应 validation-matrix 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“主张—方法—证据—状态”。矩阵用于暴露证据缺口，不用于掩盖缺口。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“贡献与证据对应”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=validation-matrix",
+            "citation": "毕业答辩通用版式注册表：validation-matrix",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "table": {
+          "columns": [
+            "主张/要求",
+            "方法",
+            "证据",
+            "状态"
+          ],
+          "rows": [
+            [
+              "主张一",
+              "方法 A",
+              "证据页 A",
+              "已支持"
+            ],
+            [
+              "主张二",
+              "方法 B",
+              "证据页 B",
+              "部分支持"
+            ],
+            [
+              "主张三",
+              "方法 C",
+              "待补证据",
+              "需复核"
+            ]
+          ],
+          "highlight": {
+            "row": 2,
+            "column": 3
+          }
+        }
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-contribution",
+      "order": 32,
+      "kind": "summary",
+      "section_id": "synthesis-closing",
+      "purpose": "示范二至五项贡献逐项绑定前文结果与影响。",
+      "audience_question": "贡献页如何避免泛化表述？",
+      "takeaway": "贡献由完成工作与证据定义，而不是由形容词定义。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 32 / 36",
+        "title": "贡献与证据对应",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "contribution",
+        "rationale": "对应 contribution 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“贡献与证据对应”。贡献由完成工作与证据定义，而不是由形容词定义。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“当前边界与下一步验证”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=contribution",
+            "citation": "毕业答辩通用版式注册表：contribution",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "contributions": [
+          {
+            "title": "对象或问题层贡献",
+            "evidence": "对应结果页或证据编号"
+          },
+          {
+            "title": "方法或路径层贡献",
+            "evidence": "对应结果页或证据编号"
+          },
+          {
+            "title": "解释或应用层贡献",
+            "evidence": "对应结果页或证据编号"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-limitations",
+      "order": 33,
+      "kind": "content",
+      "section_id": "synthesis-closing",
+      "purpose": "示范把局限性转化为可执行、可验证的下一步。",
+      "audience_question": "怎样诚实说明边界而不削弱已验证结论？",
+      "takeaway": "先限定已知结论，再提出最能降低不确定性的验证。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 33 / 36",
+        "title": "当前边界与下一步验证",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "contribution_limits",
+        "variant": "limitations",
+        "rationale": "对应 limitations 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“当前边界与下一步验证”。先限定已知结论，再提出最能降低不确定性的验证。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“精选参考来源”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=limitations",
+            "citation": "毕业答辩通用版式注册表：limitations",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "limitations": [
+          "样本、场景或文本范围仍有限",
+          "方法假设或测量条件仍需扩展",
+          "结论不应超出已验证边界"
+        ],
+        "next_steps": [
+          "补充最关键的对照或样本",
+          "给出判据、交付物与完成路径",
+          "验证扩展后结论是否仍成立"
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-references",
+      "order": 34,
+      "kind": "appendix",
+      "section_id": "synthesis-closing",
+      "purpose": "示范只列答辩中实际使用的关键来源。",
+      "audience_question": "参考文献页应保留哪些条目？",
+      "takeaway": "只保留对口头论证关键且已在页内引用的来源。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 34 / 36",
+        "title": "精选参考来源",
+        "subtitle": null,
+        "body": [
+          "[1] 核心理论文献：作者. 题名. 期刊或出版社, 年份.",
+          "[2] 关键方法文献：作者. 题名. 期刊或出版社, 年份.",
+          "[3] 对照研究：作者. 题名. 期刊, 年份.",
+          "[4] 综述或基础专著：作者. 题名. 出版社, 年份.",
+          "[5] 数据集或统计公报：机构, 名称, 年份.",
+          "[6] 标准或技术规范：发布机构, 编号, 年份.",
+          "[7] 档案、语料或官方材料：责任者, 名称, 年份.",
+          "[8] 与验证直接相关的公开资料：责任者, 名称, 年份."
+        ],
+        "bullets": [],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "summary",
+        "variant": "references",
+        "rationale": "对应 references 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "dense"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“精选参考来源”。只保留对口头论证关键且已在页内引用的来源。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“证据优先自由画布”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=references",
+            "citation": "毕业答辩通用版式注册表：references",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "group_labels": [
+          "理论与方法",
+          "数据、标准与材料"
+        ],
+        "references": [
+          "核心理论文献：作者. 题名. 期刊或出版社, 年份.",
+          "关键方法文献：作者. 题名. 期刊或出版社, 年份.",
+          "对照研究：作者. 题名. 期刊, 年份.",
+          "综述或基础专著：作者. 题名. 出版社, 年份.",
+          "数据集或统计公报：机构, 名称, 年份.",
+          "标准或技术规范：发布机构, 编号, 年份.",
+          "档案、语料或官方材料：责任者, 名称, 年份.",
+          "与验证直接相关的公开资料：责任者, 名称, 年份."
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-free-evidence",
+      "order": 35,
+      "kind": "content",
+      "section_id": "synthesis-closing",
+      "purpose": "示范当注册布局不匹配时，从证据关系重新设计。",
+      "audience_question": "什么时候应该放弃现成版式？",
+      "takeaway": "特殊证据优先，布局仍需保持层级、对齐与来源。",
+      "priority": "core",
+      "content": {
+        "kicker": "LAYOUT 35 / 36",
+        "title": "证据优先自由画布",
+        "subtitle": null,
+        "body": [],
+        "bullets": [
+          {
+            "text": "先确定评委应该看什么",
+            "level": 0,
+            "emphasis": "strong",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "再确定元素之间的真实关系",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          },
+          {
+            "text": "最后选择最少的视觉组件",
+            "level": 0,
+            "emphasis": "none",
+            "evidence_refs": [
+              "layout-registry"
+            ]
+          }
+        ],
+        "metrics": [],
+        "quote": null,
+        "callout": null,
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "free_canvas",
+        "variant": "free-evidence",
+        "rationale": "对应 free-evidence 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "free-evidence-slot",
+          "type": "figure",
+          "role": "primary_evidence",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "特殊论文证据占位",
+          "placement": "自由主画布",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“证据优先自由画布”。特殊证据优先于模板轮廓，但仍保留层级、对齐和来源。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "下一页展示“感谢各位老师，请批评指正”。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=free-evidence",
+            "citation": "毕业答辩通用版式注册表：free-evidence",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {
+        "elements": [
+          {
+            "title": "主证据",
+            "body": "占据最大视觉权重",
+            "number": "A"
+          },
+          {
+            "title": "解释",
+            "body": "只保留必要说明",
+            "number": "B"
+          },
+          {
+            "title": "结论",
+            "body": "明确证据支持到哪里",
+            "number": "C"
+          }
+        ]
+      },
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    },
+    {
+      "id": "sample-closing",
+      "order": 36,
+      "kind": "closing",
+      "section_id": "synthesis-closing",
+      "purpose": "示范与封面呼应、回扣核心结论并邀请提问的收束页。",
+      "audience_question": "结尾页怎样避免只剩通用感谢语？",
+      "takeaway": "结尾页回扣最重要结论与边界，不加入新证据。",
+      "priority": "supporting",
+      "content": {
+        "kicker": "LAYOUT 36 / 36",
+        "title": "感谢各位老师，请批评指正",
+        "subtitle": null,
+        "body": [],
+        "bullets": [],
+        "metrics": [
+          {
+            "label": "语义布局",
+            "value": "36",
+            "unit": "种",
+            "comparison": "按需选择",
+            "evidence_ref": "layout-registry"
+          }
+        ],
+        "quote": null,
+        "callout": "布局库仅示范页面语义；正式答辩按论文证据重新选页。",
+        "visible_source_labels": [],
+        "footer": null
+      },
+      "layout": {
+        "family": "closing",
+        "variant": "closing",
+        "rationale": "对应 closing 的语义槽位；选择依据是内容关系，不是模板外观。",
+        "reading_order": [
+          "页标题",
+          "主体证据或关系",
+          "一句话结论",
+          "边界或来源"
+        ],
+        "regions": [],
+        "density": "sparse"
+      },
+      "evidence_refs": [
+        "layout-registry",
+        "design-tokens"
+      ],
+      "visuals": [
+        {
+          "id": "closing-logo-slot",
+          "type": "logo",
+          "role": "branding",
+          "include": false,
+          "rationale": "画廊只验证语义槽位与占位框，不绑定论文图片或外部资产。",
+          "asset_ref": null,
+          "source_refs": [
+            "layout-registry"
+          ],
+          "caption": null,
+          "alt_text": "学校校徽槽位",
+          "placement": "顶部居中",
+          "crop": "contain",
+          "highlight": null,
+          "transformations": []
+        }
+      ],
+      "formula": {
+        "include": false,
+        "reason": "本版式不需要公式；公式只有在承担定义、约束、方法核心或结果解释时才加入。",
+        "role": "none",
+        "source_refs": []
+      },
+      "diagram": {
+        "include": false,
+        "reason": "本版式不需要额外关系图；主体结构已足以表达信息。",
+        "source_refs": [],
+        "type": "none",
+        "direction": "none",
+        "nodes": [],
+        "edges": [],
+        "output": null
+      },
+      "speaker_notes": {
+        "script": "本页示范“感谢各位老师，请批评指正”。结尾页回扣最重要结论与边界，不加入新证据。 正式使用时，优先检查注册版式是否自然匹配；若不匹配，应按证据关系自定义可编辑画布。",
+        "transition": "版式画廊到此结束。",
+        "estimated_seconds": 10,
+        "sources": [
+          {
+            "source_id": "layout-registry",
+            "locator": "layoutId=closing",
+            "citation": "毕业答辩通用版式注册表：closing",
+            "purpose": "版式语义与使用边界"
+          },
+          {
+            "source_id": "design-tokens",
+            "locator": "global",
+            "citation": "毕业答辩通用设计令牌",
+            "purpose": "视觉规范"
+          }
+        ],
+        "delivery_cues": [
+          "先说明适用关系，再说明该版式不能被强行套用。"
+        ]
+      },
+      "render_data": {},
+      "qa": {
+        "status": "not_checked",
+        "issues": []
+      }
+    }
+  ],
+  "claim_evidence_map": [],
+  "qa": {
+    "status": "not_checked",
+    "issues": [],
+    "checks": {
+      "schema": "not_checked",
+      "evidence": "not_checked",
+      "narrative": "not_checked",
+      "visual": "not_checked",
+      "technical": "not_checked",
+      "notes_sources": "not_checked"
+    },
+    "checked_at": null
+  }
+}

@@ -1,0 +1,297 @@
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "group-meeting-literature-universal",
+  "profile": "group_meeting_literature",
+  "displayName": "组会文献汇报·学术通用",
+  "source": "clean-generated-layout-library",
+  "generatedAsset": "layout-library.pptx",
+  "binding": {
+    "strategy": "semantic-layout-id-and-slot",
+    "stableKeys": [
+      "layoutId",
+      "slotName",
+      "elementName"
+    ],
+    "forbidTransientPowerPointIds": true,
+    "forbidSourceShapeIds": true,
+    "forbidSourceSlideIds": true,
+    "layoutRegistry": "layout-registry.json"
+  },
+  "globalSlots": [
+    "brand.logo",
+    "brand.institution",
+    "brand.lab",
+    "profile.mode",
+    "paperSet.label",
+    "navigation.sections",
+    "navigation.activeSection",
+    "pageNumber",
+    "speakerNotes",
+    "sources"
+  ],
+  "generationPolicy": {
+    "cleanGenerated": true,
+    "importsReferenceDeck": false,
+    "copiesReferenceSlides": false,
+    "copiesReferenceShapes": false,
+    "dependsOnReferenceAtBuildTime": false,
+    "usesSemanticLayoutIds": true,
+    "allowsFreeEvidenceCanvas": true,
+    "fixedPaperCount": false,
+    "fixedSectionCount": false,
+    "equalSlidesPerPaper": false
+  },
+  "referenceHeritage": {
+    "referenceDeck": "K105-蓝色-无校徽版-组会文献汇报PPT模板-多篇文献版.pptx",
+    "referenceDeckSlideCount": 25,
+    "usage": "仅提炼蓝白学术视觉语言、论文信息页、证据页和组会收束页中可复用的语义；新布局库为 clean-generated，不导入原幻灯片对象，不依赖原文件的 shape ID、slide ID、对象名称、主题 ID、论文数量或固定页序。",
+    "independence": {
+      "importsReferenceDeck": false,
+      "copiesReferenceShapes": false,
+      "dependsOnReferenceAtBuildTime": false,
+      "usesSemanticLayoutIds": true
+    },
+    "sourceSlideMap": [
+      {
+        "layoutId": "group-cover",
+        "sourceSlides": [
+          1
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "蓝白横带、主题居中、汇报人和日期的开场层级。"
+      },
+      {
+        "layoutId": "paper-agenda",
+        "sourceSlides": [
+          2
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "编号目录的扫描路径；重构为自适应分析章节，不固定论文或章节数量。"
+      },
+      {
+        "layoutId": "paper-divider",
+        "sourceSlides": [
+          3,
+          10,
+          15,
+          20
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "章节编号与当前项强调；删除全目录重复和固定逐篇分隔。"
+      },
+      {
+        "layoutId": "paper-profile",
+        "sourceSlides": [
+          4,
+          11,
+          16
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "文献信息、真实论文页面与核心研究内容组合；去除虚构杂志封面。"
+      },
+      {
+        "layoutId": "selection-rationale",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增选文范围、代表性和证据角色说明。"
+      },
+      {
+        "layoutId": "known-gap-question",
+        "sourceSlides": [
+          5,
+          12,
+          17
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "继承背景图与解释并置，将泛化‘背景与意义’重构为已知—缺口—问题。"
+      },
+      {
+        "layoutId": "concept-framework",
+        "sourceSlides": [
+          5,
+          12,
+          17
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "提炼概念或机制图与解释区域的关系，要求连线具有学术语义。"
+      },
+      {
+        "layoutId": "study-design",
+        "sourceSlides": [
+          6,
+          13,
+          18
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "保留方法分区的阅读节奏，取消固定四列或六列。"
+      },
+      {
+        "layoutId": "method-sequence",
+        "sourceSlides": [
+          13
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "保留横向方向感，步骤与分支由真实研究流程决定。"
+      },
+      {
+        "layoutId": "method-comparison",
+        "sourceSlides": [
+          6,
+          13,
+          18
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "从多列方法卡提取比较意图，改用共同标准组织。"
+      },
+      {
+        "layoutId": "sample-data-profile",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增样本、数据、语料与外推边界画像。"
+      },
+      {
+        "layoutId": "single-result-evidence",
+        "sourceSlides": [
+          19
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "大幅核心证据与侧栏解释，改为主张式标题和来源锚点。"
+      },
+      {
+        "layoutId": "result-compare",
+        "sourceSlides": [
+          9
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "双结果并置与各自解释，强化共同尺度和比较基准。"
+      },
+      {
+        "layoutId": "multi-result-evidence",
+        "sourceSlides": [
+          8,
+          14
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "多项结果共同支持综合结论；取消固定图数和结果卡数量。"
+      },
+      {
+        "layoutId": "table-chart-result",
+        "sourceSlides": [
+          7
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "表格负责精确值、图表负责模式，只在两者互补时并置。"
+      },
+      {
+        "layoutId": "mechanism-explanation",
+        "sourceSlides": [
+          5,
+          12
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "机制图主导画布，并新增已验证、推断与替代机制的边界。"
+      },
+      {
+        "layoutId": "claim-evidence-boundary",
+        "sourceSlides": [
+          8,
+          19
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "由结果—结论升级为主张—证据—边界，显式展示推断跨度。"
+      },
+      {
+        "layoutId": "paper-conclusion",
+        "sourceSlides": [
+          8,
+          19
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "保留论文结果收束，增加证据索引、独立判断与适用范围。"
+      },
+      {
+        "layoutId": "critical-appraisal",
+        "sourceSlides": [
+          23
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "将空泛阅读反思重构为有证据依据的有效性、偏差、局限与贡献评价。"
+      },
+      {
+        "layoutId": "reproducibility-check",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增数据、代码、材料、协议、外部验证与复现证据检查。"
+      },
+      {
+        "layoutId": "cross-paper-matrix",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增共同维度矩阵，替代逐篇重复同一四页结构。"
+      },
+      {
+        "layoutId": "consensus-divergence",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增跨论文共识、分歧及差异来源解释。"
+      },
+      {
+        "layoutId": "evidence-quality-map",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增证据直接性、偏差、精度、复现性和总体置信判断。"
+      },
+      {
+        "layoutId": "research-evolution",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增问题、方法或理论的真实时间演进。"
+      },
+      {
+        "layoutId": "transfer-to-our-work",
+        "sourceSlides": [
+          22
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "保留借鉴点意图，改成方法迁移、适配边界与验证计划。"
+      },
+      {
+        "layoutId": "discussion-questions",
+        "sourceSlides": [
+          23
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "将阅读反思转为带证据锚点、可推动判断的讨论问题。"
+      },
+      {
+        "layoutId": "decision-request",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增组会待决事项、选项、标准、权衡与下一行动。"
+      },
+      {
+        "layoutId": "next-reading-actions",
+        "sourceSlides": [
+          24
+        ],
+        "origin": "reference-rebuilt-clean-generated",
+        "heritage": "将固定六个方向改成知识缺口驱动的优先阅读与复核行动。"
+      },
+      {
+        "layoutId": "selected-sources",
+        "sourceSlides": [],
+        "origin": "clean-generated",
+        "heritage": "新增精选来源页，与逐页备注中的 [Sources] 块配合。"
+      },
+      {
+        "layoutId": "group-closing",
+        "sourceSlides": [
+          25
+        ],
+        "origin": "reference-adapted-clean-generated",
+        "heritage": "蓝白横带收束、汇报身份与讨论邀请；增加总体判断和开放问题。"
+      }
+    ]
+  },
+  "notes": "layout-library.pptx 将是一页一布局的30种语义画廊，而不是固定30页的组会成稿。单篇与多篇只改变叙事路由；每篇页数、目录章节和正文构图由研究问题与证据价值决定。通用外壳适合时优先，正文无自然匹配时允许遵守设计令牌的自由证据画布。"
+}

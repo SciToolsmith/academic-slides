@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "1.0.0",
+  "templateId": "proposal-midterm-universal",
+  "defaultPreset": "blue",
+  "presets": {
+    "blue": {
+      "displayName": "学术蓝",
+      "primary": "#183A6A",
+      "primaryDark": "#10294C",
+      "primaryLight": "#E8EDF4",
+      "secondary": "#5877A2",
+      "accent": "#B77A2E",
+      "emphasis": "#B4233A",
+      "success": "#39786E",
+      "warning": "#B56A2E",
+      "danger": "#A5424A",
+      "chart": [
+        "#183A6A",
+        "#5877A2",
+        "#39786E",
+        "#B77A2E",
+        "#725A8B",
+        "#A5424A"
+      ]
+    },
+    "red": {
+      "displayName": "典雅红",
+      "primary": "#A83038",
+      "primaryDark": "#742229",
+      "primaryLight": "#F6E8E9",
+      "secondary": "#C5686E",
+      "accent": "#AD7C2E",
+      "emphasis": "#8A5A00",
+      "success": "#39786E",
+      "warning": "#B56A2E",
+      "danger": "#86262D",
+      "chart": [
+        "#A83038",
+        "#C5686E",
+        "#39786E",
+        "#AD7C2E",
+        "#586E9B",
+        "#7A557E"
+      ]
+    },
+    "purple": {
+      "displayName": "沉静紫",
+      "primary": "#67266F",
+      "primaryDark": "#471A4E",
+      "primaryLight": "#F1E8F2",
+      "secondary": "#91659A",
+      "accent": "#B17A30",
+      "emphasis": "#B4233A",
+      "success": "#39786E",
+      "warning": "#B56A2E",
+      "danger": "#A5424A",
+      "chart": [
+        "#67266F",
+        "#91659A",
+        "#39786E",
+        "#B17A30",
+        "#4D6E9B",
+        "#A5424A"
+      ]
+    },
+    "cyan": {
+      "displayName": "清朗青",
+      "primary": "#316D78",
+      "primaryDark": "#224D55",
+      "primaryLight": "#E6F0F2",
+      "secondary": "#67949D",
+      "accent": "#B17A30",
+      "emphasis": "#B4233A",
+      "success": "#39786E",
+      "warning": "#B56A2E",
+      "danger": "#A5424A",
+      "chart": [
+        "#316D78",
+        "#67949D",
+        "#4D6792",
+        "#B17A30",
+        "#7E5E8A",
+        "#A5424A"
+      ]
+    }
+  },
+  "adaptivePolicy": {
+    "preserveOfficialLogoColors": true,
+    "minimumTextContrast": 4.5,
+    "derivePrimaryFromVerifiedInstitutionBrand": true,
+    "fallbackPreset": "blue",
+    "neverSetAllAccentsToOneColor": true,
+    "researchFigureColorsRemainUnmodifiedUnlessLegibilityRequiresCorrection": true,
+    "statusMustUseTextOrShapeInAdditionToColor": true
+  },
+  "abstractHeritage": {
+    "referencePrimary": "#183A6A",
+    "usage": "仅继承深蓝、白底、灰蓝层级、细顶线和克制的学术节奏；不导入任何学校品牌、参考幻灯片对象或科研图片。"
+  }
+}

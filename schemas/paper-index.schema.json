@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.skills/academic-slides/paper-index.schema.json",
+  "title": "Academic Slides Literature Paper Index",
+  "description": "Bibliographic, analytical, and presentation-oriented index for one or more focal papers in a literature-centered group meeting.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "mode",
+    "focal_paper_ids",
+    "generated_at",
+    "papers"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project_id": {"$ref": "#/$defs/stableId"},
+    "mode": {"enum": ["single_paper", "multi_paper"]},
+    "focal_paper_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/stableId"},
+      "uniqueItems": true
+    },
+    "generated_at": {"type": "string", "format": "date-time"},
+    "papers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/paper"}
+    },
+    "synthesis": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/synthesis"}
+      ],
+      "default": null
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "default": []
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"mode": {"const": "single_paper"}},
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "focal_paper_ids": {"minItems": 1, "maxItems": 1}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"mode": {"const": "multi_paper"}},
+        "required": ["mode"]
+      },
+      "then": {
+        "required": ["synthesis"],
+        "properties": {
+          "focal_paper_ids": {"minItems": 2},
+          "synthesis": {"$ref": "#/$defs/synthesis"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "paper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paper_id",
+        "document_id",
+        "role",
+        "bibliography",
+        "metadata_verification",
+        "analysis",
+        "figure_manifest_path",
+        "presentation_priority"
+      ],
+      "properties": {
+        "paper_id": {"$ref": "#/$defs/stableId"},
+        "document_id": {"$ref": "#/$defs/stableId"},
+        "role": {"enum": ["focal", "background"]},
+        "bibliography": {"$ref": "#/$defs/bibliography"},
+        "metadata_verification": {"$ref": "#/$defs/metadataVerification"},
+        "analysis": {"$ref": "#/$defs/paperAnalysis"},
+        "figure_manifest_path": {
+          "type": ["string", "null"],
+          "description": "Project-relative path to this paper's figures.manifest.json; use null only when the source contains no figures."
+        },
+        "venue_metrics": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/venueMetric"},
+          "default": []
+        },
+        "presentation_priority": {
+          "enum": ["core", "supporting", "context", "exclude"]
+        },
+        "candidate_evidence_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "bibliography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "authors", "publication_type", "venue", "year_or_date"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "authors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "publication_type": {
+          "enum": ["journal_article", "conference_paper", "review", "preprint", "thesis", "book_chapter", "report", "other"]
+        },
+        "venue": {"type": ["string", "null"]},
+        "year_or_date": {"type": ["string", "null"]},
+        "volume": {"type": ["string", "null"]},
+        "issue": {"type": ["string", "null"]},
+        "pages_or_article_number": {"type": ["string", "null"]},
+        "doi": {"type": ["string", "null"]},
+        "url": {"type": ["string", "null"], "format": "uri"},
+        "author_keywords": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true,
+          "default": []
+        },
+        "presenter_tags": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true,
+          "default": []
+        },
+        "citation": {"type": ["string", "null"]}
+      }
+    },
+    "metadataVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "verified_fields", "sources"],
+      "properties": {
+        "status": {"enum": ["verified", "partial", "needs_review", "conflicted"]},
+        "verified_fields": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "sources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/metadataSource"}
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        }
+      }
+    },
+    "metadataSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["citation", "locator"],
+      "properties": {
+        "citation": {"type": "string", "minLength": 1},
+        "locator": {"type": "string", "minLength": 1},
+        "url": {"type": ["string", "null"], "format": "uri"},
+        "accessed_at": {"type": ["string", "null"], "format": "date-time"}
+      }
+    },
+    "paperAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "research_questions",
+        "gap",
+        "method",
+        "data_or_sample",
+        "key_findings",
+        "author_stated_limitations"
+      ],
+      "properties": {
+        "research_questions": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "gap": {"type": ["string", "null"]},
+        "method": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "data_or_sample": {"type": ["string", "null"]},
+        "key_findings": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/keyFinding"}
+        },
+        "author_stated_contribution": {"type": ["string", "null"]},
+        "author_stated_limitations": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "presenter_observations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/presenterObservation"},
+          "default": []
+        }
+      }
+    },
+    "keyFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "claim", "evidence_refs"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "claim": {"type": "string", "minLength": 1},
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "scope_limit": {"type": ["string", "null"]}
+      }
+    },
+    "presenterObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "statement", "evidence_refs"],
+      "properties": {
+        "type": {"enum": ["synthesis", "critique", "question", "application"]},
+        "statement": {"type": "string", "minLength": 1},
+        "evidence_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "venueMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric_name", "value", "system", "edition_year", "source_url", "verified_at"],
+      "properties": {
+        "metric_name": {"type": "string", "minLength": 1},
+        "value": {"type": ["string", "number"]},
+        "system": {"type": "string", "minLength": 1},
+        "edition_year": {"type": "string", "minLength": 1},
+        "source_url": {"type": "string", "format": "uri"},
+        "verified_at": {"type": "string", "format": "date-time"},
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "synthesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question", "axes", "convergences", "divergences", "gaps"],
+      "properties": {
+        "question": {"type": "string", "minLength": 1},
+        "axes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "convergences": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/synthesisStatement"}
+        },
+        "divergences": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/synthesisStatement"}
+        },
+        "gaps": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "synthesisStatement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statement", "paper_ids", "evidence_refs"],
+      "properties": {
+        "statement": {"type": "string", "minLength": 1},
+        "paper_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "explanation": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

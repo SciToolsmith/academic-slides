@@ -1,0 +1,5 @@
+interface:
+  display_name: "Academic Slides"
+  short_description: "从论文或研究材料生成可编辑PPT、同步Word讲稿和项目MJS"
+  brand_color: "#364A7C"
+  default_prompt: "使用 $academic-slides 根据我上传的学位论文、开题/中期材料或研究文献，制作带逐页讲稿和来源的学术PPT，并交付同步Word讲稿与项目MJS。"

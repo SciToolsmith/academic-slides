@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0",
+  "defaultProfile": "final_defense",
+  "backwardCompatibility": {
+    "missingDeckProfile": "final_defense"
+  },
+  "profiles": {
+    "final_defense": {
+      "id": "final_defense",
+      "reference": "references/final-defense.md",
+      "assetDirectory": "assets/final-defense-universal",
+      "modes": [],
+      "layoutLibrary": "layout-library.pptx",
+      "layoutRegistry": "layout-registry.json",
+      "templateMap": "template-map.json",
+      "designTokens": "design-tokens.json",
+      "themePresets": "theme-presets.json",
+      "librarySpec": "sample-deck-spec.json",
+      "preview": "preview.png",
+      "requiredFiles": [
+        "layout-library.pptx",
+        "layout-registry.json",
+        "template-map.json",
+        "sample-deck-spec.json",
+        "design-tokens.json",
+        "theme-presets.json",
+        "preview.png"
+      ],
+      "expectedLayoutCount": 36
+    },
+    "proposal_midterm": {
+      "id": "proposal_midterm",
+      "reference": "references/proposal-midterm.md",
+      "assetDirectory": "assets/proposal-midterm-universal",
+      "modes": [
+        "proposal",
+        "midterm"
+      ],
+      "layoutLibrary": "layout-library.pptx",
+      "layoutRegistry": "layout-registry.json",
+      "templateMap": "template-map.json",
+      "designTokens": "design-tokens.json",
+      "themePresets": "theme-presets.json",
+      "librarySpec": "sample-deck-spec.json",
+      "preview": "preview.png",
+      "requiredFiles": [
+        "layout-library.pptx",
+        "layout-registry.json",
+        "template-map.json",
+        "sample-deck-spec.json",
+        "design-tokens.json",
+        "theme-presets.json",
+        "preview.png"
+      ],
+      "expectedLayoutCount": 32
+    },
+    "group_meeting_literature": {
+      "id": "group_meeting_literature",
+      "reference": "references/group-meeting-literature.md",
+      "assetDirectory": "assets/group-meeting-literature-universal",
+      "modes": [
+        "single_paper",
+        "multi_paper"
+      ],
+      "layoutLibrary": "layout-library.pptx",
+      "layoutRegistry": "layout-registry.json",
+      "templateMap": "template-map.json",
+      "designTokens": "design-tokens.json",
+      "themePresets": "theme-presets.json",
+      "librarySpec": "sample-deck-spec.json",
+      "preview": "preview.png",
+      "requiredFiles": [
+        "layout-library.pptx",
+        "layout-registry.json",
+        "template-map.json",
+        "sample-deck-spec.json",
+        "design-tokens.json",
+        "theme-presets.json",
+        "preview.png"
+      ],
+      "expectedLayoutCount": 30
+    }
+  }
+}

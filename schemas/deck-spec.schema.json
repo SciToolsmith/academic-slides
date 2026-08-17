@@ -1,0 +1,832 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.skills/academic-slides/deck-spec.schema.json",
+  "title": "Academic Slides Deck Specification",
+  "description": "Single source of truth for planning, building, narrating, sourcing, and validating an academic presentation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile",
+    "project_id",
+    "title",
+    "language",
+    "slide_size",
+    "timing",
+    "theme",
+    "sections",
+    "sources",
+    "slides",
+    "claim_evidence_map",
+    "qa"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "profile": {
+      "enum": ["final_defense", "proposal_midterm", "group_meeting_literature"],
+      "description": "Explicit presentation profile used to resolve narrative rules and template assets."
+    },
+    "literature": {
+      "$ref": "#/$defs/literatureContext"
+    },
+    "milestone": {
+      "$ref": "#/$defs/milestoneContext"
+    },
+    "project_id": {"$ref": "#/$defs/stableId"},
+    "title": {"type": "string", "minLength": 1},
+    "language": {"type": "string", "minLength": 2},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "slide_size": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ratio", "width_inches", "height_inches"],
+      "properties": {
+        "ratio": {"enum": ["16:9", "4:3", "custom"]},
+        "width_inches": {"type": "number", "exclusiveMinimum": 0},
+        "height_inches": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "timing": {"$ref": "#/$defs/timing"},
+    "theme": {"$ref": "#/$defs/theme"},
+    "sections": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/section"}
+    },
+    "sources": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/source"}
+    },
+    "assets": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/asset"},
+      "default": []
+    },
+    "slides": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/slide"}
+    },
+    "claim_evidence_map": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/claimEvidence"}
+    },
+    "qa": {"$ref": "#/$defs/deckQa"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "profile": {"const": "group_meeting_literature"}
+        },
+        "required": ["profile"]
+      },
+      "then": {
+        "required": ["literature"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "profile": {"const": "proposal_midterm"}
+        },
+        "required": ["profile"]
+      },
+      "then": {
+        "required": ["milestone"]
+      }
+    }
+  ],
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#?[A-Fa-f0-9]{6}$"
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "duration_minutes",
+        "usable_fraction",
+        "target_seconds",
+        "estimated_seconds",
+        "approximate"
+      ],
+      "properties": {
+        "duration_minutes": {"type": "number", "exclusiveMinimum": 0},
+        "usable_fraction": {"type": "number", "minimum": 0.5, "maximum": 1},
+        "target_seconds": {"type": "number", "minimum": 0},
+        "estimated_seconds": {"type": "number", "minimum": 0},
+        "approximate": {"const": true},
+        "page_policy": {"enum": ["auto", "fixed"]},
+        "target_slide_count": {"type": ["integer", "null"], "minimum": 3},
+        "timing_notes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        }
+      }
+    },
+    "literatureContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "focal_paper_ids"],
+      "properties": {
+        "mode": {
+          "enum": ["single_paper", "multi_paper"]
+        },
+        "focal_paper_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "synthesis_question": {
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"mode": {"const": "single_paper"}},
+            "required": ["mode"]
+          },
+          "then": {
+            "properties": {
+              "focal_paper_ids": {"minItems": 1, "maxItems": 1}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"mode": {"const": "multi_paper"}},
+            "required": ["mode"]
+          },
+          "then": {
+            "properties": {
+              "focal_paper_ids": {"minItems": 2}
+            }
+          }
+        }
+      ]
+    },
+    "milestoneContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "plan_document_ids", "progress_document_ids", "work_packages"],
+      "properties": {
+        "mode": {
+          "enum": ["proposal", "midterm"]
+        },
+        "as_of_date": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "plan_document_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "progress_document_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "work_packages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/workPackage"}
+        },
+        "review_question": {
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"mode": {"const": "proposal"}},
+            "required": ["mode"]
+          },
+          "then": {
+            "properties": {
+              "plan_document_ids": {"minItems": 1}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"mode": {"const": "midterm"}},
+            "required": ["mode"]
+          },
+          "then": {
+            "required": ["as_of_date"],
+            "properties": {
+              "progress_document_ids": {"minItems": 1},
+              "as_of_date": {"type": "string", "format": "date"}
+            }
+          }
+        }
+      ]
+    },
+    "workPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "status", "planned_output", "evidence_refs"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "title": {"type": "string", "minLength": 1},
+        "status": {
+          "enum": ["planned", "not_started", "in_progress", "completed", "delayed", "changed", "blocked"]
+        },
+        "planned_output": {"type": "string", "minLength": 1},
+        "planned_due": {"type": ["string", "null"], "format": "date"},
+        "actual_output": {"type": ["string", "null"]},
+        "evidence_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "deviation_reason": {"type": ["string", "null"]},
+        "next_action": {"type": ["string", "null"]}
+      }
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "mode", "colors", "fonts"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "mode": {"enum": ["adaptive", "preset", "custom"]},
+        "institution": {"type": ["string", "null"]},
+        "verified_logo_asset_id": {"type": ["string", "null"]},
+        "colors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary", "primary_dark", "primary_light", "accent", "background", "surface", "text", "muted_text", "warning", "chart_series"],
+          "properties": {
+            "primary": {"$ref": "#/$defs/hexColor"},
+            "primary_dark": {"$ref": "#/$defs/hexColor"},
+            "primary_light": {"$ref": "#/$defs/hexColor"},
+            "accent": {"$ref": "#/$defs/hexColor"},
+            "emphasis": {"$ref": "#/$defs/hexColor"},
+            "background": {"$ref": "#/$defs/hexColor"},
+            "surface": {"$ref": "#/$defs/hexColor"},
+            "text": {"$ref": "#/$defs/hexColor"},
+            "muted_text": {"$ref": "#/$defs/hexColor"},
+            "warning": {"$ref": "#/$defs/hexColor"},
+            "chart_series": {
+              "type": "array",
+              "minItems": 3,
+              "items": {"$ref": "#/$defs/hexColor"}
+            }
+          }
+        },
+        "fonts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["heading", "body", "latin", "math"],
+          "properties": {
+            "heading": {"type": "string", "minLength": 1},
+            "body": {"type": "string", "minLength": 1},
+            "latin": {"type": "string", "minLength": 1},
+            "math": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "order", "title", "role"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "order": {"type": "integer", "minimum": 1},
+        "title": {"type": "string", "minLength": 1},
+        "short_title": {"type": ["string", "null"]},
+        "role": {
+          "enum": ["opening", "publication", "problem", "framework", "objectives", "method", "design", "feasibility", "results", "validation", "progress", "deviation", "risk", "plan", "synthesis", "critique", "discussion", "contribution", "conclusion", "appendix", "other"]
+        },
+        "purpose": {"type": ["string", "null"]}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "title", "citation", "verification_status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "type": {
+          "enum": ["thesis_text", "thesis_figure", "thesis_table", "thesis_formula", "proposal_text", "approved_plan", "study_protocol", "midterm_report", "progress_record", "progress_figure", "progress_table", "paper_text", "paper_figure", "paper_table", "paper_formula", "paper_supplement", "bibliographic_metadata", "venue_metric", "dataset", "user_material", "external_publication", "official_web", "standard", "derived_calculation", "brand_asset", "other"]
+        },
+        "title": {"type": "string", "minLength": 1},
+        "citation": {"type": "string", "minLength": 1},
+        "document_id": {"type": ["string", "null"]},
+        "paper_id": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "path": {"type": ["string", "null"]},
+        "url": {"type": ["string", "null"], "format": "uri"},
+        "creator": {"type": ["string", "null"]},
+        "published_at": {"type": ["string", "null"]},
+        "accessed_at": {"type": ["string", "null"]},
+        "source_nature": {"enum": ["author_original", "cited_by_thesis", "external_supplement", "user_supplied", "project_record", "derived", "unknown"]},
+        "verification_status": {"enum": ["verified", "needs_review", "conflicted", "unverified"]},
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "slide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "order",
+        "kind",
+        "purpose",
+        "takeaway",
+        "content",
+        "layout",
+        "evidence_refs",
+        "visuals",
+        "speaker_notes"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "order": {"type": "integer", "minimum": 1},
+        "kind": {
+          "enum": ["title", "agenda", "section", "content", "summary", "questions", "closing", "appendix"]
+        },
+        "section_id": {"type": ["string", "null"]},
+        "purpose": {"type": "string", "minLength": 1},
+        "audience_question": {"type": ["string", "null"]},
+        "takeaway": {"type": "string"},
+        "priority": {"enum": ["core", "supporting", "optional", "appendix"]},
+        "narrative_roles": {
+          "type": "array",
+          "items": {
+            "enum": ["background", "gap", "research_question", "objectives", "method", "feasibility", "preliminary_work", "innovation", "ethics", "schedule", "expected_output", "baseline_commitment", "progress_status", "interim_result", "deviation", "risk", "corrective_action", "next_plan", "conclusion"]
+          },
+          "uniqueItems": true,
+          "default": []
+        },
+        "content": {"$ref": "#/$defs/content"},
+        "layout": {"$ref": "#/$defs/layout"},
+        "claim_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "visuals": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/visual"}
+        },
+        "formula": {
+          "$ref": "#/$defs/formulaDecision",
+          "description": "Include only when the slide deliberately uses or explicitly records a formula decision. Omission means no formula."
+        },
+        "diagram": {
+          "$ref": "#/$defs/diagramDecision",
+          "description": "Include only when the slide deliberately uses or explicitly records a diagram decision. Omission means no diagram."
+        },
+        "speaker_notes": {"$ref": "#/$defs/speakerNotes"},
+        "text_emphasis": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {"$ref": "#/$defs/textEmphasis"},
+          "default": []
+        },
+        "render_data": {
+          "type": "object",
+          "description": "Deterministic layout-slot payload consumed by the renderer. It supplements semantic content without becoming visible planning text.",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "qa": {
+          "$ref": "#/$defs/slideQa",
+          "description": "Optional per-slide QA result added or updated after rendering; omit boilerplate not_checked records during planning."
+        }
+      }
+    },
+    "textEmphasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "role"],
+      "properties": {
+        "text": {"type": "string", "minLength": 1, "maxLength": 24},
+        "role": {
+          "enum": ["strong", "key", "result", "decision", "warning", "critical", "success"]
+        },
+        "shape_name": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "type", "alt_text"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "path": {"type": "string", "minLength": 1},
+        "type": {"enum": ["figure", "photo", "table", "chart", "formula", "diagram", "logo", "icon", "other"]},
+        "alt_text": {"type": "string", "minLength": 1},
+        "caption": {"type": ["string", "null"]},
+        "source_ref": {"type": ["string", "null"]},
+        "fit": {"enum": ["contain", "cover"]}
+      }
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title"],
+      "properties": {
+        "kicker": {"type": ["string", "null"]},
+        "title": {"type": "string", "minLength": 1},
+        "subtitle": {"type": ["string", "null"]},
+        "body": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
+        "bullets": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/bullet"},
+          "default": []
+        },
+        "metrics": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/metric"},
+          "default": []
+        },
+        "quote": {"$ref": "#/$defs/nullableQuote"},
+        "callout": {"type": ["string", "null"]},
+        "visible_source_labels": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
+        "footer": {"type": ["string", "null"]}
+      }
+    },
+    "bullet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "level"],
+      "properties": {
+        "text": {"type": "string", "minLength": 1},
+        "level": {"type": "integer", "minimum": 0, "maximum": 2},
+        "emphasis": {"enum": ["none", "strong", "accent", "warning"]},
+        "evidence_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "value"],
+      "properties": {
+        "label": {"type": "string", "minLength": 1},
+        "value": {"type": ["string", "number"]},
+        "unit": {"type": ["string", "null"]},
+        "comparison": {"type": ["string", "null"]},
+        "evidence_ref": {"type": ["string", "null"]}
+      }
+    },
+    "nullableQuote": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text", "source_ref"],
+          "properties": {
+            "text": {"type": "string", "minLength": 1},
+            "source_ref": {"$ref": "#/$defs/stableId"},
+            "analysis": {"type": ["string", "null"]}
+          }
+        }
+      ]
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "rationale", "reading_order"],
+      "properties": {
+        "family": {
+          "enum": ["title", "agenda", "section", "hero_figure", "comparison", "chart_insight", "figure_formula", "process_flow", "system_architecture", "evidence_chain", "quote_analysis", "case_matrix", "method_design", "validation_matrix", "contribution_limits", "summary", "closing", "free_canvas"]
+        },
+        "variant": {"type": ["string", "null"]},
+        "rationale": {"type": "string", "minLength": 1},
+        "reading_order": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "regions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/region"},
+          "default": []
+        },
+        "density": {"enum": ["sparse", "balanced", "dense"]}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "role": {"enum": ["title", "takeaway", "body", "visual", "formula", "diagram", "metrics", "source", "navigation", "other"]},
+        "content_ref": {"type": ["string", "null"]},
+        "x": {"type": ["number", "null"], "minimum": 0},
+        "y": {"type": ["number", "null"], "minimum": 0},
+        "w": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "h": {"type": ["number", "null"], "exclusiveMinimum": 0}
+      }
+    },
+    "visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "role", "include", "rationale", "source_refs"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "type": {"enum": ["figure", "photo", "table", "chart", "formula", "diagram", "logo", "icon", "text_excerpt", "other"]},
+        "role": {"enum": ["primary_evidence", "secondary_evidence", "context", "comparison", "explanation", "branding", "decoration"]},
+        "include": {"type": "boolean"},
+        "rationale": {"type": "string", "minLength": 1},
+        "asset_ref": {"type": ["string", "null"]},
+        "source_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "caption": {"type": ["string", "null"]},
+        "alt_text": {"type": ["string", "null"]},
+        "placement": {"type": ["string", "null"]},
+        "crop": {"enum": ["contain", "cover", "none", "custom"]},
+        "highlight": {"type": ["string", "null"]},
+        "transformations": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        }
+      }
+    },
+    "formulaDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["include", "reason", "source_refs"],
+      "properties": {
+        "include": {"type": "boolean"},
+        "reason": {"type": "string", "minLength": 1},
+        "equation_ref": {"type": ["string", "null"]},
+        "latex": {"type": ["string", "null"]},
+        "render_method": {
+          "enum": ["latex_svg", "latex_png", "source_pdf_crop", "mathjax_svg", "unicode_text"]
+        },
+        "role": {"enum": ["definition", "objective", "constraint", "method_core", "result_explanation", "derivation", "none"]},
+        "variables_to_explain": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/variable"},
+          "default": []
+        },
+        "plain_meaning": {"type": ["string", "null"]},
+        "source_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "asset_ref": {"type": ["string", "null"]},
+        "fallback_asset_ref": {"type": ["string", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"include": {"const": true}}, "required": ["include"]},
+          "then": {
+            "required": ["latex", "render_method", "role", "plain_meaning"],
+            "properties": {
+              "latex": {"type": "string", "minLength": 1},
+              "plain_meaning": {"type": "string", "minLength": 1},
+              "role": {"not": {"const": "none"}},
+              "source_refs": {"minItems": 1}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "include": {"const": true},
+              "render_method": {"not": {"const": "unicode_text"}}
+            },
+            "required": ["include", "render_method"]
+          },
+          "then": {
+            "required": ["asset_ref"],
+            "properties": {
+              "asset_ref": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      ]
+    },
+    "variable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["symbol", "meaning"],
+      "properties": {
+        "symbol": {"type": "string", "minLength": 1},
+        "meaning": {"type": "string", "minLength": 1},
+        "unit": {"type": ["string", "null"]}
+      }
+    },
+    "diagramDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["include", "reason", "source_refs", "nodes", "edges"],
+      "properties": {
+        "include": {"type": "boolean"},
+        "reason": {"type": "string", "minLength": 1},
+        "source_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "type": {"enum": ["process", "timeline", "system", "causal", "comparison", "cycle", "hierarchy", "none"]},
+        "direction": {"enum": ["left_to_right", "top_to_bottom", "radial", "bidirectional", "free", "none"]},
+        "nodes": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/diagramNode"}
+        },
+        "edges": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/diagramEdge"}
+        },
+        "output": {"type": ["string", "null"]},
+        "asset_ref": {"type": ["string", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"include": {"const": true}}, "required": ["include"]},
+          "then": {
+            "required": ["type", "direction", "output"],
+            "properties": {
+              "type": {"not": {"const": "none"}},
+              "direction": {"not": {"const": "none"}},
+              "nodes": {"minItems": 2},
+              "edges": {"minItems": 1},
+              "output": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      ]
+    },
+    "diagramNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "role"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "label": {"type": "string", "minLength": 1},
+        "role": {"enum": ["input", "process", "decision", "evidence", "output", "feedback", "context", "other"]},
+        "detail": {"type": ["string", "null"]},
+        "source_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "default": []
+        }
+      }
+    },
+    "diagramEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "relation"],
+      "properties": {
+        "from": {"$ref": "#/$defs/stableId"},
+        "to": {"$ref": "#/$defs/stableId"},
+        "relation": {"enum": ["sequence", "causes", "supports", "contrasts", "contains", "feeds", "feedback", "condition", "other"]},
+        "label": {"type": ["string", "null"]}
+      }
+    },
+    "speakerNotes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script", "transition", "estimated_seconds", "sources"],
+      "properties": {
+        "script": {"type": "string"},
+        "transition": {"type": "string"},
+        "estimated_seconds": {"type": "number", "minimum": 0},
+        "sources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sourceRef"}
+        },
+        "delivery_cues": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "locator", "citation"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/stableId"},
+        "locator": {"type": "string", "minLength": 1},
+        "citation": {"type": "string", "minLength": 1},
+        "purpose": {"type": ["string", "null"]}
+      }
+    },
+    "slideQa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "issues"],
+      "properties": {
+        "status": {"enum": ["not_checked", "pass", "warning", "fail"]},
+        "issues": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/issue"}
+        }
+      }
+    },
+    "claimEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "claim", "slide_ids", "evidence_refs", "status"],
+      "properties": {
+        "claim_id": {"$ref": "#/$defs/stableId"},
+        "claim": {"type": "string", "minLength": 1},
+        "slide_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        },
+        "scope_limit": {"type": ["string", "null"]},
+        "voice": {
+          "enum": ["source_author_claim", "presenter_synthesis", "presenter_critique", "derived", "context"]
+        },
+        "epistemic_status": {
+          "enum": ["established", "hypothesis", "planned", "observed", "derived", "projected"]
+        },
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "status": {"enum": ["supported", "partial", "conflicted", "needs_review"]}
+      }
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "category", "message"],
+      "properties": {
+        "severity": {"enum": ["info", "warning", "error"]},
+        "category": {"enum": ["content", "evidence", "narrative", "visual", "technical", "timing", "accessibility", "other"]},
+        "message": {"type": "string", "minLength": 1},
+        "resolved": {"type": "boolean", "default": false},
+        "resolution": {"type": ["string", "null"]}
+      }
+    },
+    "deckQa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "issues", "checks"],
+      "properties": {
+        "status": {"enum": ["not_checked", "pass", "warning", "fail"]},
+        "issues": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/issue"}
+        },
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema", "evidence", "narrative", "visual", "technical", "notes_sources"],
+          "properties": {
+            "schema": {"enum": ["not_checked", "pass", "fail"]},
+            "evidence": {"enum": ["not_checked", "pass", "warning", "fail"]},
+            "narrative": {"enum": ["not_checked", "pass", "warning", "fail"]},
+            "visual": {"enum": ["not_checked", "pass", "warning", "fail"]},
+            "technical": {"enum": ["not_checked", "pass", "warning", "fail"]},
+            "notes_sources": {"enum": ["not_checked", "pass", "warning", "fail"]}
+          }
+        },
+        "checked_at": {"type": ["string", "null"], "format": "date-time"}
+      }
+    }
+  }
+}
