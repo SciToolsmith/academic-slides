@@ -144,6 +144,11 @@
     {
       "id": "image-compare",
       "family": "comparison",
+      "supportsTopology": ["comparison"],
+      "claimCapacity": 1,
+      "requiresAnnotation": "when-complex",
+      "minEffectiveImageWidth": 520,
+      "maxInternalComplexity": "medium",
       "useWhen": [
         "正好两张图构成前后、方案A/B或样本对照",
         "两图具有可解释的共同尺度或明确差异条件"
@@ -196,6 +201,11 @@
     {
       "id": "chart-insight",
       "family": "quantitative",
+      "supportsTopology": ["comparison", "spatial"],
+      "claimCapacity": 1,
+      "requiresAnnotation": "direct-on-evidence",
+      "minEffectiveImageWidth": 760,
+      "maxInternalComplexity": "high",
       "useWhen": [
         "趋势、分布、相关性或量化变化是本页核心证据"
       ],
@@ -242,6 +252,9 @@
     {
       "id": "formula-visual",
       "family": "method",
+      "supportsTopology": ["linear", "comparison", "none"],
+      "claimCapacity": 1,
+      "requiresAnnotation": "variables-and-meaning",
       "useWhen": [
         "一个核心公式直接连接研究变量、约束、方法或结果解释"
       ],
@@ -266,11 +279,18 @@
     {
       "id": "process",
       "family": "method",
+      "topology": "linear-chain-with-optional-single-feedback",
+      "supportsTopology": [
+        "linear",
+        "feedback"
+      ],
       "useWhen": [
-        "存在3至6个有方向的步骤、分支或反馈关系"
+        "存在3至6个构成单一线性链的有向步骤",
+        "主链之外最多需要一条返回前序节点的明确反馈边"
       ],
       "avoidWhen": [
         "只是并列清单",
+        "存在分支、汇合、并行、层级或多重反馈",
         "方向或反馈不是论文真实关系"
       ],
       "requiredSlots": [
@@ -506,6 +526,10 @@
       "id": "four-step-ribbon",
       "family": "sequence",
       "topology": "fixed-four-sequential",
+      "supportsTopology": ["linear"],
+      "claimCapacity": 1,
+      "requiresAnnotation": "branching-forbidden",
+      "maxInternalComplexity": "low",
       "useWhen": [
         "方法或工程路径正好由4个不可颠倒的阶段构成",
         "阶段名称可以用短语表达"
@@ -582,6 +606,11 @@
       "id": "two-image-results",
       "family": "comparison",
       "topology": "fixed-two-parallel-results",
+      "supportsTopology": ["parallel", "comparison"],
+      "claimCapacity": 2,
+      "requiresAnnotation": "when-complex",
+      "minEffectiveImageWidth": 520,
+      "maxInternalComplexity": "medium",
       "useWhen": [
         "正好两张结果图需要并行呈现，每张图有独立短结论",
         "两图属于同一研究问题但不一定是前后对照"
@@ -811,6 +840,11 @@
     {
       "id": "free-evidence",
       "family": "free",
+      "supportsTopology": ["linear", "parallel", "branch_converge", "feedback", "hierarchy", "comparison", "spatial", "none"],
+      "claimCapacity": "adaptive",
+      "requiresAnnotation": "evidence-directed",
+      "maxInternalComplexity": "adaptive",
+      "customElementTypes": ["text", "metric", "shape", "image", "formula", "connector", "annotation", "highlight"],
       "useWhen": [
         "没有注册版式能够忠实表达证据关系",
         "需要围绕论文中的特殊图、表、文本或混合证据重新设计画布",

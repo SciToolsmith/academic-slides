@@ -53,13 +53,6 @@ function text(value, fallback = "") {
   return fallback;
 }
 
-function slideTitle(slide, page) {
-  return text(
-    slide?.content?.title,
-    text(slide?.render_data?.title, text(slide?.title, text(slide?.takeaway, `第 ${page} 页`))),
-  );
-}
-
 function resolveDocumentFonts() {
   const explicit = text(process.env.ACADEMIC_SLIDES_CJK_FONT);
   let cjk = explicit;
@@ -75,18 +68,20 @@ function resolveDocumentFonts() {
   };
 }
 
-function textParagraphs(docx, value, style = "speakerBody") {
-  const { Paragraph, TextRun } = docx;
-  const blocks = text(value).split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean);
-  return blocks.map((block) => {
-    const lines = block.split(/\n/);
-    const children = [];
-    lines.forEach((line, index) => {
-      if (index) children.push(new TextRun({ break: 1 }));
-      children.push(new TextRun({ text: line }));
-    });
-    return new Paragraph({ style, children });
-  });
+function scriptDocumentTitle(spec, outputPath) {
+  const outputStem = path.basename(outputPath, path.extname(outputPath)).replace(/_发言稿$/u, "");
+  if (outputStem && outputStem !== "发言稿") return `${outputStem.replace(/_+/g, " ")}发言稿`;
+  const reportType = spec.profile === "proposal_midterm"
+    ? (spec.milestone?.mode === "proposal" ? "开题答辩" : spec.milestone?.mode === "midterm" ? "中期汇报" : "开题·中期汇报")
+    : spec.profile === "group_meeting_literature" ? "组会汇报" : "毕业答辩";
+  return `${text(spec.title, "学术汇报")} ${reportType}发言稿`;
+}
+
+function compactSpeakerText(notes) {
+  const script = text(notes.script);
+  const transition = text(notes.transition);
+  if (!transition || script.includes(transition)) return script;
+  return [script, transition].filter(Boolean).join(" ");
 }
 
 export async function buildSpeakerScriptFromSpec(spec, outputPath) {
@@ -97,24 +92,16 @@ export async function buildSpeakerScriptFromSpec(spec, outputPath) {
   const {
     AlignmentType,
     Document,
-    Footer,
-    HeadingLevel,
-    LevelFormat,
     Packer,
-    PageNumber,
     Paragraph,
     TextRun,
   } = docx;
   const fonts = resolveDocumentFonts();
   const children = [];
-  const deckTitle = text(spec.title, "学术汇报");
+  const documentTitle = scriptDocumentTitle(spec, outputPath);
   children.push(new Paragraph({
     style: "scriptTitle",
-    children: [new TextRun({ text: deckTitle }), new TextRun({ text: "发言稿", break: 1 })],
-  }));
-  children.push(new Paragraph({
-    style: "scriptMeta",
-    children: [new TextRun({ text: `共 ${spec.slides.length} 页｜PPT 备注与本稿由同一内容源生成` })],
+    children: [new TextRun({ text: documentTitle })],
   }));
 
   const slides = [...spec.slides].sort((left, right) => Number(left?.order ?? 0) - Number(right?.order ?? 0));
@@ -122,104 +109,45 @@ export async function buildSpeakerScriptFromSpec(spec, outputPath) {
     const page = index + 1;
     const notes = normalizeSpeakerNotes(slide);
     children.push(new Paragraph({
-      style: "slideHeading",
-      heading: HeadingLevel.HEADING_1,
-      keepNext: true,
-      children: [new TextRun({ text: `P${String(page).padStart(2, "0")}｜${slideTitle(slide, page)}` })],
+      style: "speakerBody",
+      children: [
+        new TextRun({ text: `第${page}页：`, bold: true }),
+        new TextRun({ text: compactSpeakerText(notes) }),
+      ],
     }));
-    children.push(...textParagraphs(docx, notes.script));
-    if (notes.transition) children.push(new Paragraph({
-      style: "transition",
-      children: [new TextRun({ text: "过渡：", bold: true }), new TextRun({ text: notes.transition, italics: true })],
-    }));
-    children.push(new Paragraph({ children: [] }), new Paragraph({ children: [] }));
-    children.push(new Paragraph({ style: "sourcesMarker", children: [new TextRun({ text: "[Sources]", bold: true })] }));
-    for (const source of notes.sources) children.push(new Paragraph({
-      style: "sourceItem",
-      numbering: { reference: "sources", level: 0 },
-      children: [new TextRun({ text: source })],
-    }));
-    children.push(new Paragraph({ style: "sourcesMarker", children: [new TextRun({ text: "[/Sources]", bold: true })] }));
   }
 
   const document = new Document({
     creator: "Academic Slides",
     lastModifiedBy: "Academic Slides",
-    title: `${deckTitle} 发言稿`,
-    description: "与演示文稿逐页备注同步生成的发言稿。",
+    title: documentTitle,
+    description: "与演示文稿逐页讲稿同源生成的紧凑发言稿。",
     styles: {
       default: {
         document: {
-          run: { font: fonts.body, size: 22, color: "17213A" },
-          paragraph: { spacing: { after: 120, line: 280, lineRule: "auto" } },
+          run: { font: fonts.body, size: 20, color: "17213A" },
+          paragraph: { spacing: { after: 200, line: 252, lineRule: "auto" } },
         },
       },
       paragraphStyles: [
         {
           id: "scriptTitle", name: "Script Title", basedOn: "Normal", next: "Normal", quickFormat: true,
-          run: { font: fonts.body, size: 40, bold: true, color: "25345B" },
-          paragraph: { spacing: { before: 0, after: 100, line: 300, lineRule: "auto" }, alignment: AlignmentType.LEFT },
-        },
-        {
-          id: "scriptMeta", name: "Script Meta", basedOn: "Normal", next: "Normal", quickFormat: true,
-          run: { font: fonts.body, size: 19, color: "5D667A" },
-          paragraph: { spacing: { before: 0, after: 280, line: 260, lineRule: "auto" } },
-        },
-        {
-          id: "slideHeading", name: "Slide Heading", basedOn: "Normal", next: "speakerBody", quickFormat: true,
-          run: { font: fonts.body, size: 30, bold: true, color: "364A7C" },
-          paragraph: { spacing: { before: 260, after: 120, line: 280, lineRule: "auto" }, keepNext: true, outlineLevel: 0 },
+          run: { font: fonts.body, size: 32, bold: true, color: "17213A" },
+          paragraph: { spacing: { before: 0, after: 240, line: 240, lineRule: "auto" }, alignment: AlignmentType.CENTER },
         },
         {
           id: "speakerBody", name: "Speaker Body", basedOn: "Normal", next: "speakerBody", quickFormat: true,
-          run: { font: fonts.body, size: 22, color: "17213A" },
-          paragraph: { spacing: { before: 0, after: 120, line: 300, lineRule: "auto" } },
-        },
-        {
-          id: "transition", name: "Transition", basedOn: "Normal", next: "Normal", quickFormat: true,
-          run: { font: fonts.body, size: 20, color: "5D667A" },
-          paragraph: { spacing: { before: 40, after: 100, line: 280, lineRule: "auto" } },
-        },
-        {
-          id: "sourcesMarker", name: "Sources Marker", basedOn: "Normal", next: "sourceItem", quickFormat: true,
-          run: { font: "Arial", size: 18, color: "5D667A" },
-          paragraph: { spacing: { before: 0, after: 50, line: 240, lineRule: "auto" } },
-        },
-        {
-          id: "sourceItem", name: "Source Item", basedOn: "Normal", next: "sourceItem", quickFormat: true,
-          run: { font: fonts.body, size: 18, color: "5D667A" },
-          paragraph: { spacing: { before: 0, after: 40, line: 240, lineRule: "auto" } },
+          run: { font: fonts.body, size: 20, color: "17213A" },
+          paragraph: { spacing: { before: 0, after: 200, line: 252, lineRule: "auto" } },
         },
       ],
-    },
-    numbering: {
-      config: [{
-        reference: "sources",
-        levels: [{
-          level: 0,
-          format: LevelFormat.BULLET,
-          text: "•",
-          alignment: AlignmentType.LEFT,
-          style: { paragraph: { indent: { left: 540, hanging: 270 }, spacing: { after: 40, line: 240, lineRule: "auto" } } },
-        }],
-      }],
     },
     sections: [{
       properties: {
         page: {
-          size: { width: 12240, height: 15840 },
-          margin: { top: 1080, right: 1260, bottom: 1080, left: 1260, header: 708, footer: 708 },
+          size: { width: 11906, height: 16838 },
+          margin: { top: 850, right: 850, bottom: 850, left: 850 },
         },
-      },
-      footers: {
-        default: new Footer({ children: [new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          children: [
-            new TextRun({ text: "第 ", font: fonts.body, color: "8A93A5", size: 18 }),
-            new TextRun({ children: [PageNumber.CURRENT], font: fonts.body, color: "8A93A5", size: 18 }),
-            new TextRun({ text: " 页", font: fonts.body, color: "8A93A5", size: 18 }),
-          ],
-        })] }),
       },
       children,
     }],

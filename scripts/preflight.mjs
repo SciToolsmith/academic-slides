@@ -166,9 +166,9 @@ async function inspectFonts(skillDir, fcMatchPath) {
     }
     const configured = tokens.fonts ?? {};
     const roles = {
-      zh: uniqueStrings([configured.zh, ...(configured.zhFallbacks ?? []), "PingFang SC", "Noto Sans CJK SC", "Source Han Sans SC", "Heiti SC", "Arial Unicode MS"]),
-      latin: uniqueStrings([configured.en, "Arial", "Helvetica", "Aptos"]),
-      math: uniqueStrings([configured.math, "Latin Modern Math", "STIX Two Math", "STIX Math", "Cambria Math"]),
+      zh: uniqueStrings([configured.zh, ...(configured.zhFallbacks ?? [])]),
+      latin: uniqueStrings([configured.en]),
+      math: uniqueStrings([configured.math]),
     };
     const roleReports = {};
     for (const [role, candidates] of Object.entries(roles)) {

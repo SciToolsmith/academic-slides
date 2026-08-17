@@ -59,7 +59,7 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 
 | 常见做法 | Academic Slides |
 |---|---|
-| 先选模板，再把内容塞进固定框架 | 先识别研究问题、主张与证据，再选择或重绘布局 |
+| 先选模板，再把内容塞进固定框架 | 先识别研究问题、主张、证据和关系拓扑，再选择或重绘布局 |
 | 把整页 PDF 当作幻灯片 | 避免整页截图；正文以及重新构建的表格、图表和简单示意图尽量保留为原生对象 |
 | PPT、讲稿和来源分别维护 | 页面、逐页讲稿与 `[Sources]` 从同一规格生成 |
 | 输出一份难以继续维护的静态文件 | 同时交付项目 `.mjs` 与实际使用的素材，后续可重新构建 |
@@ -71,7 +71,7 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 - 章节数量和名称由材料决定，不默认五部分。
 - 用户主动提供的汇报时长用于近似控制信息量与讲稿长度，未提供时不追问，也不虚构默认时长。
 - 内置学术蓝、典雅红、沉静紫和清朗青四套配色；未指定时一次询问，并推荐学术蓝。
-- 注册布局不适合内容关系时，直接使用自由画布重新构图。
+- 注册布局不适合内容关系时，直接使用可编辑科研画布重新构图；分支、汇合、反馈和复杂证据图不会被强行压成线性流程或双图卡片。
 
 ## 三套专业工作流
 
@@ -117,7 +117,7 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 ```
 
 - `.pptx`：可继续编辑，并在每页备注中保留发言稿和来源。
-- `_发言稿.docx`：按页面顺序整理的 Word 发言稿，与 PPT 内容同步。
+- `_发言稿.docx`：紧凑呈现“第 N 页：讲稿”，页间留一行，与 PPT 内容同步；常规答辩稿优先控制在约两页内。
 - `.mjs`：可再次生成同一演示的项目构建器，不依赖内部规划文件。
 - `assets/`：仅包含本稿实际使用且允许交付的图片、公式与品牌素材。
 
@@ -194,6 +194,16 @@ GitHub Actions 运行这一层，检查 Skill 结构、确定性契约和待发�
 
 ```bash
 node scripts/validate-skill-assets.mjs . --profile release --strict
+```
+
+正常项目优先使用一次构建入口；它会在构建前执行结构与科学设计门禁，并对未变化的规格和素材复用内容哈希缓存：
+
+```bash
+node scripts/build-project.mjs \
+  --spec /path/to/deck-spec.json \
+  --output-dir /path/to/internal-build \
+  --stem 短题名_汇报类型 \
+  --render
 ```
 
 ### 生成质量约束

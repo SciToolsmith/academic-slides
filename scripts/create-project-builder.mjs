@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { validateDeckSpecFile } from "./validate-deck-spec.mjs";
+import { validateScientificDesignFile } from "./validate-scientific-design.mjs";
 
 const ABSOLUTE_FILE_PATTERN = /^(?:\/(?!\/)|[A-Za-z]:[\\/]|\\\\|~[\\/]|\$HOME[\\/]|(?:file|smb):\/{2,3})/i;
 const KNOWN_ABSOLUTE_ROOT_PATTERN = /(?:^|[\s"'=(:;,])\/(?:Users|Volumes|home|tmp|private|var|root|mnt|media|workspace|etc|opt|usr|Applications|Library)(?:\/|$)/m;
@@ -135,7 +136,7 @@ function builderSource(spec, names, themePreset) {
   const serialized = JSON.stringify(spec, null, 2).replaceAll("</script>", "<\\/script>");
   return `#!/usr/bin/env node
 
-// academic-slides-delivery: ${JSON.stringify({ stem: names.stem, pptx: names.pptx, docx: names.docx, theme: themePreset })}
+// academic-slides-delivery: ${JSON.stringify({ stem: names.stem, pptx: names.pptx, docx: names.docx, theme: themePreset, artifact_purpose: spec.artifact_purpose ?? "production" })}
 
 // 项目构建入口。默认同时生成 PPTX 与 Word 发言稿。
 // 运行：node ${names.builder}\n// 可选：node ${names.builder} --pptx | --docx | --all
@@ -163,7 +164,8 @@ async function locateSkill() {
     path.join(process.env.CODEX_HOME || path.join(os.homedir(), ".codex"), "skills", "academic-slides"),
   ].filter(Boolean).map((item) => path.resolve(item));
   for (const candidate of candidates) {
-    if (await exists(path.join(candidate, "scripts", "presentation-core.mjs"))) return candidate;
+    if (await exists(path.join(candidate, "scripts", "presentation-core.mjs"))
+      && await exists(path.join(candidate, "scripts", "validate-scientific-design.mjs"))) return candidate;
   }
   throw new Error("找不到 academic-slides Skill。请安装该 Skill，或设置 ACADEMIC_SLIDES_SKILL_DIR。");
 }
@@ -175,6 +177,14 @@ async function main() {
   const buildPptx = flags.size === 0 || flags.has("--all") || flags.has("--pptx");
   const buildDocx = flags.size === 0 || flags.has("--all") || flags.has("--docx");
   const skillDir = await locateSkill();
+  const scientific = await import(pathToFileURL(path.join(skillDir, "scripts", "validate-scientific-design.mjs")).href);
+  const designValidation = scientific.validateScientificDesign(deckSpec, { strict: true });
+  if (!designValidation.ok) {
+    const summary = designValidation.issues.slice(0, 8).map((item) =>
+      \`\${item.code} \${item.path}: \${item.message}\`
+    ).join("\\n");
+    throw new Error(\`科学设计校验未通过（\${designValidation.summary.errors} 个错误）：\\n\${summary}\`);
+  }
   const core = await import(pathToFileURL(path.join(skillDir, "scripts", "presentation-core.mjs")).href);
   const word = await import(pathToFileURL(path.join(skillDir, "scripts", "build-speaker-script.mjs")).href);
   const outputs = {};
@@ -206,10 +216,17 @@ main().catch((error) => {
 export async function createProjectBuilder(options) {
   const themePreset = normalizeThemePreset(options.theme);
   const specPath = path.resolve(options.spec);
+  const raw = JSON.parse(await fs.readFile(specPath, "utf8"));
+  if ((raw.artifact_purpose ?? "production") === "layout_gallery") {
+    throw new Error("layout_gallery specifications may build internal layout libraries with build.mjs, but cannot create a customer project MJS.");
+  }
   const validation = await validateDeckSpecFile(specPath, { strict: true, requireSchema: true });
   const errors = validation.issues.filter((item) => item.severity === "error");
   if (errors.length) throw new Error(`deck-spec validation failed before project builder generation (${errors.length} issue(s)).`);
-  const raw = JSON.parse(await fs.readFile(specPath, "utf8"));
+  const scientific = await validateScientificDesignFile(specPath, { strict: true });
+  if (!scientific.ok) {
+    throw new Error(`scientific-design validation failed before project builder generation (${scientific.summary.errors} error(s)).`);
+  }
   const spec = stripInternalFields(raw);
   assertPortable(spec);
   const output = path.resolve(options.output);

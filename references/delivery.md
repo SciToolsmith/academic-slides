@@ -30,7 +30,8 @@
 ## 三个文件的契约
 
 - PPTX 保持可编辑，并在每页备注中写入发言稿、过渡和唯一 `[Sources]` 区块。
-- Word 发言稿与 PPT 备注从同一份 `speaker_notes` 生成。按 `P01｜页面标题` 组织；讲稿与过渡后空两行，再写 `[Sources]`。结构页允许 Sources 为空。
+- Word 发言稿与 PPT 备注从同一份 `speaker_notes` 生成，但是便于打印和二次修改的紧凑投影：单行标题使用“短题名 + 汇报类型 + 发言稿”，正文每页一段 `第N页：讲稿`，页标签加粗，必要过渡无标签并入同段。不输出页面标题、meta、页脚或 Sources；完整 Sources 保留在 PPT 备注中。
+- Word 使用 A4、约 1.5 cm 页边距、16 pt 标题、10–10.5 pt 正文、单倍至 1.05 倍行距和段间约一行视觉留白。普通不超过 30 页、讲稿不超过约 4000 字符时，2 页内是软目标；不得为达成页数目标把正文降到 9.5 pt 以下。
 - MJS 是项目构建入口，不是 PPTX 机械反编译。它嵌入最终项目规格、只使用 `assets/` 内的相对素材路径，不读取未交付的 `deck-spec.json`，默认可重新生成同名 PPTX 与 DOCX。它可以依赖已安装的 `academic-slides` Skill，但不得写入 Skill 或本机的绝对路径；重建后不得留下 inspect、日志或预览旁路文件。
 
 ## 不交付
@@ -41,8 +42,10 @@
 
 ## 构建与交付
 
+客户交付只接受 `artifact_purpose: production`。省略该字段的旧规格可在内部校验中按 production 理解，但新生成的项目 MJS 必须在嵌入契约中显式写出 `artifact_purpose: "production"`；`layout_gallery` 只能用于内部布局库构建，`create-project-builder.mjs` 和 `stage-delivery.mjs` 均应拒绝它。
+
 1. 在内部工作区完成并验证最终项目规格，生成同名项目 MJS；素材输入目录在此时已筛选为允许交付的文件。
-2. 在内部工作区运行一次 MJS，渲染检查 PPTX 与 Word，确认页面、讲稿和 Sources 同源。
+2. 在内部工作区运行一次 MJS，渲染检查 PPTX；再调用 `scripts/render-word-qa.mjs` 渲染 Word。确认二者页面数、顺序和讲稿正文同源，PPT 备注完整保留 Sources，Word 中文可见、保持紧凑且不输出 Sources。不要直接裸调用 bundled LibreOffice：包装器会解析并注入它自己的 fontconfig，Darwin 下同时生成 QuickLook 原生缩略图用于交叉检查。
 3. 调用 `scripts/stage-delivery.mjs --output <短题名_汇报类型> --mjs <项目.mjs> [--assets <已筛选素材目录>]`。脚本会在空白暂存目录再次运行 MJS，一次生成 PPTX 与 Word，再按白名单检查。
 4. 姓名、导师、学号等已知身份词通过重复的 `--forbidden-term` 传入；交付命名不得包含这些词。旧交付目录只在新暂存包完整通过后原子替换，失败时保留旧包。
 5. 检查根目录只有三个同名文件与 `assets/`；扫描 Office 包、MJS 和文本素材中的越界路径、密钥、未批准外链和内部文件名。

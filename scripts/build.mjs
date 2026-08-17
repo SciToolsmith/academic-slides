@@ -10,6 +10,7 @@ import {
   renderPresentation,
 } from "./presentation-core.mjs";
 import { validateDeckSpecFile } from "./validate-deck-spec.mjs";
+import { validateScientificDesignFile } from "./validate-scientific-design.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SUPPORTED_THEME_PRESETS = new Set(["blue", "red", "purple", "cyan"]);
@@ -59,6 +60,12 @@ export async function buildDeck(args) {
     const summary = validationErrors.slice(0, 12).map((item) => `${item.code} ${item.path}: ${item.message}`).join("\n");
     throw new Error(`deck-spec validation failed before build (${validationErrors.length} issue(s)):\n${summary}`);
   }
+  const scientificValidation = await validateScientificDesignFile(args.spec, { strict: true });
+  const scientificErrors = scientificValidation.issues.filter((item) => item.severity === "error");
+  if (scientificErrors.length) {
+    const summary = scientificErrors.slice(0, 12).map((item) => `${item.code} ${item.path}: ${item.message}`).join("\n");
+    throw new Error(`scientific-design validation failed before build (${scientificErrors.length} issue(s)):\n${summary}`);
+  }
   const built = await buildPresentationFromFile(args.spec, {
     theme: args.theme,
     primaryColor: args.primaryColor,
@@ -77,6 +84,7 @@ export async function buildDeck(args) {
     slideCount: exported.slideCount,
     theme: built.context.colors.presetName,
     primary: built.context.colors.primary,
+    scientificDesign: scientificValidation.summary,
     previewDir: preview?.outDir ?? null,
     montage: preview?.montage ?? null,
     montagePng: preview?.montagePng ?? null,
