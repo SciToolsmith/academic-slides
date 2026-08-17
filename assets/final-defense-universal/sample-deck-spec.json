@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "profile": "final_defense",
   "project_id": "final-defense-layout-gallery",
   "title": "毕业答辩·学术通用｜布局库",
@@ -25,6 +25,7 @@
   "theme": {
     "id": "final-defense-universal-blue",
     "mode": "preset",
+    "preset": "blue",
     "institution": "示范学术机构",
     "verified_logo_asset_id": null,
     "colors": {

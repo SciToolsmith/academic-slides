@@ -12,6 +12,7 @@ import {
 import { validateDeckSpecFile } from "./validate-deck-spec.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const SUPPORTED_THEME_PRESETS = new Set(["blue", "red", "purple", "cyan"]);
 
 function usage() {
   return [
@@ -48,6 +49,10 @@ export async function buildDeck(args) {
   if (!args.spec) throw new Error("--spec is required.");
   if (!args.output) throw new Error("--output is required.");
   if (args.theme && args.primaryColor) throw new Error("Use either --theme or --primary-color, not both.");
+  if (args.theme && !SUPPORTED_THEME_PRESETS.has(String(args.theme).toLowerCase())) {
+    throw new Error(`Unsupported --theme "${args.theme}". Use blue, red, purple, or cyan.`);
+  }
+  if (args.theme) args.theme = String(args.theme).toLowerCase();
   const validation = await validateDeckSpecFile(args.spec, { strict: true, requireSchema: true });
   const validationErrors = validation.issues.filter((item) => item.severity === "error");
   if (validationErrors.length) {

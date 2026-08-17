@@ -31,7 +31,15 @@ const REQUIRED_SCRIPTS = [
 const RELEASE_ONLY_SCRIPTS = ["build.mjs"];
 const REQUIRED_SCHEMAS = ["project-config.schema.json", "deck-spec.schema.json", "figures-manifest.schema.json", "paper-index.schema.json", "evidence-index.schema.json", "milestone-analysis.schema.json"];
 const REQUIRED_EVALS = ["skill-evals.json"];
-const REQUIRED_TESTS = ["p0-security-and-evidence.test.mjs", "logo-match-safety.test.mjs", "proposal-midterm-contract.test.mjs", "text-emphasis.test.mjs", "delivery-contract.test.mjs"];
+const REQUIRED_TESTS = [
+  "p0-security-and-evidence.test.mjs",
+  "logo-match-safety.test.mjs",
+  "proposal-midterm-contract.test.mjs",
+  "text-emphasis.test.mjs",
+  "delivery-contract.test.mjs",
+  "intake-controls.test.mjs",
+  "theme-contract.test.mjs",
+];
 const PROFILE_REGISTRY_PATH = path.join("assets", "profile-registry.json");
 const PROFILE_ASSET_FIELDS = ["layoutLibrary", "layoutRegistry", "templateMap", "designTokens", "themePresets", "librarySpec", "preview"];
 

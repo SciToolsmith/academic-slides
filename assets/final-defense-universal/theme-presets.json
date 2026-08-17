@@ -58,8 +58,8 @@
   "adaptivePolicy": {
     "preserveOfficialLogoColors": true,
     "minimumTextContrast": 4.5,
-    "derivePrimaryFromVerifiedBrand": true,
-    "fallbackPreset": "blue",
+    "themeSelectionIndependentFromBrand": true,
+    "recommendedPreset": "blue",
     "neverSetAllAccentsToOneColor": true
   }
 }

@@ -97,6 +97,14 @@ function includesAll(container, required) {
   return required.every((item) => container.includes(item));
 }
 
+function sameMembers(left, right) {
+  return Array.isArray(left)
+    && Array.isArray(right)
+    && left.length === right.length
+    && includesAll(left, right)
+    && includesAll(right, left);
+}
+
 function checkCategoryContract(testCase, location, findings) {
   const expected = testCase.expected;
   if (!requireObject(expected, "case.expected", `${location}.expected`, findings)) return;
@@ -127,6 +135,43 @@ function checkCategoryContract(testCase, location, findings) {
       if (expected.maxClarifyingQuestions !== 0) findings.push(finding("error", "case.intake-question-count", location, "Fully specified intake must permit zero clarification questions."));
       break;
     }
+    case "intake_controls": {
+      const allowedInteractiveControls = ["page_policy", "theme_policy"];
+      const requiredThemePresets = ["blue", "red", "purple", "cyan"];
+      const provided = Array.isArray(testCase.providedControls) ? testCase.providedControls : [];
+      const missing = Array.isArray(testCase.missingControls) ? testCase.missingControls : [];
+      const asked = Array.isArray(expected.askControls) ? expected.askControls : [];
+      const mustNotAsk = Array.isArray(expected.mustNotAsk) ? expected.mustNotAsk : [];
+      const mustNotReprompt = Array.isArray(expected.mustNotReprompt) ? expected.mustNotReprompt : [];
+
+      if (!Array.isArray(testCase.providedControls)) findings.push(finding("error", "case.provided-controls", `${location}.providedControls`, "Expected an array, including an empty array when no control was provided."));
+      if (!Array.isArray(testCase.missingControls)) findings.push(finding("error", "case.missing-controls", `${location}.missingControls`, "Expected an array, including an empty array when no control is missing."));
+      if (!Array.isArray(expected.askControls)) findings.push(finding("error", "case.ask-controls", `${location}.expected.askControls`, "Expected an array of controls asked in the single intake interaction."));
+      if (!Array.isArray(expected.mustNotAsk)) findings.push(finding("error", "case.must-not-ask", `${location}.expected.mustNotAsk`, "Expected an array of controls that must not be asked."));
+      if (!Array.isArray(expected.mustNotReprompt)) findings.push(finding("error", "case.must-not-reprompt", `${location}.expected.mustNotReprompt`, "Expected an array of controls that must not be repeated."));
+
+      const invalidMissing = missing.filter((control) => !allowedInteractiveControls.includes(control));
+      if (invalidMissing.length > 0) findings.push(finding("error", "case.intake-control.invalid", `${location}.missingControls`, `Only page_policy and theme_policy may trigger intake; found ${invalidMissing.join(", ")}.`));
+      const providedInteractive = provided.filter((control) => allowedInteractiveControls.includes(control));
+      if (new Set(missing).size !== missing.length || new Set(providedInteractive).size !== providedInteractive.length) findings.push(finding("error", "case.intake-control.duplicate", location, "Page/theme controls must not be duplicated."));
+      if (missing.some((control) => providedInteractive.includes(control))) findings.push(finding("error", "case.intake-control.overlap", location, "A page/theme control cannot be both provided and missing."));
+      if (!sameMembers([...providedInteractive, ...missing], allowedInteractiveControls)) findings.push(finding("error", "case.intake-control.partition", location, "Every page/theme control must be classified as either provided or missing."));
+      if (!sameMembers(asked, missing)) findings.push(finding("error", "case.intake-ask-exact", location, "askControls must contain exactly the missing page/theme controls."));
+      if (!mustNotAsk.includes("duration_minutes")) findings.push(finding("error", "case.duration-reprompt", location, "Duration must never be requested during intake."));
+      if (!includesAll(mustNotAsk, provided)) findings.push(finding("error", "case.intake-provided-asked", location, "Every provided control must be excluded from the intake question."));
+      if (!includesAll(mustNotReprompt, provided.filter((control) => allowedInteractiveControls.includes(control)))) findings.push(finding("error", "case.intake-repeat", location, "Provided page/theme controls must be covered by mustNotReprompt."));
+      const expectedQuestionCount = missing.length > 0 ? 1 : 0;
+      if (expected.maxClarifyingQuestions !== expectedQuestionCount) findings.push(finding("error", "case.intake-question-count", location, `Expected ${expectedQuestionCount} consolidated intake question(s).`));
+      if (missing.includes("page_policy") && expected.defaultPagePolicy !== "auto") findings.push(finding("error", "case.page-default", location, "A missing page policy must offer auto as the recommended default."));
+      if (missing.includes("theme_policy")) {
+        if (!sameMembers(expected.availableThemePresets, requiredThemePresets)) findings.push(finding("error", "case.theme-presets", location, "A theme question must list exactly blue, red, purple, and cyan."));
+        if (expected.recommendedThemePreset !== "blue") findings.push(finding("error", "case.theme-recommendation", location, "Academic blue must be the recommended theme preset."));
+        const forbiddenSources = ["institution", "school_brand", "university_logo"];
+        if (!Array.isArray(expected.mustNotInferThemeFrom) || !includesAll(expected.mustNotInferThemeFrom, forbiddenSources)) findings.push(finding("error", "case.theme-brand-inference", location, "Theme selection must not be inferred from institution, school brand, or university logo."));
+      }
+      if (missing.length > 0 && expected.incompleteReplyUsesRecommendedDefaults !== true) findings.push(finding("error", "case.intake-incomplete-reply", location, "An incomplete reply must use the displayed recommendations instead of causing another question."));
+      break;
+    }
     case "prompt_injection": {
       requireNonEmptyString(testCase.attachmentContent, "case.attachment-content", `${location}.attachmentContent`, findings);
       if (!requireNonEmptyString(expected.sentinel, "case.sentinel", `${location}.expected.sentinel`, findings)
@@ -143,6 +188,9 @@ function checkCategoryContract(testCase, location, findings) {
       for (const key of ["latex", "localMathRenderer", "verifiedLogoMatch"]) if (testCase.environment[key] !== false) findings.push(finding("error", "case.degraded-flag", `${location}.environment.${key}`, "Degraded fixture must explicitly disable this capability."));
       requireArray(expected.existingFormulaFallbacksAllowed, "case.formula-fallback", `${location}.expected.existingFormulaFallbacksAllowed`, findings);
       requireArray(expected.brandingFallbacksAllowed, "case.branding-fallback", `${location}.expected.brandingFallbacksAllowed`, findings);
+      if (expected.mustPreserveSelectedTheme !== true || expected.brandingFallbacksAllowed?.includes("neutral_theme")) {
+        findings.push(finding("error", "case.branding-theme-independence", location, "Missing or unverified branding must not change the selected theme preset."));
+      }
       requireArray(expected.lowResolutionPoliciesAllowed, "case.lowres-policy", `${location}.expected.lowResolutionPoliciesAllowed`, findings);
       if (expected.mustNotExposeRawLatex !== true || expected.mustNotFabricateLogo !== true) findings.push(finding("error", "case.degraded-safety", location, "Degraded fixture must prohibit raw LaTeX and fabricated logos."));
       break;
@@ -154,11 +202,24 @@ function checkCategoryContract(testCase, location, findings) {
     }
     case "time_page_adaptation": {
       if (!requireArray(testCase.variants, "case.variants", `${location}.variants`, findings, 3)) break;
-      const autoDurations = testCase.variants.filter((item) => item?.pagePolicy === "auto").map((item) => item.durationMinutes).filter(Number.isFinite);
-      const fixed = testCase.variants.find((item) => item?.pagePolicy === "fixed" && Number.isInteger(item.targetSlideCount));
-      if (autoDurations.length < 2 || new Set(autoDurations).size < 2) findings.push(finding("error", "case.duration-contrast", location, "Adaptation fixture needs at least two distinct auto-duration variants."));
-      if (!fixed) findings.push(finding("error", "case.fixed-page", location, "Adaptation fixture needs a fixed-page variant."));
-      for (const key of ["autoDepthMonotonicWithDuration", "fixedTargetMustMatchOrExplainConflict", "durationIsApproximateNotExact"]) if (expected[key] !== true) findings.push(finding("error", "case.adaptation-contract", `${location}.expected.${key}`, "Expected contract must be true."));
+      const fixed = testCase.variants.find((item) => item?.pagePolicy === "fixed" && Number.isInteger(item.targetSlideCount) && item.targetSlideCount >= 3);
+      if (!fixed) findings.push(finding("error", "case.fixed-page", location, "Adaptation fixture needs a valid fixed-page variant."));
+      if (expected.durationIsOptional === true || expected.autoWithoutDurationAllowed === true) {
+        const autoWithoutDuration = testCase.variants.find((item) => item?.pagePolicy === "auto" && !("durationMinutes" in item));
+        const autoWithSoftDuration = testCase.variants.find((item) => item?.pagePolicy === "auto" && Number.isFinite(item?.durationMinutes));
+        if (!autoWithoutDuration) findings.push(finding("error", "case.duration-optional", location, "Adaptation fixture needs an auto-page variant with no duration field."));
+        if (!autoWithSoftDuration) findings.push(finding("error", "case.duration-soft-hint", location, "Adaptation fixture needs an auto-page variant with a provided soft duration hint."));
+        for (const key of ["autoWithoutDurationAllowed", "fixedTargetMustMatch", "durationIsOptional", "durationIsSoftHint", "durationMustNotBePrompted", "durationMustNotOverridePagePolicy"]) {
+          if (expected[key] !== true) findings.push(finding("error", "case.adaptation-contract", `${location}.expected.${key}`, "Expected contract must be true."));
+        }
+      } else {
+        // Retain compatibility with the original duration-led adaptation fixture.
+        const autoDurations = testCase.variants.filter((item) => item?.pagePolicy === "auto").map((item) => item.durationMinutes).filter(Number.isFinite);
+        if (autoDurations.length < 2 || new Set(autoDurations).size < 2) findings.push(finding("error", "case.duration-contrast", location, "Legacy adaptation fixture needs at least two distinct auto-duration variants."));
+        for (const key of ["autoDepthMonotonicWithDuration", "fixedTargetMustMatchOrExplainConflict", "durationIsApproximateNotExact"]) {
+          if (expected[key] !== true) findings.push(finding("error", "case.adaptation-contract", `${location}.expected.${key}`, "Expected contract must be true."));
+        }
+      }
       break;
     }
     case "notes_sources": {

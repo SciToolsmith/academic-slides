@@ -477,12 +477,22 @@ function semanticDeckIssues(deck, strict = false) {
     if (Number.isFinite(deck.timing.estimated_seconds) && Math.abs(estimated - deck.timing.estimated_seconds) > 1) {
       findings.push(issue("error", "timing.estimated.mismatch", "$/timing/estimated_seconds", `Deck estimated_seconds is ${deck.timing.estimated_seconds}, but slide notes sum to ${estimated}.`));
     }
-    const calculatedTarget = Number(deck.timing.duration_minutes) * Number(deck.timing.usable_fraction) * 60;
-    if (Number.isFinite(calculatedTarget) && Number.isFinite(deck.timing.target_seconds) && Math.abs(calculatedTarget - deck.timing.target_seconds) > 1) {
+    const hasDuration = typeof deck.timing.duration_minutes === "number" && Number.isFinite(deck.timing.duration_minutes);
+    const hasUsableFraction = typeof deck.timing.usable_fraction === "number" && Number.isFinite(deck.timing.usable_fraction);
+    const hasTargetSeconds = typeof deck.timing.target_seconds === "number" && Number.isFinite(deck.timing.target_seconds);
+    if (deck.schema_version === "1.1" && !hasDuration && (deck.timing.usable_fraction != null || deck.timing.target_seconds != null)) {
+      findings.push(issue("error", "timing.orphan-budget", "$/timing", "usable_fraction and target_seconds must be omitted when duration_minutes is absent."));
+    }
+    const calculatedTarget = hasDuration && hasUsableFraction ? deck.timing.duration_minutes * deck.timing.usable_fraction * 60 : null;
+    if (calculatedTarget != null && hasTargetSeconds && Math.abs(calculatedTarget - deck.timing.target_seconds) > 1) {
       findings.push(issue(soft, "timing.target.mismatch", "$/timing/target_seconds", `Expected approximately ${calculatedTarget} seconds from duration_minutes × usable_fraction.`));
     }
-    if (deck.timing.page_policy === "fixed" && Number.isInteger(deck.timing.target_slide_count) && slides.length !== deck.timing.target_slide_count) {
-      findings.push(issue("error", "timing.slide-count.mismatch", "$/timing/target_slide_count", `Fixed target is ${deck.timing.target_slide_count} slides; deck contains ${slides.length}.`));
+    if (deck.timing.page_policy === "fixed") {
+      if (!Number.isInteger(deck.timing.target_slide_count) || deck.timing.target_slide_count < 3) {
+        findings.push(issue("error", "timing.slide-count.invalid", "$/timing/target_slide_count", "Fixed page policy requires an integer target_slide_count of at least 3."));
+      } else if (slides.length !== deck.timing.target_slide_count) {
+        findings.push(issue("error", "timing.slide-count.mismatch", "$/timing/target_slide_count", `Fixed target is ${deck.timing.target_slide_count} slides; deck contains ${slides.length}.`));
+      }
     }
   }
   return findings;
