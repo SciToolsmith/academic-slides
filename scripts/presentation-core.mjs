@@ -137,6 +137,13 @@ const DEFAULT_THEME = Object.freeze({
   chart: ["#364A7C", "#6482B5", "#2F766D", "#C88A2C", "#7B5A8E", "#A63C45"],
 });
 
+const DEFAULT_NEUTRAL_THEME = Object.freeze({
+  background: DEFAULT_TOKENS.neutral.canvas,
+  surface: DEFAULT_TOKENS.neutral.surface,
+  text: DEFAULT_TOKENS.neutral.text,
+  mutedText: DEFAULT_TOKENS.neutral.muted,
+});
+
 const MILESTONE_EXCLUSIVE_LAYOUTS = new Set([
   "cover-short-title", "cover-long-title", "agenda-adaptive", "evaluation-focus", "closing-feedback",
   "context-stakes", "literature-landscape", "evidence-gap", "question-hypothesis", "objectives-workpackages",
@@ -520,45 +527,104 @@ function addKeyNumber(slide, metric, position, colors, tokens, name = "metric") 
   }, `${name}-label`);
 }
 
-function normalizeTheme(presets, spec, options = {}) {
-  const themeSpec = isObject(spec.theme) ? spec.theme : {};
-  const presetName = first(options.theme, themeSpec.preset, themeSpec.name, spec.theme_preset, presets.defaultPreset, "blue");
-  const resolvedColors = isObject(themeSpec.colors) ? themeSpec.colors : {};
-  const preset = {
-    ...DEFAULT_THEME,
-    ...(presets.presets?.[presetName] ?? {}),
-    ...(resolvedColors.primary ? {
-      primary: normalizeHex(resolvedColors.primary, DEFAULT_THEME.primary),
-      primaryDark: normalizeHex(resolvedColors.primary_dark, DEFAULT_THEME.primaryDark),
-      primaryLight: normalizeHex(resolvedColors.primary_light, DEFAULT_THEME.primaryLight),
-      accent: normalizeHex(resolvedColors.accent, DEFAULT_THEME.accent),
-      emphasis: normalizeHex(
-        resolvedColors.emphasis,
-        normalizeHex(
-          presets.presets?.[presetName]?.emphasis,
-          isRedDominant(resolvedColors.primary) ? "#8A5A00" : DEFAULT_THEME.emphasis,
-        ),
-      ),
-      warning: normalizeHex(resolvedColors.warning, DEFAULT_THEME.warning),
-      chart: list(resolvedColors.chart_series).map((color) => normalizeHex(color, DEFAULT_THEME.primary)),
-      background: normalizeHex(resolvedColors.background, DEFAULT_TOKENS.neutral.canvas),
-      surface: normalizeHex(resolvedColors.surface, DEFAULT_TOKENS.neutral.surface),
-      text: normalizeHex(resolvedColors.text, DEFAULT_TOKENS.neutral.text),
-      mutedText: normalizeHex(resolvedColors.muted_text, DEFAULT_TOKENS.neutral.muted),
-    } : {}),
-  };
-  const customPrimary = first(options.primaryColor, themeSpec.primary, spec.primary_color);
-  if (!customPrimary) return { ...preset, presetName };
-  const primary = normalizeHex(customPrimary, preset.primary);
+function availablePresetNames(presets) {
+  return Object.keys(isObject(presets?.presets) ? presets.presets : {});
+}
+
+function requirePreset(presets, value, source = "theme preset") {
+  const presetName = String(value ?? "").trim().toLowerCase();
+  const available = availablePresetNames(presets);
+  if (!presetName || !isObject(presets?.presets?.[presetName])) {
+    throw new Error(`Unsupported ${source} "${value ?? ""}". Available presets: ${available.join(", ") || "none"}.`);
+  }
+  return presetName;
+}
+
+function presetFromPrimary(presets, primary) {
+  const normalizedPrimary = normalizeHex(primary, "");
+  if (!normalizedPrimary) return null;
+  const matches = availablePresetNames(presets).filter((name) => (
+    normalizeHex(presets.presets[name]?.primary, "") === normalizedPrimary
+  ));
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function completePresetTheme(presets, presetName) {
+  const selected = presets.presets[presetName];
   return {
-    ...preset,
+    ...DEFAULT_THEME,
+    ...DEFAULT_NEUTRAL_THEME,
+    ...selected,
+    chart: list(selected.chart).map((color) => normalizeHex(color, DEFAULT_THEME.primary)),
+    presetName,
+  };
+}
+
+function customTheme(base, resolvedColors, primaryOverride) {
+  const primary = normalizeHex(first(primaryOverride, resolvedColors.primary), base.primary);
+  const chart = list(resolvedColors.chart_series);
+  return {
+    ...base,
     presetName: "custom",
     displayName: "自定义学术配色",
     primary,
-    primaryDark: normalizeHex(themeSpec.primaryDark, preset.primaryDark),
-    primaryLight: normalizeHex(themeSpec.primaryLight, preset.primaryLight),
-    emphasis: resolvedColors.emphasis ? preset.emphasis : (isRedDominant(primary) ? "#8A5A00" : preset.emphasis),
+    primaryDark: normalizeHex(resolvedColors.primary_dark, base.primaryDark),
+    primaryLight: normalizeHex(resolvedColors.primary_light, base.primaryLight),
+    secondary: normalizeHex(resolvedColors.secondary, base.secondary),
+    accent: normalizeHex(resolvedColors.accent, base.accent),
+    emphasis: normalizeHex(
+      resolvedColors.emphasis,
+      isRedDominant(primary) ? "#8A5A00" : base.emphasis,
+    ),
+    success: normalizeHex(resolvedColors.success, base.success),
+    warning: normalizeHex(resolvedColors.warning, base.warning),
+    danger: normalizeHex(resolvedColors.danger, base.danger),
+    chart: chart.length ? chart.map((color) => normalizeHex(color, primary)) : [...base.chart],
+    background: normalizeHex(resolvedColors.background, base.background),
+    surface: normalizeHex(resolvedColors.surface, base.surface),
+    text: normalizeHex(resolvedColors.text, base.text),
+    mutedText: normalizeHex(resolvedColors.muted_text, base.mutedText),
   };
+}
+
+function normalizeTheme(presets, spec, options = {}) {
+  const themeSpec = isObject(spec.theme) ? spec.theme : {};
+  const resolvedColors = isObject(themeSpec.colors) ? themeSpec.colors : {};
+  const optionPreset = first(options.theme);
+  const primaryOverride = first(options.primaryColor, themeSpec.primary, spec.primary_color);
+  if (optionPreset && primaryOverride) {
+    throw new Error("Use either a theme preset or a custom primary color, not both.");
+  }
+
+  if (optionPreset) {
+    const presetName = requirePreset(presets, optionPreset);
+    return completePresetTheme(presets, presetName);
+  }
+
+  const defaultPreset = requirePreset(presets, first(presets.defaultPreset, "blue"), "default theme preset");
+  const base = completePresetTheme(presets, defaultPreset);
+  const mode = String(themeSpec.mode ?? "").trim().toLowerCase();
+  if (mode === "custom" || primaryOverride || (!mode && resolvedColors.primary)) {
+    return customTheme(base, resolvedColors, primaryOverride);
+  }
+
+  const declaredPreset = first(themeSpec.preset, themeSpec.name, spec.theme_preset);
+  if (declaredPreset) {
+    const presetName = requirePreset(presets, declaredPreset);
+    return completePresetTheme(presets, presetName);
+  }
+
+  const inferredPreset = presetFromPrimary(presets, resolvedColors.primary);
+  if (inferredPreset) return completePresetTheme(presets, inferredPreset);
+  if (resolvedColors.primary && mode === "adaptive") {
+    // Legacy adaptive specs already contain a resolved palette. Preserve that
+    // palette as custom without performing any institution/logo inference.
+    return customTheme(base, resolvedColors);
+  }
+  if (resolvedColors.primary && mode === "preset") {
+    throw new Error(`Theme mode=preset requires colors.primary to match one complete preset; use mode=custom for ${resolvedColors.primary}.`);
+  }
+  return base;
 }
 
 function presentationTheme(colors, tokens) {

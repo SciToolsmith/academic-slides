@@ -19,7 +19,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "enum": ["1.0", "1.1"]
     },
     "project": {
       "type": "object",
@@ -59,7 +59,6 @@
       "additionalProperties": false,
       "required": [
         "type",
-        "duration_minutes",
         "page_policy",
         "theme",
         "workflow_mode",
@@ -72,7 +71,7 @@
         "duration_minutes": {
           "type": "number",
           "exclusiveMinimum": 0,
-          "description": "Required nominal speaking time; timing remains an approximation."
+          "description": "Optional user-supplied speaking time used only as an approximate planning hint. Omit it when the user did not provide a duration; never invent or request one."
         },
         "page_policy": {"$ref": "#/$defs/pagePolicy"},
         "theme": {"$ref": "#/$defs/themePolicy"},
@@ -262,6 +261,17 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.0"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "properties": {
+          "presentation": {"required": ["duration_minutes"]}
+        }
+      }
+    },
     {
       "if": {
         "properties": {
@@ -466,8 +476,14 @@
       "additionalProperties": false,
       "required": ["mode"],
       "properties": {
-        "mode": {"enum": ["adaptive", "preset", "custom"]},
-        "preset": {"enum": ["blue", "red", "cyan", "purple"]},
+        "mode": {
+          "enum": ["adaptive", "preset", "custom"],
+          "description": "New projects use preset, or custom only when supplied proactively by the user. Adaptive is retained solely for reading legacy configurations and must not be generated for new projects."
+        },
+        "preset": {
+          "enum": ["blue", "red", "purple", "cyan"],
+          "description": "User-selected built-in palette. Blue is the normal intake recommendation; never infer a preset from the institution or logo."
+        },
         "custom_colors": {
           "type": "object",
           "additionalProperties": false,
@@ -480,7 +496,11 @@
             "text": {"$ref": "#/$defs/hexColor"}
           }
         },
-        "institution_branding": {"type": "boolean", "default": true}
+        "institution_branding": {
+          "type": "boolean",
+          "default": true,
+          "description": "Controls verified institution marks independently from palette selection; a logo retains its original colors."
+        }
       },
       "allOf": [
         {

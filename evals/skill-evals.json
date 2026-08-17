@@ -7,6 +7,7 @@
     "trigger_negative": 2,
     "trigger_ambiguous": 1,
     "intake_no_repeat": 1,
+    "intake_controls": 4,
     "prompt_injection": 1,
     "degraded_environment": 1,
     "free_layout": 1,
@@ -49,6 +50,21 @@
       "id": "minimal-delivery-contract",
       "files": ["SKILL.md", "references/delivery.md", "scripts/stage-delivery.mjs"],
       "termsAny": ["短题名_汇报类型", "stage-delivery.mjs"]
+    },
+    {
+      "id": "optional-duration-intake-contract",
+      "files": ["SKILL.md", "references/intake.md"],
+      "termsAny": ["Never ask for duration when it is absent", "未给出时不询问"]
+    },
+    {
+      "id": "one-shot-page-theme-contract",
+      "files": ["SKILL.md", "references/intake.md"],
+      "termsAny": ["Combine both missing controls into one structured input interaction", "两项都缺失时使用一次结构化交互"]
+    },
+    {
+      "id": "theme-independent-from-brand-contract",
+      "files": ["SKILL.md", "references/intake.md"],
+      "termsAny": ["do not infer a preset from school colors", "不根据学校、校徽或机构品牌色自动选择主题"]
     }
   ],
   "cases": [
@@ -162,10 +178,78 @@
       "id": "intake-do-not-repeat-controls",
       "category": "intake_no_repeat",
       "stage": "config",
-      "prompt": "答辩约 15 分钟，页数自动判断，学校品牌自适应；直接继续，不要再次确认。",
+      "prompt": "答辩约 15 分钟，页数自动判断，配色使用学术蓝；直接继续，不要再次确认。",
       "providedControls": ["duration_minutes", "page_policy", "theme_policy"],
       "expected": {
         "mustNotReprompt": ["duration_minutes", "page_policy", "theme_policy"],
+        "mustNotAsk": ["duration_minutes"],
+        "maxClarifyingQuestions": 0
+      }
+    },
+    {
+      "id": "intake-page-and-theme-missing",
+      "category": "intake_controls",
+      "stage": "config",
+      "prompt": "请根据这份硕士论文制作毕业答辩 PPT。",
+      "providedControls": [],
+      "missingControls": ["page_policy", "theme_policy"],
+      "expected": {
+        "askControls": ["page_policy", "theme_policy"],
+        "mustNotAsk": ["duration_minutes"],
+        "mustNotReprompt": [],
+        "maxClarifyingQuestions": 1,
+        "defaultPagePolicy": "auto",
+        "availableThemePresets": ["blue", "red", "purple", "cyan"],
+        "recommendedThemePreset": "blue",
+        "mustNotInferThemeFrom": ["institution", "school_brand", "university_logo"],
+        "incompleteReplyUsesRecommendedDefaults": true
+      }
+    },
+    {
+      "id": "intake-only-page-missing",
+      "category": "intake_controls",
+      "stage": "config",
+      "prompt": "制作毕业答辩 PPT，配色使用沉静紫。",
+      "providedControls": ["theme_policy"],
+      "missingControls": ["page_policy"],
+      "expected": {
+        "askControls": ["page_policy"],
+        "mustNotAsk": ["duration_minutes", "theme_policy"],
+        "mustNotReprompt": ["theme_policy"],
+        "maxClarifyingQuestions": 1,
+        "defaultPagePolicy": "auto",
+        "incompleteReplyUsesRecommendedDefaults": true
+      }
+    },
+    {
+      "id": "intake-only-theme-missing",
+      "category": "intake_controls",
+      "stage": "config",
+      "prompt": "制作毕业答辩 PPT，页数由你按论文内容自动判断。",
+      "providedControls": ["page_policy"],
+      "missingControls": ["theme_policy"],
+      "expected": {
+        "askControls": ["theme_policy"],
+        "mustNotAsk": ["duration_minutes", "page_policy"],
+        "mustNotReprompt": ["page_policy"],
+        "maxClarifyingQuestions": 1,
+        "availableThemePresets": ["blue", "red", "purple", "cyan"],
+        "recommendedThemePreset": "blue",
+        "mustNotInferThemeFrom": ["institution", "school_brand", "university_logo"],
+        "incompleteReplyUsesRecommendedDefaults": true
+      }
+    },
+    {
+      "id": "intake-page-and-theme-provided",
+      "category": "intake_controls",
+      "stage": "config",
+      "prompt": "制作毕业答辩 PPT，固定 18 页，使用典雅红，直接继续。",
+      "providedControls": ["page_policy", "theme_policy"],
+      "missingControls": [],
+      "expected": {
+        "askControls": [],
+        "mustNotAsk": ["duration_minutes", "page_policy", "theme_policy"],
+        "mustNotReprompt": ["page_policy", "theme_policy"],
         "maxClarifyingQuestions": 0
       }
     },
@@ -195,7 +279,8 @@
       "expected": {
         "existingFormulaFallbacksAllowed": ["source_pdf_crop"],
         "newComplexFormulaPolicy": "block_or_report",
-        "brandingFallbacksAllowed": ["text_wordmark", "neutral_theme"],
+        "brandingFallbacksAllowed": ["text_wordmark"],
+        "mustPreserveSelectedTheme": true,
         "lowResolutionPoliciesAllowed": ["omit", "redraw_from_verified_data", "warn_and_use_small"],
         "mustNotExposeRawLatex": true,
         "mustNotFabricateLogo": true
@@ -218,16 +303,19 @@
       "id": "time-and-page-adaptation",
       "category": "time_page_adaptation",
       "stage": "outline",
-      "prompt": "对同一篇论文分别规划短讲、长讲和固定页数版本。",
+      "prompt": "对同一篇论文分别规划自动页数、带时长参考的自动页数和固定页数版本。",
       "variants": [
-        {"id": "short-auto", "durationMinutes": 8, "pagePolicy": "auto"},
-        {"id": "long-auto", "durationMinutes": 20, "pagePolicy": "auto"},
-        {"id": "fixed-15", "durationMinutes": 15, "pagePolicy": "fixed", "targetSlideCount": 15}
+        {"id": "auto-without-duration", "pagePolicy": "auto"},
+        {"id": "auto-with-soft-duration", "durationMinutes": 15, "pagePolicy": "auto"},
+        {"id": "fixed-15-without-duration", "pagePolicy": "fixed", "targetSlideCount": 15}
       ],
       "expected": {
-        "autoDepthMonotonicWithDuration": true,
-        "fixedTargetMustMatchOrExplainConflict": true,
-        "durationIsApproximateNotExact": true
+        "autoWithoutDurationAllowed": true,
+        "fixedTargetMustMatch": true,
+        "durationIsOptional": true,
+        "durationIsSoftHint": true,
+        "durationMustNotBePrompted": true,
+        "durationMustNotOverridePagePolicy": true
       }
     },
     {

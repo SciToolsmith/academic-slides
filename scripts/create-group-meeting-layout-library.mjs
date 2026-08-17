@@ -165,7 +165,7 @@ function createSpec() {
   const slides = LAYOUTS.map(makeSlide);
   const estimated = slides.reduce((sum, slide) => sum + slide.speaker_notes.estimated_seconds, 0);
   return {
-    schema_version: "1.0",
+    schema_version: "1.1",
     project_id: "group-meeting-literature-layout-library",
     profile: "group_meeting_literature",
     literature: { mode: "multi_paper", focal_paper_ids: ["paper-a", "paper-b", "paper-c"], synthesis_question: "哪些证据真正改变了我们对共同问题的判断？" },
@@ -174,7 +174,7 @@ function createSpec() {
     slide_size: { ratio: "16:9", width_inches: 13.333, height_inches: 7.5 },
     timing: { duration_minutes: 8, usable_fraction: 0.75, target_seconds: 360, estimated_seconds: estimated, approximate: true, page_policy: "fixed", target_slide_count: LAYOUTS.length, timing_notes: ["本文件是一页一布局的视觉画廊，不是正式组会页序或时长建议。", "页数、论文数与章节数由真实证据结构决定。"] },
     theme: {
-      id: "group-meeting-literature-blue", mode: "preset", institution: null, verified_logo_asset_id: null,
+      id: "group-meeting-literature-blue", mode: "preset", preset: "blue", institution: null, verified_logo_asset_id: null,
       colors: { primary: "#32497B", primary_dark: "#24355D", primary_light: "#E8EDF6", accent: "#C7922C", background: "#FFFFFF", surface: "#F4F6F9", text: "#17213A", muted_text: "#5D667A", warning: "#B46A2C", chart_series: ["#32497B", "#6C86B3", "#2F766D", "#C7922C", "#7B5A8E", "#A63C45"] },
       fonts: { heading: "Microsoft YaHei", body: "Microsoft YaHei", latin: "Arial", math: "Latin Modern Math" },
     },

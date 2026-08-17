@@ -23,10 +23,11 @@ Build academic decks through an evidence-first workflow. Keep the workflow and q
 Read [references/intake.md](references/intake.md).
 
 - Reuse every setting already supplied by the user; never ask for it again or request a second confirmation.
-- Parse approximate presentation duration, page policy, and theme policy. Ask only for a value that the user has not supplied and that cannot be handled by the documented default.
-- Treat duration as a planning hint, not an exact speaking-time guarantee.
-- Prefer one structured input interaction when available; otherwise ask once in concise natural language.
-- After the user responds, continue immediately.
+- During normal control intake, ask only for a missing page policy or theme preset. Combine both missing controls into one structured input interaction when available; otherwise ask once in concise natural language. Keep the separate, necessary clarification rules for ambiguous routing, source roles, compliance, or unreadable inputs.
+- Recommend automatic page inference over a fixed slide count. Recommend the blue preset over red, purple, or cyan; do not list custom colors during normal intake, but preserve a valid custom palette that the user supplies proactively.
+- Treat a user-supplied duration as an optional planning hint, not an exact speaking-time guarantee. Never ask for duration when it is absent.
+- Keep theme selection independent from the institution and logo. Do not infer a preset from school colors, and do not recolor a school mark.
+- After the user responds, continue immediately. If the reply changes only one of the controls that were asked, use the displayed recommendation (`auto` or `blue`) for the unanswered control instead of asking again.
 
 ## Follow the lean production workflow
 
@@ -44,7 +45,7 @@ When the user asks to see the outline first, stop after the outline. Otherwise s
 
 Reuse prior extraction, analysis, and rendered assets when source hashes and requirements have not changed. Do not reread the whole paper after a local page edit, regenerate unselected assets, or restart whole-deck QA after a local-only change. A global theme, font, master, navigation, or renderer change does require a new full-deck render.
 
-The paper determines the number, names, and order of sections. Never default a defense to five parts because the visual gallery happens to show five categories. Agenda pages, section dividers, and segmented navigation are optional presentation devices: include, integrate, split, or omit them according to the narrative and approximate duration.
+The paper determines the number, names, and order of sections. Never default a defense to five parts because the visual gallery happens to show five categories. Agenda pages, section dividers, and segmented navigation are optional presentation devices: include, integrate, split, or omit them according to the narrative and any duration the user supplied.
 
 ## Prepare evidence and assets
 
@@ -56,7 +57,7 @@ Read [references/asset-preparation.md](references/asset-preparation.md) and [ref
 - For thesis or dissertation PDFs, extract the original paper figures once and generate both `论文图片说明.md` and `figures.manifest.json`; use `scripts/build-figure-guide.mjs` to prevent drift. For proposal/midterm reviews, generate `milestone-analysis.json`, preserve the approved-plan baseline separately from dated progress evidence, and prepare only figures selected for the deck. For literature-centered group meetings, generate `paper-index.json` and keep each focal paper's figures and figure guide under its own stable paper ID. Do not crop, enhance, split, annotate, or redraw every figure in advance.
 - Keep thesis figures, tables, formulas, and school branding in separate directories.
 - Prefer a verified school mark supplied by the user. Otherwise search the university's current official brand or visual-identity page and record its provenance. Use a project-specific catalog only when one has already been verified; this Skill does not bundle university logos.
-- Never fabricate, recolor, or silently modernize a school logo. If no trustworthy logo exists, use a text wordmark and neutral theme.
+- Never fabricate, recolor, or silently modernize a school logo. If no trustworthy logo exists, use a text wordmark while preserving the independently selected theme.
 
 ## Plan every slide before building
 

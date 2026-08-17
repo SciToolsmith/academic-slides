@@ -505,7 +505,7 @@ export async function createProposalMidtermSpec() {
   const slides = registry.layouts.map((layout, index) => makeSlide(layout, index, registry.layouts));
   const estimated = slides.reduce((sum, slide) => sum + slide.speaker_notes.estimated_seconds, 0);
   return {
-    schema_version: "1.0",
+    schema_version: "1.1",
     project_id: "proposal-midterm-layout-library",
     profile: "proposal_midterm",
     milestone: {
@@ -547,6 +547,7 @@ export async function createProposalMidtermSpec() {
     theme: {
       id: "proposal-midterm-academic-blue",
       mode: "preset",
+      preset: "blue",
       institution: null,
       verified_logo_asset_id: null,
       colors: {

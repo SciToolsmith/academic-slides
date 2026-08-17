@@ -119,7 +119,7 @@ project/
 
 项目内 `logo.meta.json` 至少记录：`institution_name`、`aliases`、`campus`、`asset_type`、`source_url`、`retrieved_at`、`sha256`、`transformations`、`usage_notes` 和 `verification_status`。未经核验的素材不得放入 PPT，也不自动写入 Skill 仓库。
 
-不要擅自改色、改变比例、删掉校徽内部白色、添加阴影或重绘细节。找不到可信素材时使用学校正式文字标识和中性主题，并在交付说明中标记。
+不要擅自改色、改变比例、删掉校徽内部白色、添加阴影或重绘细节。找不到可信素材时使用学校正式文字标识，并在交付说明中标记；品牌素材缺失不得改变用户已经选择的主题预设。
 
 ## 资产选择与加工
 

@@ -17,11 +17,13 @@ const SAFE_API_ROUTE_PATTERN = /\/api\/v\d+(?:\.\d+)?(?:\/[A-Za-z0-9._~{}:-]+)*/
 const PATH_TRAVERSAL_PATTERN = /(?:^|[\\/])\.\.(?:[\\/]|$)/;
 const BARE_DOI_PATTERN = /\b10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+/gi;
 const PATH_FIELD_PATTERN = /^(?:path|file|src|uri|.*_path)$/i;
+const SUPPORTED_THEME_PRESETS = new Set(["blue", "red", "purple", "cyan"]);
 
 function usage() {
   return [
-    "Usage: node create-project-builder.mjs --spec <deck-spec.json> --output <项目名.mjs> --pptx-name <项目名.pptx> --docx-name <项目名_发言稿.docx>",
+    "Usage: node create-project-builder.mjs --spec <deck-spec.json> --output <项目名.mjs> --pptx-name <项目名.pptx> --docx-name <项目名_发言稿.docx> [--theme <name>]",
     "",
+    "Theme: blue | red | purple | cyan. When supplied, it is embedded in the project MJS.",
     "The generated project builder embeds the final spec and uses only delivery-relative assets.",
   ].join("\n");
 }
@@ -31,7 +33,7 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "-h" || token === "--help") result.help = true;
-    else if (["--spec", "--output", "--pptx-name", "--docx-name"].includes(token)) {
+    else if (["--spec", "--output", "--pptx-name", "--docx-name", "--theme"].includes(token)) {
       const value = argv[++index];
       if (!value || value.startsWith("--")) throw new Error(`${token} requires a value.`);
       result[token.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
@@ -120,11 +122,20 @@ function assertPortable(value, location = "spec", key = "") {
   }
 }
 
-function builderSource(spec, names) {
+function normalizeThemePreset(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const preset = String(value).trim().toLowerCase();
+  if (!SUPPORTED_THEME_PRESETS.has(preset)) {
+    throw new Error(`Unsupported theme preset "${value}". Use blue, red, purple, or cyan.`);
+  }
+  return preset;
+}
+
+function builderSource(spec, names, themePreset) {
   const serialized = JSON.stringify(spec, null, 2).replaceAll("</script>", "<\\/script>");
   return `#!/usr/bin/env node
 
-// academic-slides-delivery: ${JSON.stringify({ stem: names.stem, pptx: names.pptx, docx: names.docx })}
+// academic-slides-delivery: ${JSON.stringify({ stem: names.stem, pptx: names.pptx, docx: names.docx, theme: themePreset })}
 
 // 项目构建入口。默认同时生成 PPTX 与 Word 发言稿。
 // 运行：node ${names.builder}\n// 可选：node ${names.builder} --pptx | --docx | --all
@@ -138,6 +149,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const PROJECT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const deckSpec = ${serialized};
+const themePreset = ${JSON.stringify(themePreset)};
 
 async function exists(filePath) {
   try { await fs.access(filePath); return true; } catch { return false; }
@@ -173,6 +185,7 @@ async function main() {
       baseDir: PROJECT_DIR,
       tokens: template.tokens,
       presets: template.presets,
+      theme: themePreset || undefined,
       allowPlaceholder: false,
     });
     const pptxPath = path.join(PROJECT_DIR, ${JSON.stringify(names.pptx)});
@@ -191,6 +204,7 @@ main().catch((error) => {
 }
 
 export async function createProjectBuilder(options) {
+  const themePreset = normalizeThemePreset(options.theme);
   const specPath = path.resolve(options.spec);
   const validation = await validateDeckSpecFile(specPath, { strict: true, requireSchema: true });
   const errors = validation.issues.filter((item) => item.severity === "error");
@@ -209,8 +223,8 @@ export async function createProjectBuilder(options) {
     throw new Error(`Project builder outputs must share the builder stem ${names.stem}.`);
   }
   await fs.mkdir(path.dirname(output), { recursive: true });
-  await fs.writeFile(output, builderSource(spec, names), { encoding: "utf8", mode: 0o755 });
-  return { output, pptxName: names.pptx, docxName: names.docx, bytes: (await fs.stat(output)).size };
+  await fs.writeFile(output, builderSource(spec, names, themePreset), { encoding: "utf8", mode: 0o755 });
+  return { output, pptxName: names.pptx, docxName: names.docx, theme: themePreset, bytes: (await fs.stat(output)).size };
 }
 
 async function main() {

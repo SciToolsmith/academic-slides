@@ -21,7 +21,7 @@
     "qa"
   ],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"enum": ["1.0", "1.1"]},
     "profile": {
       "enum": ["final_defense", "proposal_midterm", "group_meeting_literature"],
       "description": "Explicit presentation profile used to resolve narrative rules and template assets."
@@ -75,6 +75,69 @@
   "allOf": [
     {
       "if": {
+        "properties": {"schema_version": {"const": "1.0"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "properties": {
+          "timing": {
+            "required": ["duration_minutes", "usable_fraction", "target_seconds", "estimated_seconds", "approximate"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.1"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "properties": {
+          "timing": {
+            "required": ["estimated_seconds", "approximate", "page_policy"],
+            "allOf": [
+              {
+                "if": {"required": ["duration_minutes"]},
+                "then": {"required": ["usable_fraction", "target_seconds"]},
+                "else": {
+                  "not": {
+                    "anyOf": [
+                      {"required": ["usable_fraction"]},
+                      {"required": ["target_seconds"]}
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {"page_policy": {"const": "fixed"}},
+                  "required": ["page_policy"]
+                },
+                "then": {
+                  "required": ["target_slide_count"],
+                  "properties": {
+                    "target_slide_count": {"type": "integer", "minimum": 3}
+                  }
+                }
+              }
+            ]
+          },
+          "theme": {
+            "allOf": [
+              {
+                "if": {
+                  "properties": {"mode": {"const": "preset"}},
+                  "required": ["mode"]
+                },
+                "then": {"required": ["preset"]}
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
         "properties": {
           "profile": {"const": "group_meeting_literature"}
         },
@@ -108,17 +171,24 @@
     "timing": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "duration_minutes",
-        "usable_fraction",
-        "target_seconds",
-        "estimated_seconds",
-        "approximate"
-      ],
+      "required": ["estimated_seconds", "approximate"],
       "properties": {
-        "duration_minutes": {"type": "number", "exclusiveMinimum": 0},
-        "usable_fraction": {"type": "number", "minimum": 0.5, "maximum": 1},
-        "target_seconds": {"type": "number", "minimum": 0},
+        "duration_minutes": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Optional user-supplied duration. Omit it when no duration was provided."
+        },
+        "usable_fraction": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 1,
+          "description": "Optional usable share of a user-supplied duration; omit it when duration_minutes is absent."
+        },
+        "target_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Optional approximate target derived from a user-supplied duration; omit it when duration_minutes is absent."
+        },
         "estimated_seconds": {"type": "number", "minimum": 0},
         "approximate": {"const": true},
         "page_policy": {"enum": ["auto", "fixed"]},
@@ -259,7 +329,14 @@
       "required": ["id", "mode", "colors", "fonts"],
       "properties": {
         "id": {"$ref": "#/$defs/stableId"},
-        "mode": {"enum": ["adaptive", "preset", "custom"]},
+        "mode": {
+          "enum": ["adaptive", "preset", "custom"],
+          "description": "New projects use preset, or custom only when supplied proactively by the user. Adaptive remains readable for legacy deck specs only."
+        },
+        "preset": {
+          "enum": ["blue", "red", "purple", "cyan"],
+          "description": "Effective built-in palette for preset mode. It is selected by the user, never inferred from the institution or logo."
+        },
         "institution": {"type": ["string", "null"]},
         "verified_logo_asset_id": {"type": ["string", "null"]},
         "colors": {
