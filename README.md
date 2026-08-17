@@ -17,8 +17,6 @@
 
 </div>
 
-![Academic Slides：毕业答辩、开题中期与文献组会三套专业工作流](assets/readme/hero.png)
-
 ## 快速开始
 
 ### 1. 安装
