@@ -88,8 +88,38 @@
     },
     {
       "id": "raw-parser-output-exclusion-contract",
-      "files": ["references/workflow.md", "references/mineru-source.md"],
-      "termsAny": ["禁止把完整 `full.md`", "禁止把它们整包送入模型"]
+      "files": ["references/workflow.md", "references/mineru-source.md", "README.md"],
+      "termsAny": ["禁止把完整 `full.md`", "禁止把完整或节选的 `full.md`", "禁止对 raw"]
+    },
+    {
+      "id": "mineru-machine-agent-boundary-contract",
+      "files": ["SKILL.md", "references/mineru-source.md", "README.md"],
+      "termsAny": ["Only deterministic tooling may open MinerU raw files", "只有确定性 normalizer 可以打开供应商原始输出", "供应商 raw 只允许确定性 normalizer 读取"]
+    },
+    {
+      "id": "mineru-first-index-then-retrieve-contract",
+      "files": ["SKILL.md", "references/mineru-source.md", "README.md"],
+      "termsAny": ["reads `document-index.json` first", "首次只读 `document-index.json`", "首次只能读 `document-index.json`"]
+    },
+    {
+      "id": "mineru-direct-file-read-ban-contract",
+      "files": ["references/mineru-source.md", "README.md"],
+      "termsAny": ["禁止 agent/LLM 对 raw 目录", "禁止对 raw、`blocks.ndjson`"]
+    },
+    {
+      "id": "mineru-canonical-seven-contract",
+      "files": ["references/mineru-source.md", "README.md"],
+      "termsAny": ["规范七件套"]
+    },
+    {
+      "id": "mineru-minimal-retention-contract",
+      "files": ["references/mineru-source.md", "README.md"],
+      "termsAny": ["minimal raw retention"]
+    },
+    {
+      "id": "mineru-full-raw-debug-opt-in-contract",
+      "files": ["references/mineru-source.md", "README.md"],
+      "termsAny": ["--retain-full-raw"]
     },
     {
       "id": "cache-normalize-index-hydrate-contract",
@@ -342,7 +372,11 @@
         "mustNotExposeRawLatex": true,
         "mustNotFabricateLogo": true,
         "sourceProviderFallback": "local",
-        "mustNotUploadWithoutAuthorization": true
+        "mustNotUploadWithoutAuthorization": true,
+        "rawContextPolicy": "machine_only",
+        "firstAgentRead": "document-index.json",
+        "subsequentSourceReads": "retrieve-source-evidence-only",
+        "rawRetentionDefault": "minimal"
       }
     },
     {
@@ -401,7 +435,7 @@
         "wordMatchesPptNotes": true,
         "builderEmbedsFinalSpec": true,
         "builderUsesRelativeAssets": true,
-        "forbiddenArtifacts": ["deck-spec.json", "deck-map.json", "evidence-index.json", "phase-metrics.json", "mineru-raw", "full.md", "content_list.json", "qa", "preview", "node_modules", "source-pdf"]
+        "forbiddenArtifacts": ["deck-spec.json", "deck-map.json", "evidence-index.json", "phase-metrics.json", "mineru-raw", "full.md", "content_list.json", "model.json", "layout.json", "blocks.ndjson", "page-map.json", "figure-candidates.json", "table-candidates.json", "formula-candidates.json", "extraction-record.json", "html", "tex", "docx-export", "qa", "preview", "node_modules", "source-pdf"]
       }
     }
   ]

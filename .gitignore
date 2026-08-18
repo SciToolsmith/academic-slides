@@ -26,6 +26,7 @@ coverage/
 mineru-output/
 mineru-raw/
 *.mineru.zip
+raw-retention.json
 phase-metrics.json
 
 # Generated layout inspection and preview artifacts

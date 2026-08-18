@@ -103,7 +103,17 @@ node scripts/prepare-source-mineru.mjs \
   --model-version vlm
 ```
 
-适配器固定生成紧凑的 `document-index.json`、逐块 `blocks.ndjson`、页码映射，以及图、表、公式候选清单。工作流先读取索引，再通过页码、关键词或候选 ID 取回少量证据：
+适配器固定生成规范七件套：`document-index.json`、`blocks.ndjson`、`page-map.json`、`figure-candidates.json`、`table-candidates.json`、`formula-candidates.json` 和 `extraction-record.json`。
+
+### 上下文白名单
+
+供应商 raw 只允许确定性 normalizer 读取。agent/LLM 首次只能读 `document-index.json`；之后只能通过 `retrieve-source-evidence.mjs` 的页码、关键词、类型或候选 ID selector 获取有界证据。禁止对 raw、`blocks.ndjson`、page map 或候选清单直接执行 `cat`、`rg`、`jq` 或通用文件读取，也禁止把 `full.md`、原始 content list、model/layout JSON、HTML、TeX、DOCX 或整个解压目录放进上下文。
+
+retriever 已返回的单个候选图像可以按需打开，用于选图和视觉核验；不得枚举或浏览整个 raw 图片目录。
+
+这不是只针对“整包”：raw 的局部节选同样绕过页码、bbox、块数和字符预算。实测长论文 `full.md` 可超过 10 万字符；紧凑索引与 retrieve 输出保留了定向取证所需的 PDF 页码和 bbox。关键证据仍回到对应源 PDF 页面核验，避免把 OCR、公式合并或多面板误配当作科学事实。
+
+工作流通过以下命令按需取回少量证据：
 
 ```bash
 node scripts/retrieve-source-evidence.mjs \
@@ -115,7 +125,9 @@ node scripts/retrieve-source-evidence.mjs \
   --pretty
 ```
 
-同一来源和解析参数会按 SHA-256 缓存。MinerU 的完整 Markdown、`content_list`、`model`/`layout` JSON、HTML、TeX 与原始 ZIP 只留在内部缓存，禁止整包进入模型上下文或客户交付。关键数字、公式、表格和多面板图仍以源 PDF 复核；授权缺失、API 失败或输出不完整时，工作流回退到本地解析。详见 [MinerU 来源适配器契约](references/mineru-source.md) 和 [MinerU 官方 API 文档](https://mineru.net/apiManage/docs)。
+同一来源和解析参数会按 SHA-256 缓存。默认 minimal raw retention 只保留有效 v1、可解析 v2/layout 与被引用图像；受管缓存中的 `full.md`、model JSON、HTML、TeX、DOCX、源文件副本和未引用文件会被清理。离线 normalize 默认复制同一最小白名单，不修改用户目录。
+
+只有有界的解析器调试才加入 `--retain-full-raw`。这个开关保留完整供应商输出，但不会授权 agent/LLM 读取它，也不会改变上下文白名单。授权缺失、API 失败或输出不完整时，工作流回退到本地解析。详见 [MinerU 来源适配器契约](references/mineru-source.md) 和 [MinerU 官方 API 文档](https://mineru.net/apiManage/docs)。
 
 ## 三套专业工作流
 

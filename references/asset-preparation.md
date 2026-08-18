@@ -71,8 +71,8 @@ project/
 
 只有在用户明确授权上传或提供现成 MinerU 解压结果时，才按 `references/mineru-source.md` 使用 MinerU。解析器输出的图、表和公式都是候选，不是已核验资产：
 
-1. 先读取 `document-index.json` 和候选清单，不读取完整 `full.md`、`content_list`、`model`/`layout`、HTML、TeX 或整个 `blocks.ndjson`；
-2. 通过页码、候选 ID、类型或关键词 hydrate 当前叙事需要的证据；
+1. 首次只读取 `document-index.json`；不得直接读取候选清单、`blocks.ndjson`、`full.md`、`content_list`、`model`/`layout`、HTML 或 TeX；
+2. 此后只通过 `scripts/retrieve-source-evidence.mjs` 按页码、候选 ID、类型或关键词 hydrate 当前叙事需要的证据；
 3. 仅把入选候选复制或忠实重裁到 `assets/**/original/`，再为实际页面需要建立 `ready/` 变体；
 4. 用源 PDF 核对关键数字、单位、公式上下标、表格列关系、图注归属和多面板组合；
 5. MinerU 小图不满足投影清晰度时，从源 PDF 高分辨率重裁，不做生成式补细节。

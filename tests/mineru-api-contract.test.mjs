@@ -35,6 +35,19 @@ async function copyFixtureTo(destination) {
   }
 }
 
+async function relativeFiles(root) {
+  const output = [];
+  async function visit(current) {
+    for (const entry of await fs.readdir(current, { withFileTypes: true })) {
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) await visit(full);
+      else if (entry.isFile()) output.push(path.relative(root, full).split(path.sep).join("/"));
+    }
+  }
+  await visit(root);
+  return output.sort();
+}
+
 async function testUploadContract() {
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-mineru-api-"));
   const secret = "test-secret-that-must-not-be-persisted";
@@ -117,6 +130,22 @@ async function testUploadContract() {
     assert.equal(record.api.credential_persisted, false);
     assert.equal(record.api.signed_urls_persisted, false);
     assert.deepEqual(record.parameters.extra_formats, []);
+    assert.equal(record.retention.policy, "minimal_required");
+    assert.equal(record.retention.scope, "managed_cache_pruned");
+    assert.equal(record.retention.full_raw_opt_in, false);
+    assert.ok(record.retention.counts.removed_files >= 8);
+    assert.equal(record.retention.standardized_outputs_only_for_model, true);
+    assert.equal(JSON.stringify(record).includes(temporary), false);
+    assert.equal(JSON.stringify(record).includes(FIXTURE_DIR), false);
+    assert.deepEqual(await relativeFiles(path.join(cacheDir, result.cacheKey, "raw")), [
+      "fixture_content_list.json",
+      "fixture_content_list_v2.json",
+      "images/formula.jpg",
+      "images/panel-left.jpg",
+      "images/panel-right.jpg",
+      "images/parameters.jpg",
+      "layout.json",
+    ]);
 
     const cached = await prepareSourceMineru({
       source: SOURCE_PATH,
@@ -131,6 +160,36 @@ async function testUploadContract() {
       fetch: async () => { throw new Error("cache hit must not call network"); },
     });
     assert.equal(cached.cached, true);
+
+    calls.length = 0;
+    pollCount = 0;
+    const fullOutputDir = path.join(temporary, "normalized-full-raw");
+    const fullRaw = await prepareSourceMineru({
+      source: SOURCE_PATH,
+      outputDir: fullOutputDir,
+      cacheDir,
+      modelVersion: "vlm",
+      language: "ch",
+      confirmUpload: true,
+      retainFullRaw: true,
+      tokenEnv: "ACADEMIC_SLIDES_MINERU_TEST",
+      pollMs: 1,
+      maxWaitMs: 100,
+    }, {
+      env: { ACADEMIC_SLIDES_MINERU_TEST: secret },
+      fetch: fetchMock,
+      sleep: async () => {},
+      now: (() => { let value = 0; return () => value += 10; })(),
+      extractZip: async (_zipPath, destination) => copyFixtureTo(destination),
+    });
+    assert.equal(fullRaw.cached, false);
+    assert.notEqual(fullRaw.cacheKey, result.cacheKey);
+    assert.deepEqual(await relativeFiles(path.join(cacheDir, fullRaw.cacheKey, "raw")), await relativeFiles(FIXTURE_DIR));
+    const fullRecord = JSON.parse(await fs.readFile(path.join(fullOutputDir, "extraction-record.json"), "utf8"));
+    assert.equal(fullRecord.retention.policy, "full_raw_opt_in");
+    assert.equal(fullRecord.retention.scope, "managed_cache_full_raw_opt_in");
+    assert.equal(fullRecord.retention.counts.removed_files, 0);
+    assert.equal(fullRecord.retention.counts.before_files, fullRecord.retention.counts.retained_files);
   } finally {
     await fs.rm(temporary, { recursive: true, force: true });
   }
@@ -139,9 +198,10 @@ async function testUploadContract() {
 function testCliCredentialBoundary() {
   assert.throws(() => parseArgs(["--token", "literal-secret"]), /Token values are not accepted/);
   assert.throws(() => parseArgs(["--api-token=literal-secret"]), /Token values are not accepted/);
-  const parsed = parseArgs(["--token-env", "MY_MINERU_TOKEN", "--confirm-upload"]);
+  const parsed = parseArgs(["--token-env", "MY_MINERU_TOKEN", "--confirm-upload", "--retain-full-raw"]);
   assert.equal(parsed.tokenEnv, "MY_MINERU_TOKEN");
   assert.equal(parsed.confirmUpload, true);
+  assert.equal(parsed.retainFullRaw, true);
 }
 
 testCliCredentialBoundary();

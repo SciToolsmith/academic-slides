@@ -20,8 +20,11 @@ const OUTPUT_FILENAMES = [
   "formula-candidates.json",
   "extraction-record.json",
 ];
+const RETAINED_IMAGE_EXTENSIONS = new Set([
+  ".bmp", ".gif", ".jpeg", ".jpg", ".jp2", ".png", ".svg", ".tif", ".tiff", ".webp",
+]);
 
-export const NORMALIZER_VERSION = "1.0.0";
+export const NORMALIZER_VERSION = "1.1.0";
 export const DEFAULT_TOKEN_ENV = "MINERU_API_TOKEN";
 export const DEFAULT_API_BASE = "https://mineru.net";
 
@@ -35,13 +38,14 @@ function usage() {
     "  --source <pdf>             Source PDF. In normalize-only mode an *_origin.pdf file may be inferred.",
     "  --normalize-only <dir>     Normalize an already unpacked MinerU result without network access.",
     "  --output-dir <dir>         Directory for the seven normalized evidence files.",
-    "  --cache-dir <dir>          API cache root (default: hidden sibling of output-dir).",
+    "  --cache-dir <dir>          Managed raw/cache root (default: a hidden sibling directory).",
     "  --model-version <name>     vlm (default) or pipeline.",
     "  --language <code>          MinerU language hint (default: ch).",
     "  --page-ranges <ranges>     Optional MinerU page-range string.",
     "  --ocr                      Enable OCR. Default is false.",
     "  --disable-formula          Disable formula recognition.",
     "  --disable-table            Disable table recognition.",
+    "  --retain-full-raw          Opt in to retaining the complete MinerU raw result.",
     "  --token-env <NAME>         Environment variable holding the token (default: MINERU_API_TOKEN).",
     "  --confirm-upload           Required acknowledgement before a local file is uploaded.",
     "  --poll-ms <number>         Poll interval in milliseconds (default: 5000).",
@@ -51,6 +55,7 @@ function usage() {
     "  -h, --help                 Show this help.",
     "",
     "The CLI never accepts a token value. Default extra_formats is an empty array.",
+    "Only the seven normalized evidence files are model-facing; raw files remain normalizer-only.",
   ].join("\n");
 }
 
@@ -71,6 +76,7 @@ export function parseArgs(argv) {
     pollMs: 5_000,
     maxWaitMs: 2 * 60 * 60 * 1_000,
     confirmUpload: false,
+    retainFullRaw: false,
     force: false,
     json: false,
   };
@@ -81,6 +87,7 @@ export function parseArgs(argv) {
     else if (token === "--ocr") result.isOcr = true;
     else if (token === "--disable-formula") result.enableFormula = false;
     else if (token === "--disable-table") result.enableTable = false;
+    else if (token === "--retain-full-raw") result.retainFullRaw = true;
     else if (token === "--force") result.force = true;
     else if (token === "--json") result.json = true;
     else if (["--source", "--normalize-only", "--output-dir", "--cache-dir", "--model-version", "--language", "--page-ranges", "--token-env", "--poll-ms", "--max-wait-ms"].includes(token)) {
@@ -160,6 +167,7 @@ export function computeCacheKey(input) {
     enable_table: Boolean(input.enableTable),
     page_ranges: input.pageRanges || null,
     extra_formats: [],
+    retain_full_raw: Boolean(input.retainFullRaw),
     normalizer_version: input.normalizerVersion ?? NORMALIZER_VERSION,
   }));
   return crypto.createHash("sha256").update(canonical).digest("hex");
@@ -287,7 +295,7 @@ function resolveAsset(rawBaseDir, assetRef, warnings) {
   const resolved = path.resolve(rawBaseDir, assetRef);
   const relative = path.relative(rawBaseDir, resolved);
   if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    warnings.push(`Ignored asset path outside MinerU result: ${assetRef}`);
+    warnings.push("Ignored an asset reference outside the MinerU result root.");
     return null;
   }
   return resolved;
@@ -510,14 +518,214 @@ async function discoverInput(inputDir) {
   const files = await listFilesRecursively(inputDir);
   const v1Path = files.find((filePath) => /_content_list\.json$/i.test(filePath) && !/_content_list_v2\.json$/i.test(filePath));
   if (!v1Path) throw new Error("MinerU v1 *_content_list.json was not found. It is the required stable normalization input.");
+  const layoutPaths = files.filter((filePath) => /(?:^|\/)(?:layout|[^/]+_middle)\.json$/i.test(filePath.split(path.sep).join("/")));
   return {
     files,
     v1Path,
     v2Path: files.find((filePath) => /_content_list_v2\.json$/i.test(filePath)) ?? null,
-    layoutPath: files.find((filePath) => /(?:^|\/)(?:layout|[^/]+_middle)\.json$/i.test(filePath.split(path.sep).join("/"))) ?? null,
+    layoutPath: layoutPaths[0] ?? null,
+    layoutPaths,
     markdownPath: files.find((filePath) => path.basename(filePath).toLowerCase() === "full.md") ?? null,
     originPdfPath: files.find((filePath) => /_origin\.pdf$/i.test(filePath)) ?? null,
   };
+}
+
+function isPathWithin(root, candidate) {
+  const relative = path.relative(path.resolve(root), path.resolve(candidate));
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+function collectReferencedAssetStrings(value, output = new Set(), parentKey = "") {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectReferencedAssetStrings(item, output, parentKey));
+  } else if (value && typeof value === "object") {
+    for (const [key, item] of Object.entries(value)) {
+      if ((key === "img_path" || key === "image_path" || (key === "path" && parentKey === "image_source")) && typeof item === "string" && item.trim()) {
+        output.add(item.trim());
+      } else collectReferencedAssetStrings(item, output, key);
+    }
+  }
+  return output;
+}
+
+async function usableJson(filePath, predicate = () => true) {
+  if (!filePath) return null;
+  try {
+    const parsed = await readJson(filePath);
+    return predicate(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+async function summarizeFiles(files) {
+  let bytes = 0;
+  for (const filePath of files) bytes += (await fs.stat(filePath)).size;
+  return { files: files.length, bytes };
+}
+
+function retentionCategories({ hasV1, hasV2, layoutCount, imageCount, otherCount = 0 }) {
+  return {
+    content_list_v1: hasV1 ? 1 : 0,
+    content_list_v2: hasV2 ? 1 : 0,
+    layout_or_middle: layoutCount,
+    referenced_images: imageCount,
+    other: otherCount,
+  };
+}
+
+export async function buildRawRetentionPlan(inputDir, options = {}) {
+  const root = path.resolve(inputDir);
+  const discovered = await discoverInput(root);
+  const before = await summarizeFiles(discovered.files);
+  if (options.retainFullRaw) {
+    return {
+      retainedFilePaths: new Set(discovered.files),
+      record: {
+        policy: "full_raw_opt_in",
+        full_raw_opt_in: true,
+        standardized_outputs_only_for_model: true,
+        counts: {
+          before_files: before.files,
+          before_bytes: before.bytes,
+          retained_files: before.files,
+          retained_bytes: before.bytes,
+          removed_files: 0,
+          removed_bytes: 0,
+          missing_referenced_images: 0,
+        },
+        categories: retentionCategories({ hasV1: true, hasV2: Boolean(discovered.v2Path), layoutCount: discovered.layoutPaths.length, imageCount: 0, otherCount: Math.max(0, discovered.files.length - 1 - Number(Boolean(discovered.v2Path)) - discovered.layoutPaths.length) }),
+      },
+    };
+  }
+
+  const retained = new Set([discovered.v1Path]);
+  const v1 = await usableJson(discovered.v1Path, Array.isArray);
+  if (!v1) throw new Error("MinerU v1 content_list is not usable JSON.");
+  const references = [{ baseDir: path.dirname(discovered.v1Path), values: collectReferencedAssetStrings(v1) }];
+  const v2 = await usableJson(discovered.v2Path, Array.isArray);
+  if (v2) {
+    retained.add(discovered.v2Path);
+    references.push({ baseDir: path.dirname(discovered.v2Path), values: collectReferencedAssetStrings(v2) });
+  }
+  let retainedLayoutCount = 0;
+  for (const layoutPath of discovered.layoutPaths) {
+    const layout = await usableJson(layoutPath, (value) => value && typeof value === "object");
+    if (layout) {
+      retained.add(layoutPath);
+      retainedLayoutCount += 1;
+      references.push({ baseDir: path.dirname(layoutPath), values: collectReferencedAssetStrings(layout) });
+    }
+  }
+  const missingReferencedImages = new Set();
+  const retainedImages = new Set();
+  for (const referenceSet of references) {
+    for (const assetRef of referenceSet.values) {
+      let candidate = path.resolve(referenceSet.baseDir, assetRef);
+      if (isPathWithin(root, candidate) && !(await pathIsFile(candidate)) && path.basename(assetRef) === assetRef) {
+        const imageDirectoryCandidate = path.resolve(referenceSet.baseDir, "images", assetRef);
+        if (isPathWithin(root, imageDirectoryCandidate) && await pathIsFile(imageDirectoryCandidate)) candidate = imageDirectoryCandidate;
+      }
+      if (!isPathWithin(root, candidate) || !(await pathIsFile(candidate))) {
+        missingReferencedImages.add(`${referenceSet.baseDir}\0${assetRef}`);
+        continue;
+      }
+      if (!RETAINED_IMAGE_EXTENSIONS.has(path.extname(candidate).toLowerCase())) {
+        missingReferencedImages.add(`${referenceSet.baseDir}\0${assetRef}`);
+        continue;
+      }
+      retained.add(candidate);
+      retainedImages.add(candidate);
+    }
+  }
+  const retainedStats = await summarizeFiles([...retained]);
+  return {
+    retainedFilePaths: retained,
+    record: {
+      policy: "minimal_required",
+      full_raw_opt_in: false,
+      standardized_outputs_only_for_model: true,
+      counts: {
+        before_files: before.files,
+        before_bytes: before.bytes,
+        retained_files: retainedStats.files,
+        retained_bytes: retainedStats.bytes,
+        removed_files: before.files - retainedStats.files,
+        removed_bytes: before.bytes - retainedStats.bytes,
+        missing_referenced_images: missingReferencedImages.size,
+      },
+      categories: retentionCategories({ hasV1: true, hasV2: Boolean(v2), layoutCount: retainedLayoutCount, imageCount: retainedImages.size }),
+    },
+  };
+}
+
+async function removeEmptyDirectories(root) {
+  const directories = [];
+  async function collect(current) {
+    for (const entry of await fs.readdir(current, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const child = path.join(current, entry.name);
+      await collect(child);
+      directories.push(child);
+    }
+  }
+  await collect(root);
+  for (const directory of directories) {
+    try {
+      if ((await fs.readdir(directory)).length === 0) await fs.rmdir(directory);
+    } catch {
+      // A concurrently created or non-empty directory remains untouched.
+    }
+  }
+}
+
+export async function pruneManagedRawDirectory(inputDir, plan) {
+  const root = path.resolve(inputDir);
+  const retained = plan.retainedFilePaths;
+  for (const filePath of await listFilesRecursively(root)) {
+    if (!retained.has(filePath)) await fs.rm(filePath, { force: true });
+  }
+  await removeEmptyDirectories(root);
+  return { ...plan.record, scope: "managed_cache_pruned", source_input_modified: false };
+}
+
+export async function createMinimalRawSnapshot(inputDir, destinationDir, plan) {
+  const root = path.resolve(inputDir);
+  const destination = path.resolve(destinationDir);
+  if (isPathWithin(root, destination)) throw new Error("Managed MinerU raw cache must be outside the normalize-only input directory.");
+  await fs.rm(destination, { recursive: true, force: true });
+  await fs.mkdir(destination, { recursive: true });
+  for (const sourcePath of plan.retainedFilePaths) {
+    const relative = path.relative(root, sourcePath);
+    const target = path.join(destination, relative);
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.copyFile(sourcePath, target);
+  }
+  return { ...plan.record, scope: "managed_cache_snapshot", source_input_modified: false };
+}
+
+async function rawFilesMatchRetention(rawDir, retention) {
+  if (!retention?.counts || !(await pathIsDirectory(rawDir))) return false;
+  try {
+    const summary = await summarizeFiles(await listFilesRecursively(rawDir));
+    return summary.files === retention.counts.retained_files && summary.bytes === retention.counts.retained_bytes;
+  } catch {
+    return false;
+  }
+}
+
+async function readRetentionManifest(filePath, cacheKey, rawDir) {
+  try {
+    const manifest = await readJson(filePath);
+    if (manifest.cache_key !== cacheKey || !(await rawFilesMatchRetention(rawDir, manifest.retention))) return null;
+    return manifest.retention;
+  } catch {
+    return null;
+  }
+}
+
+async function writeRetentionManifest(filePath, cacheKey, retention) {
+  await writeJson(filePath, { schema_version: "1.0", cache_key: cacheKey, retention });
 }
 
 async function atomicWrite(filePath, content) {
@@ -529,10 +737,6 @@ async function atomicWrite(filePath, content) {
 
 async function writeJson(filePath, value) {
   await atomicWrite(filePath, `${JSON.stringify(value, null, 2)}\n`);
-}
-
-function relativeFile(root, filePath) {
-  return filePath ? path.relative(root, filePath).split(path.sep).join("/") : null;
 }
 
 function countTypes(blocks) {
@@ -638,6 +842,24 @@ export async function normalizeMineruDirectory(options) {
     },
   };
   const envelope = (items) => ({ schema_version: "1.0", source_sha256: sourceSha256, candidates: items });
+  const fallbackRawStats = options.retention ? null : await summarizeFiles(discovered.files);
+  const retention = options.retention ?? {
+    policy: "external_read_only",
+    scope: "external_input",
+    full_raw_opt_in: false,
+    source_input_modified: false,
+    standardized_outputs_only_for_model: true,
+    counts: {
+      before_files: fallbackRawStats.files,
+      before_bytes: fallbackRawStats.bytes,
+      retained_files: fallbackRawStats.files,
+      retained_bytes: fallbackRawStats.bytes,
+      removed_files: 0,
+      removed_bytes: 0,
+      missing_referenced_images: 0,
+    },
+    categories: null,
+  };
   const record = {
     schema_version: "1.0",
     status: "complete",
@@ -648,11 +870,9 @@ export async function normalizeMineruDirectory(options) {
     source,
     parameters,
     mineru_inputs: {
-      root: ".",
-      content_list_v1: relativeFile(inputDir, discovered.v1Path),
-      content_list_v2: relativeFile(inputDir, discovered.v2Path),
-      layout: relativeFile(inputDir, discovered.layoutPath),
-      markdown: relativeFile(inputDir, discovered.markdownPath),
+      content_list_v1_present: true,
+      content_list_v2_used: Boolean(v2),
+      layout_metadata_used: Boolean(layout),
       v1_is_authoritative: true,
       v2_is_optional_enhancement: true,
     },
@@ -662,6 +882,7 @@ export async function normalizeMineruDirectory(options) {
       credential_persisted: false,
       signed_urls_persisted: false,
     } : null,
+    retention,
     outputs: {
       files: OUTPUT_FILENAMES,
       counts: documentIndex.counts,
@@ -679,7 +900,7 @@ export async function normalizeMineruDirectory(options) {
     writeJson(path.join(outputDir, "formula-candidates.json"), envelope(candidates.formulas)),
     writeJson(path.join(outputDir, "extraction-record.json"), record),
   ]);
-  return { outputDir, cacheKey, sourceSha256, counts: documentIndex.counts, warnings, cached: false };
+  return { outputDir, cacheKey, sourceSha256, counts: documentIndex.counts, warnings, retention, cached: false };
 }
 
 async function validNormalizedOutput(directoryPath, cacheKey) {
@@ -880,33 +1101,93 @@ export async function prepareSourceMineru(options, dependencies = {}) {
   const cacheKey = computeCacheKey(normalizedOptions);
   normalizedOptions.cacheKey = cacheKey;
   if (!normalizeOnly && !options.confirmUpload) throw new Error("API upload requires explicit --confirm-upload acknowledgement.");
-  if (!options.force && await validNormalizedOutput(outputDir, cacheKey)) {
-    return { outputDir, cacheKey, sourceSha256, cached: true };
+
+  let defaultCacheRoot = path.join(path.dirname(outputDir), ".academic-slides-mineru-cache");
+  if (normalizeOnly && isPathWithin(normalizeOnly, defaultCacheRoot)) {
+    defaultCacheRoot = path.join(path.dirname(normalizeOnly), ".academic-slides-mineru-cache");
   }
-  if (normalizeOnly) {
-    return normalizeMineruDirectory({
-      ...normalizedOptions,
-      inputDir: normalizeOnly,
-      mode: "normalize-only",
-    });
-  }
-  const tokenEnv = options.tokenEnv ?? DEFAULT_TOKEN_ENV;
-  if (!safeEnvName(tokenEnv)) throw new Error("--token-env must be a valid environment variable name.");
-  const token = env[tokenEnv];
-  if (typeof token !== "string" || !token.trim()) throw new Error(`MinerU credential environment variable ${tokenEnv} is not set.`);
-  if (typeof fetchImpl !== "function") throw new Error("This Node.js runtime does not provide fetch.");
-  const cacheRoot = path.resolve(options.cacheDir ?? path.join(path.dirname(outputDir), ".academic-slides-mineru-cache"));
+  const cacheRoot = path.resolve(options.cacheDir ?? defaultCacheRoot);
   const cacheEntry = path.join(cacheRoot, cacheKey);
   const rawDir = path.join(cacheEntry, "raw");
   const normalizedDir = path.join(cacheEntry, "normalized");
-  if (!options.force && await validNormalizedOutput(normalizedDir, cacheKey)) {
+  const retentionManifestPath = path.join(cacheEntry, "raw-retention.json");
+
+  if (normalizeOnly) {
+    const plan = await buildRawRetentionPlan(normalizeOnly, { retainFullRaw: Boolean(options.retainFullRaw) });
+    if (options.retainFullRaw) {
+      const retention = {
+        ...plan.record,
+        scope: "external_full_raw_opt_in",
+        source_input_modified: false,
+      };
+      if (!options.force && await validNormalizedOutput(outputDir, cacheKey)) {
+        return { outputDir, cacheKey, sourceSha256, cached: true, retention };
+      }
+      return normalizeMineruDirectory({
+        ...normalizedOptions,
+        inputDir: normalizeOnly,
+        mode: "normalize-only",
+        retention,
+      });
+    }
+    if (isPathWithin(normalizeOnly, cacheRoot)) {
+      throw new Error("--cache-dir for normalize-only must be outside the unpacked MinerU input directory.");
+    }
+    await fs.mkdir(cacheEntry, { recursive: true });
+    let retention = options.force ? null : await readRetentionManifest(retentionManifestPath, cacheKey, rawDir);
+    if (!retention) {
+      retention = await createMinimalRawSnapshot(normalizeOnly, rawDir, plan);
+      await writeRetentionManifest(retentionManifestPath, cacheKey, retention);
+    }
+    if (!options.force && await validNormalizedOutput(outputDir, cacheKey)) {
+      return { outputDir, cacheKey, sourceSha256, cached: true, retention };
+    }
+    if (!options.force && await validNormalizedOutput(normalizedDir, cacheKey)) {
+      await copyNormalizedOutput(normalizedDir, outputDir);
+      return { outputDir, cacheKey, sourceSha256, cached: true, retention };
+    }
+    const result = await normalizeMineruDirectory({
+      ...normalizedOptions,
+      inputDir: rawDir,
+      outputDir: normalizedDir,
+      mode: "normalize-only",
+      retention,
+    });
     await copyNormalizedOutput(normalizedDir, outputDir);
-    return { outputDir, cacheKey, sourceSha256, cached: true };
+    return { ...result, outputDir, cached: false };
   }
-  let batchId = null;
+
+  let retention = options.force ? null : await readRetentionManifest(retentionManifestPath, cacheKey, rawDir);
+  if (retention && !options.force && await validNormalizedOutput(outputDir, cacheKey)) {
+    return { outputDir, cacheKey, sourceSha256, cached: true, retention };
+  }
+  if (retention && !options.force && await validNormalizedOutput(normalizedDir, cacheKey)) {
+    await copyNormalizedOutput(normalizedDir, outputDir);
+    return { outputDir, cacheKey, sourceSha256, cached: true, retention };
+  }
+
+  let rawAvailable = false;
   try {
     await discoverInput(rawDir);
+    rawAvailable = true;
   } catch {
+    rawAvailable = false;
+  }
+  if (rawAvailable && !retention) {
+    const plan = await buildRawRetentionPlan(rawDir, { retainFullRaw: Boolean(options.retainFullRaw) });
+    retention = options.retainFullRaw
+      ? { ...plan.record, scope: "managed_cache_full_raw_opt_in", source_input_modified: false }
+      : await pruneManagedRawDirectory(rawDir, plan);
+    await writeRetentionManifest(retentionManifestPath, cacheKey, retention);
+  }
+
+  let batchId = null;
+  if (!rawAvailable) {
+    const tokenEnv = options.tokenEnv ?? DEFAULT_TOKEN_ENV;
+    if (!safeEnvName(tokenEnv)) throw new Error("--token-env must be a valid environment variable name.");
+    const token = env[tokenEnv];
+    if (typeof token !== "string" || !token.trim()) throw new Error(`MinerU credential environment variable ${tokenEnv} is not set.`);
+    if (typeof fetchImpl !== "function") throw new Error("This Node.js runtime does not provide fetch.");
     await fs.mkdir(cacheEntry, { recursive: true });
     await fs.rm(rawDir, { recursive: true, force: true });
     await fs.mkdir(rawDir, { recursive: true });
@@ -923,7 +1204,14 @@ export async function prepareSourceMineru(options, dependencies = {}) {
       apiBase: String(options.apiBase ?? DEFAULT_API_BASE).replace(/\/$/, ""),
     });
     batchId = apiResult.batchId;
+    const plan = await buildRawRetentionPlan(rawDir, { retainFullRaw: Boolean(options.retainFullRaw) });
+    retention = options.retainFullRaw
+      ? { ...plan.record, scope: "managed_cache_full_raw_opt_in", source_input_modified: false }
+      : await pruneManagedRawDirectory(rawDir, plan);
+    await writeRetentionManifest(retentionManifestPath, cacheKey, retention);
   }
+
+  const tokenEnv = options.tokenEnv ?? DEFAULT_TOKEN_ENV;
   const result = await normalizeMineruDirectory({
     ...normalizedOptions,
     inputDir: rawDir,
@@ -931,6 +1219,7 @@ export async function prepareSourceMineru(options, dependencies = {}) {
     mode: "api",
     batchId,
     tokenEnv,
+    retention,
   });
   await copyNormalizedOutput(normalizedDir, outputDir);
   return { ...result, outputDir, cached: false };
@@ -951,6 +1240,7 @@ async function main() {
     output_dir: result.outputDir,
     cache_key: result.cacheKey,
     counts: result.counts ?? null,
+    retention: result.retention ?? null,
     warnings: result.warnings ?? [],
   };
   console.log(options.json ? JSON.stringify(summary) : [
