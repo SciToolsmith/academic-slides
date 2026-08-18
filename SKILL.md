@@ -31,7 +31,7 @@ Read [references/intake.md](references/intake.md).
 
 ## Follow the lean production workflow
 
-Read [references/workflow.md](references/workflow.md) before starting a new deck.
+After routing and intake, read [references/workflow.md](references/workflow.md) once. Load the other references only when their phase begins: evidence preparation, slide planning, QA, then delivery. Keep stable decisions in the project manifests and `deck-spec.json`; reuse those summaries instead of rereading unchanged references or the complete source.
 
 Use five phases:
 
@@ -40,6 +40,8 @@ Use five phases:
 3. Plan once: create `deck-spec.json` with narrative, selected evidence, visible content, speaker notes, sources, relationship topology, visual focus, annotation plan, asset treatment, and layout intent; generate `PPT内容与设计大纲.md` from it.
 4. Produce only selected derived assets, then build the editable PPTX, synchronized Word script, and project MJS.
 5. Render and inspect the complete deck and Word script once, repair material defects, recheck affected pages, and stage the minimal customer package.
+
+Use the moderate work budget and escalation rules in [references/workflow.md](references/workflow.md): normally one extraction pass, one storyboard, one complete internal build/render, one targeted repair pass, and one clean delivery rebuild. Expand only the affected phase when source complexity, unreadable evidence, a hard validation failure, or a requested high-fidelity redraw justifies it. Stop when the academic and visual hard gates pass and the remaining observations are optional polish.
 
 When the user asks to see the outline first, stop after the outline. Otherwise save it and continue without another confirmation.
 
@@ -51,7 +53,7 @@ The paper determines the number, names, and order of sections. Never default a d
 
 ## Prepare evidence and assets
 
-Read [references/asset-preparation.md](references/asset-preparation.md) and [references/evidence-and-notes.md](references/evidence-and-notes.md).
+When this phase begins, read [references/asset-preparation.md](references/asset-preparation.md) and [references/evidence-and-notes.md](references/evidence-and-notes.md).
 
 - Prefer original embedded figures or vector content; use high-resolution page crops only when needed for completeness.
 - Crop the figure body without the external caption or surrounding prose. Keep the caption in the filename and manifest.
@@ -65,7 +67,7 @@ Read [references/asset-preparation.md](references/asset-preparation.md) and [ref
 
 Use the canonical per-slide decision order in [references/workflow.md](references/workflow.md). Omit unused formula and diagram fields unless a rejection rationale materially helps review; do not spend tokens documenting visual devices that are not used.
 
-Read [references/layout-selection.md](references/layout-selection.md). Never select a layout first and force content into it. Use the free-evidence canvas when no registered layout fits.
+When storyboarding begins, read [references/layout-selection.md](references/layout-selection.md). Never select a layout first and force content into it. Use the free-evidence canvas when no registered layout fits.
 
 Treat the layout library as a preferred design vocabulary, not a whitelist and not a required sequence. Reuse the common shell for cover, agenda, section transitions, and closing when it helps orientation. For body slides, use a registered layout only when its evidence relationship, topology, information density, and slot count fit naturally; otherwise compose a new editable evidence canvas from the design tokens and record the rationale in `deck-spec.json`. A substantive final defense must contain thesis-specific evidence canvases; quantitative work may bind figures, formulas, metrics, and model relationships, while argument-driven work may bind source-traceable quotations, cases, claims, and counterarguments. It may not express every core page through generic cards, ribbons, or two-image shells.
 
@@ -97,7 +99,7 @@ Use `text_emphasis` only for one short, evidence-bearing focal phrase and at mos
 
 ## Validate and stage delivery
 
-Read [references/qa.md](references/qa.md).
+When the first complete build exists, read [references/qa.md](references/qa.md).
 
 Run the bundled validators, render every slide, and inspect each final slide at full size once. Separate material defects from optional polish. Repair unsupported claims, wrong numbers or units, broken media, missing notes, unintended overlap, clipping, one-line title wrapping, unreadable formulas, and wrong branding. After local fixes, recheck only affected pages; repeat a full-deck pass only after a global change.
 
@@ -105,6 +107,6 @@ Before the first full build, run the scientific-design validator. It must reject
 
 Stop when hard failures are zero and remaining observations are optional polish or documented low-risk limitations. The normal budget is one complete build/inspection and one targeted repair pass. Do not spend additional rounds on pixel-level similarity, harmless metadata, marginal spacing, or other changes that do not improve comprehension, academic accuracy, projection readability, or compatibility.
 
-Read [references/delivery.md](references/delivery.md) before packaging. Deliver exactly one concise folder named `短题名_汇报类型` containing the same-stem editable PPTX, same-stem project MJS, same-stem `_发言稿.docx`, and `assets/`. Do not add a date, version, name, `final`, or “最终版” marker. Do not expose the deck spec, outline, evidence index, QA report, source PDF, previews, logs, or other internal work products. Use `scripts/stage-delivery.mjs`: it runs the project MJS in a clean staging directory so PPTX and Word share one source, validates the package, and only then replaces an older delivery.
+Read [references/delivery.md](references/delivery.md) only after internal QA passes. Deliver exactly one concise folder named `短题名_汇报类型` containing the same-stem editable PPTX, same-stem project MJS, same-stem `_发言稿.docx`, and `assets/`. Do not add a date, version, name, `final`, or “最终版” marker. Do not expose the deck spec, outline, evidence index, QA report, source PDF, previews, logs, or other internal work products. Use `scripts/stage-delivery.mjs`: it verifies and regenerates the canonical project MJS from its embedded production spec, builds in a clean staging directory, checks the spec, PPT notes, and Word script page by page, validates the package, and only then replaces an older delivery. Do not execute the MJS an extra time merely to repeat the already completed internal build.
 
 Do not install or deploy this skill unless the user explicitly requests installation.

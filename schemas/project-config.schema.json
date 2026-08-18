@@ -80,7 +80,7 @@
           "default": "auto"
         },
         "aspect_ratio": {
-          "enum": ["16:9", "4:3"],
+          "const": "16:9",
           "default": "16:9"
         },
         "output_language": {

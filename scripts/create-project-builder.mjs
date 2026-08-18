@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -83,12 +84,28 @@ function containsLocalPath(value) {
     || RELATIVE_FILE_PATH_PATTERN.test(withoutPublicUrls);
 }
 
-function stripInternalFields(value) {
-  if (Array.isArray(value)) return value.map(stripInternalFields);
+function stripInternalFields(value, depth = 0) {
+  if (Array.isArray(value)) return value.map((item) => stripInternalFields(item, depth + 1));
   if (!value || typeof value !== "object") return value;
   const output = {};
   for (const [key, item] of Object.entries(value)) {
-    if (["qa", "decision_log"].includes(key)) continue;
+    if (key === "decision_log" || (key === "qa" && depth > 0)) continue;
+    if (key === "qa" && depth === 0 && item && typeof item === "object") {
+      output.qa = {
+        status: item.status ?? "not_checked",
+        issues: [],
+        checks: stripInternalFields(item.checks ?? {
+          schema: "not_checked",
+          evidence: "not_checked",
+          narrative: "not_checked",
+          visual: "not_checked",
+          technical: "not_checked",
+          notes_sources: "not_checked",
+        }, depth + 1),
+        checked_at: item.checked_at ?? null,
+      };
+      continue;
+    }
     if (key === "path" && typeof item === "string" && typeof value.citation === "string") {
       output[key] = null;
       continue;
@@ -97,7 +114,7 @@ function stripInternalFields(value) {
       output[key] = normalizeAssetPath(item);
       continue;
     }
-    output[key] = stripInternalFields(item);
+    output[key] = stripInternalFields(item, depth + 1);
   }
   return output;
 }
@@ -132,16 +149,22 @@ function normalizeThemePreset(value) {
   return preset;
 }
 
+function canonicalSpecHash(spec) {
+  return crypto.createHash("sha256").update(JSON.stringify(spec)).digest("hex");
+}
+
 function builderSource(spec, names, themePreset) {
   const serialized = JSON.stringify(spec, null, 2).replaceAll("</script>", "<\\/script>");
+  const specSha256 = canonicalSpecHash(spec);
   return `#!/usr/bin/env node
 
-// academic-slides-delivery: ${JSON.stringify({ stem: names.stem, pptx: names.pptx, docx: names.docx, theme: themePreset, artifact_purpose: spec.artifact_purpose ?? "production" })}
+// academic-slides-delivery: ${JSON.stringify({ contract_version: 2, generator: "academic-slides/create-project-builder", stem: names.stem, pptx: names.pptx, docx: names.docx, theme: themePreset, artifact_purpose: spec.artifact_purpose ?? "production", spec_sha256: specSha256 })}
 
 // 项目构建入口。默认同时生成 PPTX 与 Word 发言稿。
 // 运行：node ${names.builder}\n// 可选：node ${names.builder} --pptx | --docx | --all
 // 需要已安装 academic-slides Skill，或设置 ACADEMIC_SLIDES_SKILL_DIR。
 
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -151,6 +174,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const PROJECT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const deckSpec = ${serialized};
 const themePreset = ${JSON.stringify(themePreset)};
+const expectedSpecSha256 = ${JSON.stringify(specSha256)};
 
 async function exists(filePath) {
   try { await fs.access(filePath); return true; } catch { return false; }
@@ -165,18 +189,34 @@ async function locateSkill() {
   ].filter(Boolean).map((item) => path.resolve(item));
   for (const candidate of candidates) {
     if (await exists(path.join(candidate, "scripts", "presentation-core.mjs"))
+      && await exists(path.join(candidate, "scripts", "validate-deck-spec.mjs"))
       && await exists(path.join(candidate, "scripts", "validate-scientific-design.mjs"))) return candidate;
   }
   throw new Error("找不到 academic-slides Skill。请安装该 Skill，或设置 ACADEMIC_SLIDES_SKILL_DIR。");
 }
 
 async function main() {
+  const actualSpecSha256 = crypto.createHash("sha256").update(JSON.stringify(deckSpec)).digest("hex");
+  if (actualSpecSha256 !== expectedSpecSha256) throw new Error("项目规格完整性校验失败；请重新生成项目 MJS。");
   const flags = new Set(process.argv.slice(2));
   const unknown = [...flags].filter((flag) => !["--pptx", "--docx", "--all"].includes(flag));
   if (unknown.length) throw new Error(\`未知参数：\${unknown.join(", ")}\`);
   const buildPptx = flags.size === 0 || flags.has("--all") || flags.has("--pptx");
   const buildDocx = flags.size === 0 || flags.has("--all") || flags.has("--docx");
   const skillDir = await locateSkill();
+  const deckValidator = await import(pathToFileURL(path.join(skillDir, "scripts", "validate-deck-spec.mjs")).href);
+  const deckValidation = await deckValidator.validateDeckSpec(deckSpec, {
+    strict: true,
+    requireSchema: true,
+    schemaPath: path.join(skillDir, "schemas", "deck-spec.schema.json"),
+  });
+  const deckErrors = deckValidation.issues.filter((item) => item.severity === "error");
+  if (deckErrors.length) {
+    const summary = deckErrors.slice(0, 8).map((item) =>
+      \`\${item.code} \${item.path}: \${item.message}\`
+    ).join("\\n");
+    throw new Error(\`deck-spec 校验未通过（\${deckErrors.length} 个错误）：\\n\${summary}\`);
+  }
   const scientific = await import(pathToFileURL(path.join(skillDir, "scripts", "validate-scientific-design.mjs")).href);
   const designValidation = scientific.validateScientificDesign(deckSpec, { strict: true });
   if (!designValidation.ok) {

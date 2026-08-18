@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -8,9 +9,10 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { createProjectBuilder } from "../scripts/create-project-builder.mjs";
+import { buildSpeakerScriptFromSpec } from "../scripts/build-speaker-script.mjs";
 import { normalizeSpeakerNotes, serializeSpeakerNotes } from "../scripts/speaker-notes.mjs";
-import { stageDelivery, validateAssetTree, validateDeliveryStem } from "../scripts/stage-delivery.mjs";
-import { validateDeckSpecFile } from "../scripts/validate-deck-spec.mjs";
+import { stageDelivery, validateAssetTree, validateDeliveryStem, validatePresentationScriptParity } from "../scripts/stage-delivery.mjs";
+import { validateDeckSpec, validateDeckSpecFile } from "../scripts/validate-deck-spec.mjs";
 
 const execFileAsync = promisify(execFile);
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -31,7 +33,11 @@ function threeSlideSpec(sample) {
     const slide = structuredClone(sample.slides.find((item) => item.id === id));
     slide.id = `delivery-body-${index + 1}`;
     slide.section_id = sections[index].id;
-    slide.priority = "supporting";
+    slide.priority = index === 0 ? "core" : "supporting";
+    if (index === 0) {
+      slide.relationship_topology = "none";
+      slide.text_emphasis = [{ text: "说明证据来自哪里", role: "key" }];
+    }
     return slide;
   });
   const closing = structuredClone(sample.slides.find((slide) => slide.kind === "closing"));
@@ -99,6 +105,30 @@ function wordParagraphs(documentXml) {
   }));
 }
 
+function embeddedArtifactBuilder(stem, spec, pptxBytes, docxBytes) {
+  const contract = {
+    contract_version: 2,
+    generator: "academic-slides/create-project-builder",
+    stem,
+    pptx: `${stem}.pptx`,
+    docx: `${stem}_发言稿.docx`,
+    theme: null,
+    artifact_purpose: "production",
+    spec_sha256: crypto.createHash("sha256").update(JSON.stringify(spec)).digest("hex"),
+  };
+  return [
+    "#!/usr/bin/env node",
+    `// academic-slides-delivery: ${JSON.stringify(contract)}`,
+    'import fs from "node:fs";',
+    'import path from "node:path";',
+    `const deckSpec = ${JSON.stringify(spec, null, 2)};`,
+    "const themePreset = null;",
+    `fs.writeFileSync(path.join(process.cwd(), ${JSON.stringify(contract.pptx)}), Buffer.from(${JSON.stringify(pptxBytes.toString("base64"))}, "base64"));`,
+    `fs.writeFileSync(path.join(process.cwd(), ${JSON.stringify(contract.docx)}), Buffer.from(${JSON.stringify(docxBytes.toString("base64"))}, "base64"));`,
+    "",
+  ].join("\n");
+}
+
 async function main() {
   assert.equal(validateDeliveryStem(STEM), STEM);
   for (const valid of ["IPv6网络测量方法_硕士答辩", "V2X协同感知方法_硕士答辩", "HIV1感染机制_博士答辩", "V1视觉皮层机制_博士答辩"]) {
@@ -144,6 +174,45 @@ async function main() {
     await fs.writeFile(specPath, `${JSON.stringify(threeSlideSpec(sample), null, 2)}\n`, "utf8");
     const validation = await validateDeckSpecFile(specPath, { strict: true, requireSchema: true });
     assert.deepEqual(validation.issues, []);
+    const inMemoryValidation = await validateDeckSpec(threeSlideSpec(sample), { strict: true, requireSchema: true });
+    assert.deepEqual(inMemoryValidation.issues, []);
+
+    const invalidCases = [
+      {
+        name: "blank-script",
+        mutate(spec) { spec.slides[2].speaker_notes.script = "   "; },
+        code: "notes.script.empty",
+      },
+      {
+        name: "script-marker",
+        mutate(spec) { spec.slides[2].speaker_notes.script += " [Sources]"; },
+        code: "notes.sources.marker",
+      },
+      {
+        name: "transition-marker",
+        mutate(spec) { spec.slides[2].speaker_notes.transition = "[/Sources]"; },
+        code: "notes.sources.marker",
+      },
+      {
+        name: "citation-marker",
+        mutate(spec) { spec.slides[2].speaker_notes.sources[0].citation += " [Sources]"; },
+        code: "notes.sources.marker",
+      },
+      {
+        name: "missing-note-source",
+        mutate(spec) { spec.slides[2].speaker_notes.sources = []; },
+        code: "notes.sources.coverage",
+      },
+    ];
+    for (const invalidCase of invalidCases) {
+      const invalidSpec = threeSlideSpec(sample);
+      invalidCase.mutate(invalidSpec);
+      const invalidPath = path.join(temporary, `${invalidCase.name}.json`);
+      await fs.writeFile(invalidPath, `${JSON.stringify(invalidSpec, null, 2)}\n`, "utf8");
+      const invalidResult = await validateDeckSpecFile(invalidPath, { strict: true, requireSchema: true });
+      assert.ok(invalidResult.issues.some((item) => item.code === invalidCase.code && item.severity === "error"), `${invalidCase.name} must fail with ${invalidCase.code}`);
+    }
+
     const mjsPath = path.join(temporary, `${STEM}.mjs`);
     await createProjectBuilder({
       spec: specPath,
@@ -186,7 +255,7 @@ async function main() {
     await assert.rejects(() => stageDelivery({
       output: path.join(temporary, "画廊_硕士答辩"),
       mjs: galleryMjs,
-    }), /artifact_purpose=production/);
+    }), /artifact_purpose=production|generated embedded deck specification/);
 
     const unsafePaths = [
       ".." + "/../source/thesis.pdf",
@@ -269,9 +338,22 @@ async function main() {
     await fs.writeFile(path.join(assetSource, "figures", "original", "图1.1 示例图.png"), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
     await fs.writeFile(path.join(assetSource, "figures", "论文图片说明.md"), "# 论文图片说明\n", "utf8");
     const delivery = path.join(temporary, STEM);
-    await stageDelivery({ output: delivery, mjs: mjsPath, assets: assetSource });
+    const staged = await stageDelivery({ output: delivery, mjs: mjsPath, assets: assetSource });
+    assert.deepEqual(staged.parity, { slideCount: 6, notesCount: 6, wordPageCount: 6, specSlideCount: 6 });
     assert.deepEqual((await fs.readdir(delivery)).sort(), [`${STEM}.mjs`, `${STEM}.pptx`, `${STEM}_发言稿.docx`, "assets"].sort());
     assert.equal(await fs.access(path.join(delivery, "assets", "formulas")).then(() => true).catch(() => false), false);
+
+    const tamperedRoot = path.join(temporary, "tampered-builder");
+    await fs.mkdir(tamperedRoot, { recursive: true });
+    const tamperedMjs = path.join(tamperedRoot, `${STEM}.mjs`);
+    const sideEffectPath = path.join(temporary, "unexpected-side-effect.txt");
+    await fs.writeFile(tamperedMjs, `${await fs.readFile(mjsPath, "utf8")}\nawait fs.writeFile(${JSON.stringify(sideEffectPath)}, "unexpected");\n`, "utf8");
+    await assert.rejects(() => stageDelivery({
+      output: path.join(temporary, "tampered-output", STEM),
+      mjs: tamperedMjs,
+      assets: assetSource,
+    }), /not the canonical source/);
+    assert.equal(await fs.access(sideEffectPath).then(() => true).catch(() => false), false);
 
     const docXml = await xmlText(path.join(delivery, `${STEM}_发言稿.docx`), "word/document.xml");
     const docParagraphs = wordParagraphs(docXml);
@@ -293,6 +375,48 @@ async function main() {
     const noteXml = (await Promise.all(notesEntries.map((entry) => xmlText(deliveredPptx, entry)))).join("\n");
     assert.equal((noteXml.match(/\[Sources\]/g) ?? []).length, expectedSlides.length);
     assert.equal((noteXml.match(/\[\/Sources\]/g) ?? []).length, expectedSlides.length);
+
+    const mismatchedSpec = threeSlideSpec(sample);
+    mismatchedSpec.slides[0].speaker_notes.script += " 这段文字只存在被篡改的 Word 中。";
+    const mismatchedStem = "逐页同源门禁_硕士答辩";
+    const mismatchedDocx = path.join(temporary, `${mismatchedStem}_发言稿.docx`);
+    await buildSpeakerScriptFromSpec(mismatchedSpec, mismatchedDocx);
+    const mismatchedMjs = path.join(temporary, `${mismatchedStem}.mjs`);
+    await fs.writeFile(mismatchedMjs, embeddedArtifactBuilder(
+      mismatchedStem,
+      threeSlideSpec(sample),
+      await fs.readFile(deliveredPptx),
+      await fs.readFile(mismatchedDocx),
+    ), "utf8");
+    await assert.rejects(
+      () => validatePresentationScriptParity(deliveredPptx, mismatchedDocx, threeSlideSpec(sample)),
+      /slide 1 speaker script differs/,
+    );
+    await assert.rejects(() => stageDelivery({
+      output: path.join(temporary, mismatchedStem),
+      mjs: mismatchedMjs,
+    }), /not the canonical source/);
+
+    const shortSpec = threeSlideSpec(sample);
+    shortSpec.slides = shortSpec.slides.slice(0, -1);
+    const shortStem = "页数同源门禁_硕士答辩";
+    const shortDocx = path.join(temporary, `${shortStem}_发言稿.docx`);
+    await buildSpeakerScriptFromSpec(shortSpec, shortDocx);
+    const shortMjs = path.join(temporary, `${shortStem}.mjs`);
+    await fs.writeFile(shortMjs, embeddedArtifactBuilder(
+      shortStem,
+      threeSlideSpec(sample),
+      await fs.readFile(deliveredPptx),
+      await fs.readFile(shortDocx),
+    ), "utf8");
+    await assert.rejects(
+      () => validatePresentationScriptParity(deliveredPptx, shortDocx, threeSlideSpec(sample)),
+      /Word must contain one title plus 6 page paragraphs; found 6/,
+    );
+    await assert.rejects(() => stageDelivery({
+      output: path.join(temporary, shortStem),
+      mjs: shortMjs,
+    }), /not the canonical source/);
 
     const badAssets = path.join(temporary, "bad-assets");
     await fs.mkdir(path.join(badAssets, "figures"), { recursive: true });

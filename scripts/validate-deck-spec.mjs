@@ -454,7 +454,10 @@ function finalDefenseStructureIssues(deck, slides) {
   return findings;
 }
 
-function referenceItems(slide, base) {
+const RESERVED_SOURCES_MARKER = /\[\/?Sources\]/i;
+const NON_SUBSTANTIVE_SLIDE_KINDS = new Set(["title", "section", "agenda", "closing", "questions"]);
+
+function slideEvidenceReferenceItems(slide, base) {
   const output = [];
   const add = (value, pointer) => {
     if (isNonEmptyString(value)) output.push({ value, path: pointer });
@@ -473,6 +476,14 @@ function referenceItems(slide, base) {
   for (const [index, node] of (slide.diagram?.nodes ?? []).entries()) {
     listOfStrings(node?.source_refs).forEach((value, refIndex) => add(value, `${base}/diagram/nodes/${index}/source_refs/${refIndex}`));
   }
+  return output;
+}
+
+function noteSourceReferenceItems(slide, base) {
+  const output = [];
+  const add = (value, pointer) => {
+    if (isNonEmptyString(value)) output.push({ value, path: pointer });
+  };
   for (const [index, source] of (slide.speaker_notes?.sources ?? []).entries()) add(source?.source_id, `${base}/speaker_notes/sources/${index}/source_id`);
   return output;
 }
@@ -506,6 +517,21 @@ function semanticDeckIssues(deck, strict = false) {
     if (!isNonEmptyString(source?.id)) continue;
     if (sourceIds.has(source.id)) findings.push(issue("error", "source.id.duplicate", `$/sources/${index}/id`, `Duplicate source id: ${source.id}.`));
     else sourceIds.set(source.id, source);
+  }
+  const assetIds = new Map();
+  for (const [index, asset] of (deck.assets ?? []).entries()) {
+    if (!isNonEmptyString(asset?.id)) continue;
+    if (assetIds.has(asset.id)) findings.push(issue("error", "asset.id.duplicate", `$/assets/${index}/id`, `Duplicate asset id: ${asset.id}.`));
+    else assetIds.set(asset.id, asset);
+    if (isNonEmptyString(asset?.source_ref) && !sourceIds.has(asset.source_ref)) {
+      findings.push(issue("error", "asset.source.unknown", `$/assets/${index}/source_ref`, `Unknown asset source reference: ${asset.source_ref}.`));
+    }
+  }
+  const logoAssetId = deck.theme?.verified_logo_asset_id;
+  if (isNonEmptyString(logoAssetId)) {
+    const logoAsset = assetIds.get(logoAssetId);
+    if (!logoAsset) findings.push(issue("error", "theme.logo.unknown", "$/theme/verified_logo_asset_id", `Unknown verified logo asset id: ${logoAssetId}.`));
+    else if (logoAsset.type !== "logo") findings.push(issue("error", "theme.logo.type", "$/theme/verified_logo_asset_id", `Verified logo asset ${logoAssetId} must have type=logo.`));
   }
   const claimIds = new Map();
   for (const [index, claim] of (deck.claim_evidence_map ?? []).entries()) {
@@ -646,17 +672,45 @@ function semanticDeckIssues(deck, strict = false) {
       findings.push(issue(soft, "diagram.excluded.content", `${base}/diagram`, "Diagram is excluded but still contains nodes or edges."));
     }
 
-    const references = referenceItems(slide, base);
+    const kind = String(slide.kind ?? "").toLowerCase();
+    const substantive = !NON_SUBSTANTIVE_SLIDE_KINDS.has(kind);
+    const noteScript = slide.speaker_notes?.script;
+    const noteTransition = slide.speaker_notes?.transition;
+    if (substantive && !isNonEmptyString(noteScript)) {
+      findings.push(issue("error", "notes.script.empty", `${base}/speaker_notes/script`, "Every substantive slide needs a non-empty speaker script."));
+    }
+    if (RESERVED_SOURCES_MARKER.test(String(noteScript ?? ""))) {
+      findings.push(issue("error", "notes.sources.marker", `${base}/speaker_notes/script`, "[Sources] and [/Sources] are reserved output markers and must not appear in the speaker script."));
+    }
+    if (RESERVED_SOURCES_MARKER.test(String(noteTransition ?? ""))) {
+      findings.push(issue("error", "notes.sources.marker", `${base}/speaker_notes/transition`, "[Sources] and [/Sources] are reserved output markers and must not appear in the transition."));
+    }
+    for (const [sourceIndex, source] of (slide.speaker_notes?.sources ?? []).entries()) {
+      if (RESERVED_SOURCES_MARKER.test(String(source?.citation ?? ""))) {
+        findings.push(issue("error", "notes.sources.marker", `${base}/speaker_notes/sources/${sourceIndex}/citation`, "[Sources] and [/Sources] are reserved output markers and must not appear in a citation."));
+      }
+    }
+
+    const evidenceReferences = slideEvidenceReferenceItems(slide, base);
+    const noteReferences = noteSourceReferenceItems(slide, base);
+    const references = [...evidenceReferences, ...noteReferences];
     for (const reference of references) {
       if (!sourceIds.has(reference.value)) findings.push(issue("error", "source.ref.unknown", reference.path, `Unknown source/evidence reference: ${reference.value}.`));
     }
+    if (deck.artifact_purpose === "production" && substantive) {
+      const noteSourceIds = new Set(noteReferences.map((reference) => reference.value));
+      const missingNoteSources = [...new Set(evidenceReferences.map((reference) => reference.value))]
+        .filter((sourceId) => !noteSourceIds.has(sourceId));
+      if (missingNoteSources.length > 0) {
+        findings.push(issue("error", "notes.sources.coverage", `${base}/speaker_notes/sources`, `Speaker-note sources must cover every evidence reference used by the slide; missing: ${missingNoteSources.join(", ")}.`));
+      }
+    }
     const primaryVisuals = (slide.visuals ?? []).filter((visual) => visual?.include === true && visual?.role === "primary_evidence");
     if (primaryVisuals.length > 1) findings.push(issue(soft, "visual.primary.multiple", `${base}/visuals`, "Slide has more than one primary-evidence visual; confirm that comparison is intentional."));
-    const exemptKinds = new Set(["title", "section", "agenda", "closing", "questions"]);
-    if (!exemptKinds.has(String(slide.kind ?? "").toLowerCase()) && references.length === 0) {
+    if (substantive && evidenceReferences.length === 0) {
       findings.push(issue(soft, "slide.evidence.empty", `${base}/evidence_refs`, "Content slide has no evidence_refs."));
     }
-    if (deck.profile === "proposal_midterm" && slide?.layout?.variant === "plan-vs-actual" && new Set(references.map((item) => item.value)).size < 2) {
+    if (deck.profile === "proposal_midterm" && slide?.layout?.variant === "plan-vs-actual" && new Set(evidenceReferences.map((item) => item.value)).size < 2) {
       findings.push(issue("error", "milestone.plan-actual.evidence", `${base}/evidence_refs`, "plan-vs-actual requires at least two evidence references so the baseline and current progress can both be reviewed."));
     }
   }
@@ -751,10 +805,8 @@ export async function readJsonFile(filePath) {
   }
 }
 
-export async function validateDeckSpecFile(specPath, options = {}) {
-  const absoluteSpec = path.resolve(specPath);
+export async function validateDeckSpec(deck, options = {}) {
   const schemaPath = options.schemaPath ? path.resolve(options.schemaPath) : DEFAULT_SCHEMA;
-  const deck = await readJsonFile(absoluteSpec);
   const findings = [];
   if (await fileExists(schemaPath)) {
     const schema = await readJsonFile(schemaPath);
@@ -770,7 +822,13 @@ export async function validateDeckSpecFile(specPath, options = {}) {
       ? { ...item, severity: "error", promoted_by_strict: true }
       : item)
     : findings;
-  return { file: absoluteSpec, schema: schemaPath, deck, issues };
+  return { schema: schemaPath, deck, issues };
+}
+
+export async function validateDeckSpecFile(specPath, options = {}) {
+  const absoluteSpec = path.resolve(specPath);
+  const deck = await readJsonFile(absoluteSpec);
+  return { file: absoluteSpec, ...await validateDeckSpec(deck, options) };
 }
 
 function usage() {

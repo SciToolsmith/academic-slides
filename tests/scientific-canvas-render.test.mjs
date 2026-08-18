@@ -158,4 +158,96 @@ await assert.rejects(
   "the generic process renderer must reject branch/converge topology too",
 );
 
+const emptyProduction = makeOneSlideDeck(sample, {
+  family: "summary",
+  variant: "four-point-list",
+}, {}, {
+  content: { title: "不得生成占位要点", body: [], bullets: [] },
+  artifact_purpose: undefined,
+});
+emptyProduction.artifact_purpose = "production";
+emptyProduction.slides[0].artifact_purpose = undefined;
+await assert.rejects(
+  () => createPresentationFromSpec(emptyProduction, { allowPlaceholder: true }),
+  /incomplete payload.*needs explicit semantic items/,
+  "production rendering must fail instead of injecting generic semanticItems copy",
+);
+
+const emptySummaryProduction = structuredClone(emptyProduction);
+emptySummaryProduction.slides[0].kind = "summary";
+emptySummaryProduction.slides[0].priority = "core";
+await assert.rejects(
+  () => createPresentationFromSpec(emptySummaryProduction, { allowPlaceholder: true }),
+  /incomplete payload.*needs explicit semantic items/,
+  "kind=summary must not bypass the same production payload gate as kind=content",
+);
+
+const partialClaimProduction = structuredClone(emptyProduction);
+partialClaimProduction.slides[0].layout = { family: "evidence_chain", variant: "claim-evidence" };
+partialClaimProduction.slides[0].render_data = {
+  items: [{ title: "唯一证据", body: "" }],
+  boundary: "结论只适用于已验证工况",
+  synthesis: "多源证据共同支持本页结论",
+};
+await assert.rejects(
+  () => createPresentationFromSpec(partialClaimProduction, { allowPlaceholder: true }),
+  /incomplete payload.*item 1 needs explicit evidence\/detail text/,
+  "claim-evidence must fail before a partial item can inject renderer fallback prose",
+);
+
+const surplusVisualProduction = structuredClone(partialClaimProduction);
+surplusVisualProduction.slides[0].render_data.items[0].body = "原始曲线展示临界频段变化";
+surplusVisualProduction.slides[0].visuals = [
+  { type: "chart", include: true, asset_ref: "raw-first" },
+  { type: "chart", include: true, asset_ref: "ready-second" },
+];
+surplusVisualProduction.assets = [
+  { id: "raw-first", path: "assets/figures/raw/original.png" },
+  { id: "ready-second", path: "assets/figures/ready/annotated.png" },
+];
+await assert.rejects(
+  () => createPresentationFromSpec(surplusVisualProduction, { allowPlaceholder: true }),
+  /declares 2 scientific visual\(s\).*consumes only 1/,
+  "claim-evidence must reject a second declared visual that its renderer never consumes",
+);
+
+const wrongAgendaRenderer = structuredClone(emptyProduction);
+wrongAgendaRenderer.slides[0].kind = "agenda";
+wrongAgendaRenderer.slides[0].priority = undefined;
+wrongAgendaRenderer.slides[0].render_data = { items: [{ title: "伪目录" }] };
+await assert.rejects(
+  () => createPresentationFromSpec(wrongAgendaRenderer, { allowPlaceholder: true }),
+  /kind=agenda.*four-point-list.*expected one of: agenda/,
+  "production kind and effective shell renderer must remain consistent",
+);
+
+const crossProfileRenderer = structuredClone(emptyProduction);
+crossProfileRenderer.slides[0].layout = { family: "discussion", variant: "discussion-questions" };
+crossProfileRenderer.slides[0].render_data = { questions: ["问题一"] };
+await assert.rejects(
+  () => createPresentationFromSpec(crossProfileRenderer, { allowPlaceholder: true }),
+  /not registered for profile=final_defense/,
+  "a final-defense renderer must not silently use another profile's layout",
+);
+
+const ignoredVisualRenderer = structuredClone(emptyProduction);
+ignoredVisualRenderer.slides[0].render_data = { items: [{ title: "结论", body: "证据" }] };
+ignoredVisualRenderer.slides[0].visuals = [{ type: "chart", include: true, asset_ref: "ignored-ready" }];
+ignoredVisualRenderer.assets = [{ id: "ignored-ready", path: "assets/figures/ready/ignored.png" }];
+await assert.rejects(
+  () => createPresentationFromSpec(ignoredVisualRenderer, { allowPlaceholder: true }),
+  /declares scientific visuals.*does not render them/,
+  "declaring a ready visual on a non-visual renderer must fail rather than being silently ignored",
+);
+
+const ignoredFormulaRenderer = structuredClone(emptyProduction);
+ignoredFormulaRenderer.slides[0].render_data = { items: [{ title: "方程", body: "说明" }] };
+ignoredFormulaRenderer.slides[0].formula = { include: true, asset_ref: "ignored-formula", render_method: "latex_svg" };
+ignoredFormulaRenderer.assets = [{ id: "ignored-formula", path: "assets/formulas/ready/ignored.svg" }];
+await assert.rejects(
+  () => createPresentationFromSpec(ignoredFormulaRenderer, { allowPlaceholder: true }),
+  /formula\.include=true.*does not render that formula/,
+  "formula metadata on a non-formula renderer must fail rather than being silently ignored",
+);
+
 console.log("scientific-canvas-render.test.mjs: PASS");
