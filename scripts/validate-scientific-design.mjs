@@ -53,6 +53,18 @@ const VISUAL_RENDERER_SLOT_CAPACITY = new Map([
   ["free-evidence", 2],
 ]);
 const FORMULA_RENDERER_LAYOUTS = new Set(["formula-visual", "model-formula"]);
+const TABLE_DATA_LAYOUTS = new Set(["table-insight", "validation-matrix", "method-comparison", "cross-paper-matrix"]);
+const REFERENCE_LAYOUTS = new Set(["references", "selected-sources"]);
+const FREE_CANVAS_ELEMENT_TYPES = new Set(["image", "formula", "shape", "line", "connector", "arrow", "callout", "annotation", "highlight", "text", "metric"]);
+const FREE_CANVAS_CONNECTOR_DIRECTIONS = new Set(["right", "left", "down", "up"]);
+const FREE_CANVAS_GEOMETRY_ALIASES = new Map([
+  ["roundedrect", "roundrect"],
+  ["roundrectangle", "roundrect"],
+  ["roundedrectangle", "roundrect"],
+  ["rectangle", "rect"],
+  ["oval", "ellipse"],
+]);
+const FREE_CANVAS_GEOMETRIES = new Set(["rect", "roundrect", "ellipse", "diamond", "triangle", "rightarrow", "leftarrow", "uparrow", "downarrow"]);
 const SEMANTIC_ITEM_LAYOUT_KEYS = new Map([
   ["claim-evidence", ["items", "evidence"]],
   ["three-column-overview", ["items", "columns", "evidence_items", "evidenceItems"]],
@@ -463,12 +475,74 @@ export function productionPayloadProblems(slide, requestedLayoutId = null) {
 }
 
 function customCanvasElements(slide) {
-  return list(slide?.render_data?.custom_elements ?? slide?.render_data?.customElements);
+  const declared = list(slide?.render_data?.custom_elements ?? slide?.render_data?.customElements);
+  if (declared.length > 0) return declared;
+  return legacyCustomElementsArePositioned(slide) ? list(slide?.render_data?.elements) : [];
 }
 
 function hasPosition(element) {
-  return [element?.x, element?.y, element?.w, element?.h].every((value) => Number.isFinite(Number(value)))
-    && Number(element?.w) > 0 && Number(element?.h) > 0;
+  const box = firstDeclared(element?.position, element?.bounds, element?.box, element);
+  const left = firstDeclared(box?.left, box?.x);
+  const top = firstDeclared(box?.top, box?.y);
+  const width = firstDeclared(box?.width, box?.w);
+  const height = firstDeclared(box?.height, box?.h);
+  return [left, top, width, height].every((value) => Number.isFinite(Number(value)))
+    && Number(width) > 0 && Number(height) > 0;
+}
+
+function normalizeFreeCanvasGeometry(value, fallback) {
+  const raw = clean(firstDeclared(value, fallback));
+  const key = raw.toLowerCase().replace(/[\s_-]+/g, "");
+  return FREE_CANVAS_GEOMETRY_ALIASES.get(key) ?? key;
+}
+
+function assetReference(entry) {
+  if (typeof entry === "string") return clean(entry);
+  return clean(firstDeclared(entry?.asset_ref, entry?.assetRef, entry?.id_ref, entry?.ref, entry?.path, entry?.file, entry?.src, entry?.uri));
+}
+
+function rendererAssetEntries(slide) {
+  const visual = slide?.visual && typeof slide.visual === "object" ? slide.visual : {};
+  const entries = [];
+  for (const value of [
+    firstDeclared(slide?.images, slide?.media, slide?.asset_refs, slide?.assetRefs),
+    firstDeclared(visual.images, visual.assets, visual.asset_refs, visual.assetRefs),
+    slide?.visuals,
+    firstDeclared(slide?.render_data?.image_refs, slide?.render_data?.asset_refs),
+  ]) entries.push(...list(value));
+  for (const value of [slide?.image, slide?.left_image, slide?.right_image, visual.image, visual.left_image, visual.right_image]) {
+    if (value) entries.push(value);
+  }
+  return entries;
+}
+
+function hasFormulaLinkedVisual(slide) {
+  const formulaRef = clean(firstDeclared(slide?.formula?.asset_ref, slide?.formula?.assetRef, slide?.formula?.asset_path, slide?.formula?.assetPath));
+  return rendererAssetEntries(slide).some((entry) => {
+    if (entry?.include === false || clean(entry?.type).toLowerCase() === "formula") return false;
+    const reference = assetReference(entry);
+    return Boolean(reference && reference !== formulaRef);
+  });
+}
+
+function explicitTablePayload(slide) {
+  const data = slide?.render_data ?? {};
+  const table = firstDeclared(data.table, slide?.table) ?? {};
+  const headers = firstDeclared(table?.headers, table?.columns, data.columns, slide?.columns);
+  const rows = firstDeclared(table?.rows, data.rows, slide?.rows);
+  return { headers, rows, complete: hasMeaningfulValue(headers) && hasMeaningfulValue(rows) };
+}
+
+function explicitReferenceEntries(slide) {
+  const data = slide?.render_data ?? {};
+  const groups = list(data.groups);
+  if (groups.length > 0) {
+    return groups.flatMap((group) => {
+      if (!group || typeof group !== "object") return list(group);
+      return list(firstDeclared(group.references, group.entries, group.items, group.bullets, group.content?.bullets, group.content?.body, group.content, group.body));
+    }).filter(hasMeaningfulValue);
+  }
+  return list(firstDeclared(data.references, slide?.references, slide?.bullets, slide?.content?.bullets, slide?.content?.body)).filter(hasMeaningfulValue);
 }
 
 function substantiveCustomElement(element) {
@@ -690,6 +764,24 @@ export function validateScientificDesign(deck, options = {}) {
             optionsForSlide,
           ));
         }
+        if (TABLE_DATA_LAYOUTS.has(layoutId) && !explicitTablePayload(slide).complete) {
+          findings.push(issue(
+            "error",
+            "scientific.table.payload_missing",
+            `${pointer}/render_data/table`,
+            `Layout "${layoutId}" needs explicit non-empty table columns/headers and rows; renderer sample data is forbidden.`,
+            optionsForSlide,
+          ));
+        }
+        if (REFERENCE_LAYOUTS.has(layoutId) && explicitReferenceEntries(slide).length === 0) {
+          findings.push(issue(
+            "error",
+            "scientific.references.payload_missing",
+            `${pointer}/render_data`,
+            `Layout "${layoutId}" needs explicit references in render_data.references, render_data.groups, slide.references, bullets, or content.bullets/body.`,
+            optionsForSlide,
+          ));
+        }
       }
     }
     if (!gallery && isProductionSubstantiveKind(slide) && !clean(slide?.priority)) {
@@ -888,9 +980,60 @@ export function validateScientificDesign(deck, options = {}) {
           optionsForSlide,
         ));
       }
+      if (!gallery && layoutId === "formula-visual" && !hasFormulaLinkedVisual(slide)) {
+        findings.push(issue(
+          "error",
+          "scientific.formula.linked_visual_missing",
+          `${pointer}/visuals`,
+          "A formula-visual slide needs a distinct non-formula image, chart, diagram, table, or result that shows what the equation explains; the formula itself cannot fill both visual roles.",
+          optionsForSlide,
+        ));
+      }
     }
 
-    if (clean(slide?.layout?.family).toLowerCase() === "free_canvas" && clean(slide?.layout?.variant).toLowerCase().startsWith("custom:") && !isCustomScientificCanvas(slide, assetIds, evidenceIds)) {
+    if (isCustomFreeCanvas(slide)) {
+      const elements = customCanvasElements(slide);
+      for (const [elementIndex, element] of elements.entries()) {
+        const elementPointer = `${pointer}/render_data/custom_elements/${elementIndex}`;
+        const type = clean(element?.type).toLowerCase();
+        if (type && !FREE_CANVAS_ELEMENT_TYPES.has(type)) {
+          findings.push(issue(
+            "error",
+            "scientific.free_canvas.element_type_unsupported",
+            `${elementPointer}/type`,
+            `Unsupported free-canvas element type "${type}". Use one of: ${[...FREE_CANVAS_ELEMENT_TYPES].join(", ")}.`,
+            optionsForSlide,
+          ));
+        }
+        if (["connector", "arrow"].includes(type)) {
+          const direction = clean(element?.direction).toLowerCase();
+          if (direction && !FREE_CANVAS_CONNECTOR_DIRECTIONS.has(direction)) {
+            findings.push(issue(
+              "error",
+              "scientific.free_canvas.connector_direction_unsupported",
+              `${elementPointer}/direction`,
+              `Unsupported connector direction "${direction}". Use right, left, up, or down; represent diagonal or bent paths with multiple orthogonal connector elements.`,
+              optionsForSlide,
+            ));
+          }
+        }
+        if (["shape", "callout", "annotation", "highlight"].includes(type)) {
+          const fallback = type === "highlight" ? "ellipse" : "roundRect";
+          const geometry = normalizeFreeCanvasGeometry(firstDeclared(element?.geometry, element?.shape), fallback);
+          if (!FREE_CANVAS_GEOMETRIES.has(geometry)) {
+            findings.push(issue(
+              "error",
+              "scientific.free_canvas.shape_geometry_unsupported",
+              `${elementPointer}/geometry`,
+              `Unsupported free-canvas geometry "${clean(firstDeclared(element?.geometry, element?.shape, fallback))}". Use a renderer-supported geometry or a documented alias such as rounded_rect.`,
+              optionsForSlide,
+            ));
+          }
+        }
+      }
+    }
+
+    if (isCustomFreeCanvas(slide) && !isCustomScientificCanvas(slide, assetIds, evidenceIds)) {
       findings.push(issue(
         "error",
         "scientific.free_canvas.elements_missing",

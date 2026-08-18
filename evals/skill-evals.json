@@ -65,6 +65,61 @@
       "id": "theme-independent-from-brand-contract",
       "files": ["SKILL.md", "references/intake.md"],
       "termsAny": ["do not infer a preset from school colors", "不根据学校、校徽或机构品牌色自动选择主题"]
+    },
+    {
+      "id": "mineru-explicit-opt-in-contract",
+      "files": ["SKILL.md", "references/mineru-source.md", "README.md"],
+      "termsAny": ["Use MinerU only after explicit user authorization", "仅当用户对当前任务明确同意", "显式 opt-in"]
+    },
+    {
+      "id": "mineru-confirm-upload-contract",
+      "files": ["references/mineru-source.md", "README.md"],
+      "termsAny": ["--confirm-upload"]
+    },
+    {
+      "id": "mineru-env-secret-contract",
+      "files": ["references/mineru-source.md", "README.md"],
+      "termsAny": ["MINERU_API_TOKEN"]
+    },
+    {
+      "id": "source-context-budget-contract",
+      "files": ["references/workflow.md", "references/mineru-source.md"],
+      "termsAny": ["at most one full source read", "完整内容读取最多一次"]
+    },
+    {
+      "id": "raw-parser-output-exclusion-contract",
+      "files": ["references/workflow.md", "references/mineru-source.md"],
+      "termsAny": ["禁止把完整 `full.md`", "禁止把它们整包送入模型"]
+    },
+    {
+      "id": "cache-normalize-index-hydrate-contract",
+      "files": ["references/mineru-source.md"],
+      "termsAny": ["cache：保存可复用的供应商结果", "normalize：转成稳定、本地、可检索的结构", "hydrate：只加载当前主张或页面需要的证据"]
+    },
+    {
+      "id": "single-artifact-owner-contract",
+      "files": ["SKILL.md", "references/workflow.md"],
+      "termsAny": ["Assign one writer to each canonical artifact", "每个规范产物在任一阶段只能有一个 owner"]
+    },
+    {
+      "id": "selected-only-assets-contract",
+      "files": ["SKILL.md", "references/workflow.md", "references/asset-preparation.md"],
+      "termsAny": ["selected-only asset preparation", "只加工已经进入 `deck-spec.json` 的资产", "`ready/` 的规范资产数不得大于入选资产数"]
+    },
+    {
+      "id": "full-render-budget-contract",
+      "files": ["SKILL.md", "references/workflow.md"],
+      "termsAny": ["no more than two full-deck renders", "完整 render 的绝对上限为两次"]
+    },
+    {
+      "id": "local-repair-hydration-contract",
+      "files": ["SKILL.md", "references/workflow.md", "references/mineru-source.md"],
+      "termsAny": ["hydrate only the referenced source pages", "局部修复只 hydrate"]
+    },
+    {
+      "id": "phase-metrics-contract",
+      "files": ["references/workflow.md", "references/asset-preparation.md"],
+      "termsAny": ["phase-metrics.json"]
     }
   ],
   "cases": [
@@ -274,6 +329,8 @@
         "latex": false,
         "localMathRenderer": false,
         "verifiedLogoMatch": false,
+        "mineruUploadAuthorized": false,
+        "mineruTokenAvailable": false,
         "lowResolutionFigure": {"widthPx": 280, "heightPx": 160}
       },
       "expected": {
@@ -283,7 +340,9 @@
         "mustPreserveSelectedTheme": true,
         "lowResolutionPoliciesAllowed": ["omit", "redraw_from_verified_data", "warn_and_use_small"],
         "mustNotExposeRawLatex": true,
-        "mustNotFabricateLogo": true
+        "mustNotFabricateLogo": true,
+        "sourceProviderFallback": "local",
+        "mustNotUploadWithoutAuthorization": true
       }
     },
     {
@@ -342,7 +401,7 @@
         "wordMatchesPptNotes": true,
         "builderEmbedsFinalSpec": true,
         "builderUsesRelativeAssets": true,
-        "forbiddenArtifacts": ["deck-spec.json", "evidence-index.json", "qa", "preview", "node_modules", "source-pdf"]
+        "forbiddenArtifacts": ["deck-spec.json", "deck-map.json", "evidence-index.json", "phase-metrics.json", "mineru-raw", "full.md", "content_list.json", "qa", "preview", "node_modules", "source-pdf"]
       }
     }
   ]

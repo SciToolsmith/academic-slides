@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "project_id": "production-budget-fixture",
+  "figures": [
+    {
+      "id": "figure-main",
+      "file": {
+        "original": {
+          "path": "assets/figures/original/main.png"
+        },
+        "ready_variants": [
+          {
+            "id": "ready-main",
+            "path": "assets/figures/ready/main.png"
+          }
+        ]
+      }
+    },
+    {
+      "id": "figure-unused-1",
+      "file": {
+        "original": {
+          "path": "assets/figures/original/unused-1.png"
+        },
+        "ready_variants": [
+          {
+            "id": "ready-unused-1",
+            "path": "assets/figures/ready/unused-1.png"
+          },
+          {
+            "id": "ready-unused-2",
+            "path": "assets/figures/ready/unused-2.png"
+          }
+        ]
+      }
+    },
+    {
+      "id": "figure-unused-2",
+      "file": {
+        "original": {
+          "path": "assets/figures/original/unused-2.png"
+        },
+        "ready_variants": [
+          {
+            "id": "ready-unused-3",
+            "path": "assets/figures/ready/unused-3.png"
+          },
+          {
+            "id": "ready-unused-4",
+            "path": "assets/figures/ready/unused-4.png"
+          }
+        ]
+      }
+    }
+  ]
+}

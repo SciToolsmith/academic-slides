@@ -31,21 +31,21 @@ Read [references/intake.md](references/intake.md).
 
 ## Follow the lean production workflow
 
-After routing and intake, read [references/workflow.md](references/workflow.md) once. Load the other references only when their phase begins: evidence preparation, slide planning, QA, then delivery. Keep stable decisions in the project manifests and `deck-spec.json`; reuse those summaries instead of rereading unchanged references or the complete source.
+After routing and intake, read [references/workflow.md](references/workflow.md) once. Load the other references only when their phase begins: evidence preparation, slide planning, QA, then delivery. Keep stable decisions in project manifests, the compact `deck-map.json`, and `deck-spec.json`; reuse those summaries instead of rereading unchanged references or the complete source.
 
 Use five phases:
 
 1. Preflight once: load the Codex bundled workspace dependencies, reuse only the runtime paths returned by the host, inspect the source, run `scripts/preflight.mjs`, then create the workspace and configuration. Reuse the result while the runtime is unchanged; never guess a private runtime path or try to install `@oai/artifact-tool` from public npm.
-2. Build the evidence base in one source pass: analyze the paper, extract original figures, and index claims, figures, tables, formulas, and branding without polishing unused assets.
+2. Build the evidence base in one source pass: analyze the paper, index claims, figures, tables, formulas, and branding, and avoid polishing unused assets. Process locally by default. Use MinerU only after explicit user authorization for the specified upload; then read [references/mineru-source.md](references/mineru-source.md), normalize and cache its output, and retrieve evidence on demand.
 3. Plan once: create `deck-spec.json` with narrative, selected evidence, visible content, speaker notes, sources, relationship topology, visual focus, annotation plan, asset treatment, and layout intent; generate `PPT内容与设计大纲.md` from it.
 4. Produce only selected derived assets, then build the editable PPTX, synchronized Word script, and project MJS.
 5. Render and inspect the complete deck and Word script once, repair material defects, recheck affected pages, and stage the minimal customer package.
 
-Use the moderate work budget and escalation rules in [references/workflow.md](references/workflow.md): normally one extraction pass, one storyboard, one complete internal build/render, one targeted repair pass, and one clean delivery rebuild. Expand only the affected phase when source complexity, unreadable evidence, a hard validation failure, or a requested high-fidelity redraw justifies it. Stop when the academic and visual hard gates pass and the remaining observations are optional polish.
+Use the production budget and escalation rules in [references/workflow.md](references/workflow.md): at most one full source read, one storyboard, selected-only asset preparation, one complete visual QA pass, one targeted repair pass, and no more than two full-deck renders. Assign one writer to each canonical artifact and record phase metrics. Expand only the affected phase when source complexity, unreadable evidence, a hard validation failure, or a requested high-fidelity redraw justifies it. Stop when the academic and visual hard gates pass and the remaining observations are optional polish.
 
 When the user asks to see the outline first, stop after the outline. Otherwise save it and continue without another confirmation.
 
-Reuse prior extraction, analysis, and rendered assets when source hashes and requirements have not changed. Do not reread the whole paper after a local page edit, regenerate unselected assets, or restart whole-deck QA after a local-only change. A global theme, font, master, navigation, or renderer change does require a new full-deck render.
+Reuse prior extraction, analysis, and rendered assets when source hashes and requirements have not changed. After a local page edit, hydrate only the referenced source pages or evidence IDs, rebuild and inspect the affected slides, and keep unselected assets untouched. A global theme, font, master, navigation, or renderer change may consume the second and final full-deck render.
 
 Do not create a project-specific deck generator, figure extractor, montage script, or delivery sanitizer when the bundled deterministic scripts already cover the task. Put project decisions in `deck-spec.json`; extend a shared component only when a real missing capability has been identified and tested.
 
@@ -53,12 +53,12 @@ The paper determines the number, names, and order of sections. Never default a d
 
 ## Prepare evidence and assets
 
-When this phase begins, read [references/asset-preparation.md](references/asset-preparation.md) and [references/evidence-and-notes.md](references/evidence-and-notes.md).
+When this phase begins, read [references/asset-preparation.md](references/asset-preparation.md) and [references/evidence-and-notes.md](references/evidence-and-notes.md). Read [references/mineru-source.md](references/mineru-source.md) only when evaluating an existing MinerU export or after the user explicitly authorizes a MinerU upload.
 
 - Prefer original embedded figures or vector content; use high-resolution page crops only when needed for completeness.
 - Crop the figure body without the external caption or surrounding prose. Keep the caption in the filename and manifest.
 - Preserve originals. Put crops, annotations, splits, redraws, and compatibility conversions in a separate `ready` directory.
-- For thesis or dissertation PDFs, extract the original paper figures once and generate both `论文图片说明.md` and `figures.manifest.json`; use `scripts/build-figure-guide.mjs` to prevent drift. For proposal/midterm reviews, generate `milestone-analysis.json`, preserve the approved-plan baseline separately from dated progress evidence, and prepare only figures selected for the deck. For literature-centered group meetings, generate `paper-index.json` and keep each focal paper's figures and figure guide under its own stable paper ID. Do not crop, enhance, split, annotate, or redraw every figure in advance.
+- For thesis or dissertation PDFs, index figure candidates once and generate both `论文图片说明.md` and `figures.manifest.json` for the selected or explicitly deliverable figure set; use `scripts/build-figure-guide.mjs` to prevent drift. For proposal/midterm reviews, generate `milestone-analysis.json`, preserve the approved-plan baseline separately from dated progress evidence, and prepare only figures selected for the deck. For literature-centered group meetings, generate `paper-index.json` and keep each focal paper's selected figures and figure guide under its own stable paper ID. Do not crop, enhance, split, annotate, redraw, or export every figure in advance.
 - Keep thesis figures, tables, formulas, and school branding in separate directories.
 - Prefer a verified school mark supplied by the user. Otherwise search the university's current official brand or visual-identity page and record its provenance. Use a project-specific catalog only when one has already been verified; this Skill does not bundle university logos.
 - Never fabricate, recolor, or silently modernize a school logo. If no trustworthy logo exists, use a text wordmark while preserving the independently selected theme.
@@ -101,7 +101,7 @@ Use `text_emphasis` only for one short, evidence-bearing focal phrase and at mos
 
 When the first complete build exists, read [references/qa.md](references/qa.md).
 
-Run the bundled validators, render every slide, and inspect each final slide at full size once. Separate material defects from optional polish. Repair unsupported claims, wrong numbers or units, broken media, missing notes, unintended overlap, clipping, one-line title wrapping, unreadable formulas, and wrong branding. After local fixes, recheck only affected pages; repeat a full-deck pass only after a global change.
+Run the bundled validators, render every slide, and inspect each final slide at full size once. Separate material defects from optional polish. Repair unsupported claims, wrong numbers or units, broken media, missing notes, unintended overlap, clipping, one-line title wrapping, unreadable formulas, and wrong branding. After local fixes, recheck only affected pages and source evidence. Never exceed two full-deck renders; if the second still has a hard failure, report it instead of entering an unbounded render loop.
 
 Before the first full build, run the scientific-design validator. It must reject topology/layout mismatches, generic custom-canvas fallbacks, unprocessed complex figures, missing visual focus on core result pages, all-black technical decks, and excessive reuse of one generic body layout. Resolve these at the storyboarding or asset-treatment stage instead of discovering them after 20+ slides are rendered.
 

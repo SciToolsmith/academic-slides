@@ -353,6 +353,65 @@ const ignoredFormula = deck([slide("ignored-formula", 1, {
 })], { assets: [{ id: "equation-ready", path: "assets/formulas/ready/equation.svg" }] });
 assert(codes(validateScientificDesign(ignoredFormula)).includes("scientific.formula.renderer_mismatch"), "formula metadata must fail when the selected renderer never consumes it");
 
+const emptyValidationMatrix = deck([slide("empty-validation-matrix", 1, {
+  layout: { family: "validation_matrix", variant: "validation-matrix" },
+  render_data: { columns: [{ label: "主张" }, { label: "证据" }], rows: [] },
+})]);
+assert(codes(validateScientificDesign(emptyValidationMatrix)).includes("scientific.table.payload_missing"), "a validation matrix with columns but no rows must fail before rendering");
+
+const formulaWithoutLinkedVisual = deck([slide("formula-without-linked-visual", 1, {
+  layout: { family: "figure_formula", variant: "formula-visual" },
+  formula: {
+    include: true,
+    latex: "J = αΔf",
+    render_method: "unicode_text",
+    plain_meaning: "惯量随频差调整。",
+    variables_to_explain: [{ symbol: "J", meaning: "虚拟惯量" }],
+  },
+})]);
+assert(codes(validateScientificDesign(formulaWithoutLinkedVisual)).includes("scientific.formula.linked_visual_missing"), "formula-visual must require a distinct non-formula visual");
+
+const formulaWithLinkedVisual = structuredClone(formulaWithoutLinkedVisual);
+formulaWithLinkedVisual.assets = [{ id: "linked-result", path: "assets/figures/ready/linked-result.png" }];
+formulaWithLinkedVisual.slides[0].visuals = [{ type: "chart", include: true, asset_ref: "linked-result", caption: "与公式对应的响应曲线" }];
+assert(!codes(validateScientificDesign(formulaWithLinkedVisual)).includes("scientific.formula.linked_visual_missing"), "a distinct result visual must satisfy the formula linkage gate");
+
+const unsupportedConnector = deck([slide("unsupported-connector", 1, {
+  layout: { family: "free_canvas", variant: "custom:branch" },
+  render_data: {
+    custom_elements: [
+      { type: "shape", geometry: "rounded_rect", x: 40, y: 180, w: 180, h: 80 },
+      { type: "connector", direction: "right_up", x: 230, y: 200, w: 120, h: 20 },
+      { type: "annotation", text: "汇合", x: 360, y: 160, w: 180, h: 80 },
+    ],
+  },
+})]);
+const unsupportedConnectorCodes = codes(validateScientificDesign(unsupportedConnector));
+assert(unsupportedConnectorCodes.includes("scientific.free_canvas.connector_direction_unsupported"), "diagonal connector aliases unsupported by the renderer must fail validation");
+assert(!unsupportedConnectorCodes.includes("scientific.free_canvas.shape_geometry_unsupported"), "rounded_rect must be accepted as a documented roundRect alias");
+
+const unsupportedGeometry = structuredClone(unsupportedConnector);
+unsupportedGeometry.slides[0].render_data.custom_elements[0].geometry = "cloud_blob";
+assert(codes(validateScientificDesign(unsupportedGeometry)).includes("scientific.free_canvas.shape_geometry_unsupported"), "unknown free-canvas geometry must fail validation before artifact-tool");
+
+const groupedReferences = deck([slide("grouped-references", 1, {
+  layout: { family: "summary", variant: "references" },
+  render_data: {
+    groups: [
+      { label: "模型", entries: [{ text: "[1] 原论文，第2章。" }] },
+      { label: "验证", items: ["[2] 原论文，图4-7。"] },
+    ],
+  },
+})]);
+assert(!codes(validateScientificDesign(groupedReferences)).includes("scientific.references.payload_missing"), "render_data.groups must be consumed as explicit reference content");
+
+const contentBulletReferences = deck([slide("content-bullet-references", 1, {
+  layout: { family: "summary", variant: "references" },
+  content: { title: "来源", bullets: [{ text: "[1] 原论文，第3章。", level: 0 }] },
+  render_data: {},
+})]);
+assert(!codes(validateScientificDesign(contentBulletReferences)).includes("scientific.references.payload_missing"), "content.bullets must be accepted as explicit reference content");
+
 const invalidTopologyGallery = { ...structuredClone(nonlinear), artifact_purpose: "layout_gallery" };
 const invalidGalleryResult = validateScientificDesign(invalidTopologyGallery, { strict: true });
 assert.equal(invalidGalleryResult.library_gallery_exempt, true);

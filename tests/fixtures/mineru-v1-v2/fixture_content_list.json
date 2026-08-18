@@ -1,0 +1,66 @@
+[
+  {
+    "type": "text",
+    "text": "第一章 稳定性研究",
+    "bbox": [100, 50, 500, 100],
+    "page_idx": 0
+  },
+  {
+    "type": "text",
+    "text": "本文研究并联系统的小信号稳定性。",
+    "bbox": [100, 120, 900, 190],
+    "page_idx": 0
+  },
+  {
+    "type": "chart",
+    "img_path": "images/panel-left.jpg",
+    "chart_caption": [],
+    "chart_footnote": [],
+    "content": "",
+    "bbox": [100, 250, 470, 600],
+    "page_idx": 0
+  },
+  {
+    "type": "chart",
+    "img_path": "images/panel-right.jpg",
+    "chart_caption": ["图1-1 两种控制方式的稳定域对比"],
+    "chart_footnote": [],
+    "content": "",
+    "bbox": [500, 250, 870, 600],
+    "page_idx": 0
+  },
+  {
+    "type": "text",
+    "text": "2.1 控制模型",
+    "bbox": [100, 50, 400, 95],
+    "page_idx": 1
+  },
+  {
+    "type": "equation",
+    "text": "$$G(s)=\\frac{1}{s+1}\\tag{2.1}$$",
+    "text_format": "latex",
+    "bbox": [250, 180, 750, 330],
+    "page_idx": 1
+  },
+  {
+    "type": "table",
+    "img_path": "images/parameters.jpg",
+    "table_caption": ["表2-1 参数设置"],
+    "table_footnote": [],
+    "table_body": "<table><tr><td>K</td><td>2</td></tr></table>",
+    "bbox": [120, 400, 880, 650],
+    "page_idx": 1
+  },
+  {
+    "type": "ref_text",
+    "text": "[1] Example, Stable systems, 2025.",
+    "bbox": [100, 100, 900, 160],
+    "page_idx": 2
+  },
+  {
+    "type": "page_number",
+    "text": "3",
+    "bbox": [490, 930, 510, 950],
+    "page_idx": 2
+  }
+]

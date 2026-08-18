@@ -447,6 +447,20 @@ function addShape(slide, geometry, position, options = {}) {
   });
 }
 
+const FREE_CANVAS_GEOMETRY_ALIASES = new Map([
+  ["roundedrect", "roundRect"],
+  ["roundrectangle", "roundRect"],
+  ["roundedrectangle", "roundRect"],
+  ["rectangle", "rect"],
+  ["oval", "ellipse"],
+]);
+
+function normalizeFreeCanvasGeometry(value, fallback = "roundRect") {
+  const raw = cleanText(first(value, fallback));
+  const key = raw.toLowerCase().replace(/[\s_-]+/g, "");
+  return FREE_CANVAS_GEOMETRY_ALIASES.get(key) ?? raw;
+}
+
 function registerTextTarget(slide, textTarget, text, name, baseColor) {
   const registered = SLIDE_TEXT_REGISTRY.get(slide) ?? [];
   registered.push({ textTarget, text: String(text ?? ""), name: String(name ?? ""), baseColor });
@@ -973,7 +987,7 @@ function assertProductionRendererPayload(slideSpec, context, layoutId, slideNumb
   if (TABLE_DATA_LAYOUTS.has(layoutId)) {
     const table = first(renderData(slideSpec).table, slideSpec.table);
     const rows = first(table?.rows, renderData(slideSpec).rows, slideSpec.rows);
-    const headers = first(table?.headers, renderData(slideSpec).columns, slideSpec.columns);
+    const headers = first(table?.headers, table?.columns, renderData(slideSpec).columns, slideSpec.columns);
     if (!hasMeaningfulValue(rows) || !hasMeaningfulValue(headers)) {
       throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs explicit table headers and rows; renderer example rows are forbidden.`);
     }
@@ -988,7 +1002,7 @@ function assertProductionRendererPayload(slideSpec, context, layoutId, slideNumb
     throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs an explicit source quotation; renderer placeholder prose is forbidden.`);
   }
   if (["references", "selected-sources"].includes(layoutId)
-    && !hasMeaningfulValue(first(renderData(slideSpec).references, slideSpec.references, slideSpec.bullets, slideSpec.content?.body))) {
+    && referenceGroupsForSlide(slideSpec).every((group) => group.items.length === 0)) {
     throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs explicit references; renderer example citations are forbidden.`);
   }
   const visualConsumption = rendererVisualConsumption(slideSpec, layoutId);
@@ -1005,6 +1019,31 @@ function assertProductionRendererPayload(slideSpec, context, layoutId, slideNumb
       throw new Error(`Production slide ${slideSpec.id ?? slideNumber} declares formula.include=true, but layout="${layoutId}" does not render that formula.`);
     }
   }
+  if (layoutId === "formula-visual") {
+    const formulaRequest = normalizeAssetRequest(
+      first(slideSpec.formula?.asset_ref, slideSpec.formula?.assetRef, slideSpec.formula?.asset_path, slideSpec.formula?.assetPath),
+      context.assetIndex,
+      context.baseDir,
+    );
+    const linkedVisual = assets.find((asset) => cleanText(asset?.visual_type).toLowerCase() !== "formula"
+      && !sameAssetRequest(asset, formulaRequest));
+    if (!linkedVisual) {
+      throw new Error(`Production slide ${slideSpec.id ?? slideNumber} uses layout="formula-visual" but has no distinct non-formula visual linked to the equation.`);
+    }
+  }
+}
+
+function assetIdentityValues(request) {
+  if (!request || !isObject(request)) return new Set();
+  return new Set([request.id, request.asset_ref, request.assetRef, request.path, request.file, request.src, request.uri]
+    .map((value) => cleanText(value))
+    .filter(Boolean));
+}
+
+function sameAssetRequest(left, right) {
+  const leftValues = assetIdentityValues(left);
+  if (leftValues.size === 0) return false;
+  return [...assetIdentityValues(right)].some((value) => leftValues.has(value));
 }
 
 function buildAssetIndex(spec, baseDir) {
@@ -3265,7 +3304,7 @@ async function renderChartInsight(slide, slideSpec, context, slideNumber) {
 async function renderTableInsight(slide, slideSpec, context, slideNumber, validation = false) {
   await addContentChrome(slide, slideSpec, context, slideNumber);
   const tableSpec = isObject(renderData(slideSpec).table) ? renderData(slideSpec).table : (isObject(slideSpec.table) ? slideSpec.table : {});
-  const headers = list(first(tableSpec.headers, renderData(slideSpec).columns, slideSpec.columns, validation ? ["主张 / 要求", "方法", "证据", "结论"] : ["指标", "方案 A", "方案 B", "解释"])).map(cleanText);
+  const headers = list(first(tableSpec.headers, tableSpec.columns, renderData(slideSpec).columns, slideSpec.columns, validation ? ["主张 / 要求", "方法", "证据", "结论"] : ["指标", "方案 A", "方案 B", "解释"])).map(cleanText);
   const rowValues = list(first(tableSpec.rows, renderData(slideSpec).rows, slideSpec.rows, validation ? [
     ["核心主张 1", "分析方法", "图/表/式", "支持"],
     ["核心主张 2", "验证方法", "数据/案例", "支持"],
@@ -3363,7 +3402,8 @@ async function renderFormulaVisual(slide, slideSpec, context, slideNumber) {
     left: 64, top: 474, width: 472, height: 120,
   }, { fontSize: 16, color: context.tokens.neutral.muted }, context.tokens, "formula-variables");
   const assets = slideAssetRequests(slideSpec, context.assetIndex, context.baseDir);
-  const linkedVisual = assets.find((asset) => asset.visual_type !== "formula" && asset.path !== imageRequest?.path) ?? assets.find((asset) => asset.path !== imageRequest?.path);
+  const linkedVisual = assets.find((asset) => cleanText(asset?.visual_type).toLowerCase() !== "formula"
+    && !sameAssetRequest(asset, imageRequest));
   await addImageOrPlaceholder(slide, linkedVisual, { left: 572, top: 328, width: 644, height: 266 }, {
     ...context,
     name: "formula-linked-visual",
@@ -3749,24 +3789,54 @@ async function renderLimitations(slide, slideSpec, context, slideNumber) {
   addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 586, height: 72 });
 }
 
+function referenceItems(value) {
+  return list(value).map(cleanText).filter(Boolean);
+}
+
+function referenceGroupsForSlide(slideSpec) {
+  const data = renderData(slideSpec);
+  const declaredGroups = list(data.groups).map((group, index) => {
+    if (!isObject(group)) return { label: `来源分组 ${index + 1}`, items: referenceItems(group) };
+    return {
+      label: cleanText(first(group.label, group.title, group.name, group.heading, `来源分组 ${index + 1}`)),
+      items: referenceItems(first(group.references, group.entries, group.items, group.bullets, group.content?.bullets, group.content?.body, group.content, group.body, [])),
+    };
+  }).filter((group) => group.items.length > 0);
+  if (declaredGroups.length > 0) return declaredGroups;
+
+  const items = referenceItems(first(data.references, slideSpec.references, slideSpec.bullets, slideSpec.content?.bullets, slideSpec.content?.body, []));
+  if (items.length === 0) return [];
+  const labels = list(first(data.group_labels, data.groupLabels, ["理论与方法", "数据、标准与材料"]));
+  const split = Math.ceil(items.length / 2);
+  return [items.slice(0, split), items.slice(split)]
+    .filter((subset) => subset.length > 0)
+    .map((subset, index) => ({ label: cleanText(first(labels[index], `来源分组 ${index + 1}`)), items: subset }));
+}
+
 async function renderReferences(slide, slideSpec, context, slideNumber) {
   await addContentChrome(slide, slideSpec, context, slideNumber);
-  const references = list(first(renderData(slideSpec).references, slideSpec.references, slideSpec.bullets, slideSpec.content?.body, [])).map(cleanText).filter(Boolean);
-  const items = references.length ? references : [
-    "[1] 作者. 题名. 期刊/出版社, 年份.",
-    "[2] 作者. 题名. 期刊/出版社, 年份.",
-    "[3] 数据、标准、档案或其他关键来源.",
-  ];
-  if (items.length > 12) throw new Error(`Reference slide ${slideSpec.id ?? slideNumber} has ${items.length} entries. Split selected references across multiple slides.`);
-  const columns = 2;
-  const split = Math.ceil(items.length / columns);
-  const groupLabels = list(first(renderData(slideSpec).group_labels, renderData(slideSpec).groupLabels, ["理论与方法", "数据、标准与材料"]));
+  let groups = referenceGroupsForSlide(slideSpec);
+  if (groups.length === 0) {
+    if (isProductionArtifact(context.spec)) {
+      throw new Error(`Reference slide ${slideSpec.id ?? slideNumber} has no explicit references.`);
+    }
+    groups = [{
+      label: "理论与方法",
+      items: ["[1] 作者. 题名. 期刊/出版社, 年份.", "[2] 作者. 题名. 期刊/出版社, 年份.", "[3] 数据、标准、档案或其他关键来源."],
+    }];
+  }
+  if (groups.length > 2) throw new Error(`Reference slide ${slideSpec.id ?? slideNumber} has ${groups.length} groups. Use at most two groups or split the slide.`);
+  const itemCount = groups.reduce((sum, group) => sum + group.items.length, 0);
+  if (itemCount > 12) throw new Error(`Reference slide ${slideSpec.id ?? slideNumber} has ${itemCount} entries. Split selected references across multiple slides.`);
+  const columns = groups.length;
+  let numberOffset = 0;
   for (let column = 0; column < columns; column += 1) {
-    const subset = items.slice(column * split, (column + 1) * split);
-    const left = 64 + column * 612;
+    const subset = groups[column].items;
+    const columnWidth = columns === 1 ? 1152 : 552;
+    const left = columns === 1 ? 64 : 64 + column * 612;
     const entryHeight = subset.length >= 6 ? 52 : subset.length === 5 ? 56 : 64;
     const entryStep = subset.length > 1 ? Math.min(82, (354 - entryHeight) / (subset.length - 1)) : 0;
-    addPill(slide, cleanText(first(groupLabels[column], `来源分组 ${column + 1}`)), { left, top: 174, width: 552, height: 40 }, context.colors, context.tokens, {
+    addPill(slide, groups[column].label, { left, top: 174, width: columnWidth, height: 40 }, context.colors, context.tokens, {
       name: `reference-group-${column + 1}`,
       fill: column === 0 ? context.colors.primary : context.colors.primaryLight,
       color: column === 0 ? context.tokens.neutral.white : context.colors.primaryDark,
@@ -3774,16 +3844,17 @@ async function renderReferences(slide, slideSpec, context, slideNumber) {
     });
     subset.forEach((item, row) => {
       const top = 232 + row * entryStep;
-      const number = column * split + row + 1;
+      const number = numberOffset + row + 1;
       addText(slide, String(number).padStart(2, "0"), { left: left + 8, top, width: 46, height: entryHeight }, {
         fontSize: 13, fontFamily: context.tokens.fonts.en, bold: true, color: context.colors.primary, alignment: "center",
       }, `reference-number-${number}`);
-      addText(slide, item.replace(/^\[?\d+\]?\.?\s*/, ""), { left: left + 64, top, width: 476, height: entryHeight }, {
-        fontSize: items.length > 10 ? 13 : 15,
+      addText(slide, item.replace(/^\[?\d+\]?\.?\s*/, ""), { left: left + 64, top, width: columnWidth - 76, height: entryHeight }, {
+        fontSize: itemCount > 10 ? 13 : 15,
         fontFamily: fontFor(item, context.tokens), color: context.tokens.neutral.text, verticalAlignment: "top",
       }, `reference-entry-${number}`);
-      if (row < subset.length - 1) addRule(slide, left + 64, top + entryHeight + 5, 476, context.tokens.neutral.line, 1, `reference-rule-${number}`);
+      if (row < subset.length - 1) addRule(slide, left + 64, top + entryHeight + 5, columnWidth - 76, context.tokens.neutral.line, 1, `reference-rule-${number}`);
     });
+    numberOffset += subset.length;
   }
   addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 612, height: 46, fontSize: 15 });
 }
@@ -3844,7 +3915,7 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
         const line = isObject(rawLine)
           ? { ...rawLine, fill: resolveCanvasColor(rawLine.fill, context, context.tokens.neutral.line) }
           : { style: "solid", fill: resolveCanvasColor(rawLine, context, context.tokens.neutral.line), width: 1 };
-        addShape(slide, cleanText(first(element.geometry, element.shape, "roundRect")), position, {
+        addShape(slide, normalizeFreeCanvasGeometry(first(element.geometry, element.shape), "roundRect"), position, {
           name,
           fill,
           line,
@@ -3892,7 +3963,7 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
         const style = isObject(element.style) ? element.style : {};
         const fill = resolveCanvasColor(first(style.fill, element.fill), context, context.colors.primaryLight);
         const lineColor = resolveCanvasColor(first(style.lineColor, style.line_color, element.lineColor, element.color), context, context.colors.emphasis);
-        addShape(slide, cleanText(first(element.geometry, "roundRect")), position, {
+        addShape(slide, normalizeFreeCanvasGeometry(element.geometry, "roundRect"), position, {
           name: `${name}-box`,
           fill,
           line: { style: "solid", fill: lineColor, width: Number(first(style.lineWidth, style.line_width, 1.5)) },
@@ -3913,7 +3984,7 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
         }, name);
       } else if (type === "highlight") {
         const color = resolveCanvasColor(first(element.color, element.style?.color), context, context.colors.emphasis);
-        addShape(slide, cleanText(first(element.geometry, element.shape, "ellipse")), position, {
+        addShape(slide, normalizeFreeCanvasGeometry(first(element.geometry, element.shape), "ellipse"), position, {
           name,
           fill: "none",
           line: { style: cleanText(first(element.lineStyle, element.line_style, "solid")), fill: color, width: Number(first(element.thickness, 2.5)) },

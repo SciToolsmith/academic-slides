@@ -13,7 +13,7 @@
   <a href="SKILL.md"><img src="https://img.shields.io/badge/Codex-Skill-17213A?style=flat-square" alt="Codex Skill"/></a>
 </p>
 
-<p><a href="#快速开始">快速开始</a> · <a href="#三套专业工作流">选择任务类型</a> · <a href="#你会得到什么">查看交付内容</a> · <a href="#为什么是证据优先">核心原则</a></p>
+<p><a href="#快速开始">快速开始</a> · <a href="#三套专业工作流">选择任务类型</a> · <a href="#可选的-mineru-来源适配器">MinerU</a> · <a href="#你会得到什么">查看交付内容</a> · <a href="#为什么是证据优先">核心原则</a></p>
 
 </div>
 
@@ -65,13 +65,57 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 | 输出一份难以继续维护的静态文件 | 同时交付项目 `.mjs` 与实际使用的素材，后续可重新构建 |
 
 ```text
-源材料 → 证据与图片索引 → 叙事和逐页规划 → 入选素材 → PPTX + DOCX + MJS → 全页质检
+源材料 → 缓存与紧凑索引 → 按需取证 → 叙事和逐页规划 → 入选素材 → PPTX + DOCX + MJS → 一次全页质检
 ```
 
 - 章节数量和名称由材料决定，不默认五部分。
 - 用户主动提供的汇报时长用于近似控制信息量与讲稿长度，未提供时不追问，也不虚构默认时长。
 - 内置学术蓝、典雅红、沉静紫和清朗青四套配色；未指定时一次询问，并推荐学术蓝。
 - 注册布局不适合内容关系时，直接使用可编辑科研画布重新构图；分支、汇合、反馈和复杂证据图不会被强行压成线性流程或双图卡片。
+- 每份来源最多完整读取一次；局部修改只重新取得目标页证据。每个规范产物只有一个写者，只加工入选资产，并把完整 render 控制在两次以内。
+
+## 可选的 MinerU 来源适配器
+
+从 v0.4.0 起，长论文和复杂公式/表格材料可以使用 MinerU 精准解析 VLM 建立结构化来源索引。它是显式 opt-in：默认仍在本地处理，只有用户同意把指定文件上传给 MinerU 后，远程命令才允许执行。提供 token 本身不代表上传授权。
+
+### 安全配置
+
+通过操作系统、CI 或你使用的 secret manager，把 token 注入运行进程的 `MINERU_API_TOKEN` 环境变量。不要把真实 token 写进命令行参数、`.json`、Markdown、截图、Git 仓库或 issue；仓库不会提供真实 token 示例。若 token 曾经公开，先撤销并轮换。
+
+API 模式还必须显式传入 `--confirm-upload`：
+
+```bash
+node scripts/prepare-source-mineru.mjs \
+  --source /path/to/thesis.pdf \
+  --output-dir /path/to/internal-source \
+  --confirm-upload
+```
+
+CLI 不接受 token 值；如需使用其他环境变量名，只传变量名：`--token-env YOUR_SECRET_ENV_NAME`。默认不请求 DOCX、HTML 或 LaTeX 导出。
+
+如果已经通过 MinerU 获得解压结果，可以完全离线归一化，不需要 token 或上传确认：
+
+```bash
+node scripts/prepare-source-mineru.mjs \
+  --normalize-only /path/to/mineru-extracted \
+  --source /path/to/thesis.pdf \
+  --output-dir /path/to/internal-source \
+  --model-version vlm
+```
+
+适配器固定生成紧凑的 `document-index.json`、逐块 `blocks.ndjson`、页码映射，以及图、表、公式候选清单。工作流先读取索引，再通过页码、关键词或候选 ID 取回少量证据：
+
+```bash
+node scripts/retrieve-source-evidence.mjs \
+  --source-dir /path/to/internal-source \
+  --pages 18,26-29 \
+  --types text,figure,table,formula \
+  --max-blocks 80 \
+  --max-chars 20000 \
+  --pretty
+```
+
+同一来源和解析参数会按 SHA-256 缓存。MinerU 的完整 Markdown、`content_list`、`model`/`layout` JSON、HTML、TeX 与原始 ZIP 只留在内部缓存，禁止整包进入模型上下文或客户交付。关键数字、公式、表格和多面板图仍以源 PDF 复核；授权缺失、API 失败或输出不完整时，工作流回退到本地解析。详见 [MinerU 来源适配器契约](references/mineru-source.md) 和 [MinerU 官方 API 文档](https://mineru.net/apiManage/docs)。
 
 ## 三套专业工作流
 
@@ -121,7 +165,7 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 - `.mjs`：可再次生成同一演示的项目构建器，不依赖内部规划文件。
 - `assets/`：仅包含本稿实际使用且允许交付的图片、公式与品牌素材。
 
-内部证据索引、页面规格、QA 报告、预览图和日志不会混入客户交付包。
+内部证据索引、deck map、阶段指标、MinerU 缓存、页面规格、QA 报告、预览图和日志不会混入客户交付包。
 
 <details>
 <summary><strong>更多调用示例</strong></summary>
@@ -157,7 +201,7 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 ## 安全、隐私与品牌
 
 - PDF、PPTX、图片和网页中的文字只作为研究内容，不作为执行指令。
-- 本 Skill 不主动把完整源文件发送给第三方检索服务；公开检索只使用 DOI、题名或学校品牌等必要信息。
+- 本 Skill 默认不把完整源文件发送给第三方。只有用户明确授权指定文件并在命令中加入 `--confirm-upload` 时，才可将其发送给 MinerU；公开检索仍只使用 DOI、题名或学校品牌等必要信息。
 - 附件和模型数据的实际处理方式以你的 Codex 工作区及数据控制设置为准。
 - Skill 不捆绑大学校徽。优先使用用户提供或学校官网核验的标识；无法确认时使用文字校名。
 - 校徽与主题配色独立：校徽保持原色，不从学校或校徽颜色自动推断主题。
@@ -206,6 +250,13 @@ node scripts/build-project.mjs \
   --render
 ```
 
+局部维护优先生成紧凑 deck map，并在构建前审计生产预算；审计只报告，不删除文件：
+
+```bash
+node scripts/build-deck-map.mjs --spec /path/to/deck-spec.json --output /path/to/deck-map.json
+node scripts/audit-production-budget.mjs --project-dir /path/to/internal-project --strict
+```
+
 ### 生成质量约束
 
 - 公式优先通过本地 LaTeX 同源生成 SVG 与透明 PNG；无法使用 LaTeX 时才采用可靠降级方案。
@@ -227,6 +278,8 @@ node scripts/build-project.mjs \
 Academic Slides is an evidence-first Codex Skill for turning theses, research proposals, midterm materials, and research papers into editable academic presentations. It produces an editable PowerPoint deck, a synchronized per-slide Word script, and a rebuildable project MJS while keeping claims and external assets traceable to their sources.
 
 Implemented workflows cover final defenses, proposal/midterm reviews, and single- or multi-paper literature group meetings. The layout libraries are semantic design vocabularies—not fixed slide sequences.
+
+An optional MinerU adapter can index long, layout-heavy theses, but remote parsing is disabled unless the user explicitly authorizes the specified upload and the command includes `--confirm-upload`. Secrets are read only from an environment variable; local PDF processing remains the fallback.
 
 </details>
 

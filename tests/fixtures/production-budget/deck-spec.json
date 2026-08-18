@@ -1,0 +1,191 @@
+{
+  "schema_version": "1.0",
+  "project_id": "production-budget-fixture",
+  "title": "Production budget fixture",
+  "profile": "final_defense",
+  "language": "zh-CN",
+  "artifact_purpose": "production",
+  "theme": {
+    "mode": "preset",
+    "preset": "blue"
+  },
+  "timing": {
+    "target_slide_count": 4,
+    "target_seconds": 180,
+    "estimated_seconds": 180
+  },
+  "sections": [
+    {
+      "id": "opening",
+      "order": 1,
+      "title": "Opening",
+      "short_title": "Opening",
+      "role": "problem",
+      "audience_role": "main",
+      "show_in_agenda": true,
+      "show_in_navigation": true
+    },
+    {
+      "id": "results",
+      "order": 2,
+      "title": "Results",
+      "short_title": "Results",
+      "role": "results",
+      "audience_role": "main",
+      "show_in_agenda": true,
+      "show_in_navigation": true
+    }
+  ],
+  "assets": [
+    {
+      "id": "ready-main",
+      "path": "assets/figures/ready/main.png",
+      "type": "figure",
+      "alt_text": "Selected result"
+    },
+    {
+      "id": "raw-fallback",
+      "path": "assets/formulas/original/formula.png",
+      "type": "formula",
+      "alt_text": "Faithful source equation crop"
+    },
+    {
+      "id": "missing-only",
+      "path": "assets/figures/ready/selected-but-missing.png",
+      "type": "figure",
+      "alt_text": "Deliberately missing selection"
+    }
+  ],
+  "sources": [
+    {
+      "id": "thesis-page-20",
+      "type": "paper_text",
+      "title": "Thesis page 20",
+      "verification_status": "verified"
+    }
+  ],
+  "slides": [
+    {
+      "id": "cover",
+      "order": 1,
+      "kind": "title",
+      "section_id": "opening",
+      "purpose": "Identify the defense.",
+      "takeaway": "A concise cover.",
+      "layout": {
+        "family": "title",
+        "variant": "cover",
+        "density": "sparse"
+      },
+      "render_data": {
+        "title": "Production budget fixture"
+      },
+      "speaker_notes": {
+        "script": "Introduce the defense.",
+        "estimated_seconds": 20,
+        "sources": []
+      }
+    },
+    {
+      "id": "main-result",
+      "order": 2,
+      "kind": "body",
+      "section_id": "results",
+      "purpose": "Connect the primary result to its visual evidence.",
+      "audience_question": "What changed?",
+      "takeaway": "The selected result is supported by the plotted evidence.",
+      "priority": "core",
+      "layout": {
+        "family": "claim_evidence",
+        "variant": "claim-evidence",
+        "density": "balanced"
+      },
+      "evidence_refs": [
+        "thesis-page-20"
+      ],
+      "visuals": [
+        {
+          "include": true,
+          "type": "chart",
+          "asset_ref": "ready-main",
+          "source_refs": [
+            "thesis-page-20"
+          ]
+        }
+      ],
+      "render_data": {
+        "image_refs": [
+          "ready-main"
+        ],
+        "verbose_payload": "TEST_EXPANDS_THIS_FIELD"
+      },
+      "speaker_notes": {
+        "script": "TEST_EXPANDS_THIS_NOTE",
+        "transition": "Explain the method equation next.",
+        "estimated_seconds": 70,
+        "sources": [
+          {
+            "source_id": "thesis-page-20",
+            "locator": "PDF page 20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-and-second-result",
+      "order": 3,
+      "kind": "body",
+      "section_id": "results",
+      "purpose": "Exercise fallback-aware asset auditing.",
+      "takeaway": "A declared source crop is a legitimate formula fallback.",
+      "priority": "core",
+      "layout": {
+        "family": "formula_visual",
+        "variant": "formula-visual",
+        "density": "balanced"
+      },
+      "visuals": [
+        {
+          "include": true,
+          "type": "chart",
+          "asset_ref": "missing-only"
+        }
+      ],
+      "formula": {
+        "include": true,
+        "equation_ref": "Eq. 1",
+        "role": "method_core",
+        "asset_ref": "assets/formulas/ready/missing-primary.svg",
+        "fallback_asset_ref": "raw-fallback"
+      },
+      "speaker_notes": {
+        "script": "Explain why the verified crop is an acceptable fallback.",
+        "estimated_seconds": 70,
+        "sources": [
+          {
+            "source_id": "thesis-page-20",
+            "locator": "PDF page 20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "closing",
+      "order": 4,
+      "kind": "closing",
+      "section_id": "results",
+      "purpose": "Close the defense.",
+      "takeaway": "Thank the committee.",
+      "layout": {
+        "family": "closing",
+        "variant": "closing",
+        "density": "sparse"
+      },
+      "speaker_notes": {
+        "script": "Thank the committee.",
+        "estimated_seconds": 20,
+        "sources": []
+      }
+    }
+  ]
+}
