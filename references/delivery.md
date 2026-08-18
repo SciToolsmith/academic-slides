@@ -44,9 +44,11 @@
 
 客户交付只接受 `artifact_purpose: production`。省略该字段的旧规格可在内部校验中按 production 理解，但新生成的项目 MJS 必须在嵌入契约中显式写出 `artifact_purpose: "production"`；`layout_gallery` 只能用于内部布局库构建，`create-project-builder.mjs` 和 `stage-delivery.mjs` 均应拒绝它。
 
-1. 在内部工作区完成并验证最终项目规格，生成同名项目 MJS；素材输入目录在此时已筛选为允许交付的文件。
-2. 在内部工作区运行一次 MJS，渲染检查 PPTX；再调用 `scripts/render-word-qa.mjs` 渲染 Word。确认二者页面数、顺序和讲稿正文同源，PPT 备注完整保留 Sources，Word 中文可见、保持紧凑且不输出 Sources。不要直接裸调用 bundled LibreOffice：包装器会解析并注入它自己的 fontconfig，Darwin 下同时生成 QuickLook 原生缩略图用于交叉检查。
-3. 调用 `scripts/stage-delivery.mjs --output <短题名_汇报类型> --mjs <项目.mjs> [--assets <已筛选素材目录>]`。脚本会在空白暂存目录再次运行 MJS，一次生成 PPTX 与 Word，再按白名单检查。
+正常交付只有两次构建：一次内部构建用于完整 QA，一次空白暂存重建用于验证可复现性与生成客户包。不要在两者之间第三次运行项目 MJS。
+
+1. 在内部工作区完成并验证最终项目规格，通过 `scripts/build-project.mjs --render` 一次生成同名 PPTX、Word 与项目 MJS，并渲染内部 PPT 预览；素材输入目录在此时已筛选为允许交付的文件。
+2. 调用 `scripts/render-word-qa.mjs` 渲染已经生成的 Word。确认 PPTX 与 Word 页面数、顺序和讲稿正文同源，PPT 备注完整保留 Sources，Word 中文可见、保持紧凑且不输出 Sources。不要再次执行项目 MJS，也不要直接裸调用 bundled LibreOffice：包装器会解析并注入它自己的 fontconfig，Darwin 下同时生成 QuickLook 原生缩略图用于交叉检查。
+3. 内部 QA 通过后，调用 `scripts/stage-delivery.mjs --output <短题名_汇报类型> --mjs <项目.mjs> [--assets <已筛选素材目录>]`。脚本会从嵌入规格重新生成受信任的 canonical MJS，拒绝手写或被修改的源码，再在空白暂存目录一次生成 PPTX 与 Word；规格、PPT 备注和 Word 讲稿逐页一致后才进入白名单检查。
 4. 姓名、导师、学号等已知身份词通过重复的 `--forbidden-term` 传入；交付命名不得包含这些词。旧交付目录只在新暂存包完整通过后原子替换，失败时保留旧包。
 5. 检查根目录只有三个同名文件与 `assets/`；扫描 Office 包、MJS 和文本素材中的越界路径、密钥、未批准外链和内部文件名。
 6. 只向用户展示交付目录；不在交付消息中罗列内部中间产物。

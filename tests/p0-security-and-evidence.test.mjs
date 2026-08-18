@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { latexCompilerArgs, validateMathExpression } from "../scripts/render-formula.mjs";
+import { validateDeckSpec } from "../scripts/validate-deck-spec.mjs";
 import { validateProject } from "../scripts/validate-project.mjs";
 
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -137,6 +138,24 @@ async function testEvidenceClosure() {
   }
 }
 
+async function testAssetIdentity() {
+  const sample = JSON.parse(await readFile(GALLERY_SPEC, "utf8"));
+  const duplicate = structuredClone(sample);
+  duplicate.assets = [
+    { id: "duplicate-asset", path: "assets/a.png", type: "figure", alt_text: "A" },
+    { id: "duplicate-asset", path: "assets/b.png", type: "figure", alt_text: "B" },
+  ];
+  const duplicateResult = await validateDeckSpec(duplicate, { strict: true, requireSchema: true });
+  assert.ok(duplicateResult.issues.some((item) => item.code === "asset.id.duplicate"));
+
+  const wrongLogo = structuredClone(sample);
+  wrongLogo.assets = [{ id: "not-a-logo", path: "assets/figure.png", type: "figure", alt_text: "Figure" }];
+  wrongLogo.theme.verified_logo_asset_id = "not-a-logo";
+  const wrongLogoResult = await validateDeckSpec(wrongLogo, { strict: true, requireSchema: true });
+  assert.ok(wrongLogoResult.issues.some((item) => item.code === "theme.logo.type"));
+}
+
 testFormulaValidation();
 await testEvidenceClosure();
-console.log("PASS p0-security-and-evidence: safe formulas accepted, malicious TeX rejected, and evidence closure enforced.");
+await testAssetIdentity();
+console.log("PASS p0-security-and-evidence: safe formulas accepted, malicious TeX rejected, evidence closure enforced, and asset identities are unambiguous.");

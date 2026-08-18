@@ -161,7 +161,11 @@ async function main() {
       const slide = structuredClone(sample.slides.find((item) => item.id === id));
       slide.id = `theme-body-${index + 1}`;
       slide.section_id = sections[index].id;
-      slide.priority = "supporting";
+      slide.priority = index === 0 ? "core" : "supporting";
+      if (index === 0) {
+        slide.relationship_topology = "none";
+        slide.text_emphasis = [{ text: "说明证据来自哪里", role: "key" }];
+      }
       return slide;
     });
     const closing = structuredClone(sample.slides.find((slide) => slide.kind === "closing"));

@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import { validateScientificDesign } from "../scripts/validate-scientific-design.mjs";
+import { validateScientificDesign, validateScientificDesignFile } from "../scripts/validate-scientific-design.mjs";
 
 const execFileAsync = promisify(execFile);
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -90,6 +90,86 @@ assert(missingStoryboardCodes.includes("scientific.storyboard.topology_missing")
 const missingPriority = deck([slide("missing-priority", 1, { priority: undefined })]);
 assert(codes(validateScientificDesign(missingPriority, { strict: true })).includes("scientific.storyboard.priority_missing"), "omitting priority must not bypass core-slide gates");
 
+const allSupporting = deck([slide("supporting-only", 1, { priority: "supporting" })]);
+assert(codes(validateScientificDesign(allSupporting)).includes("scientific.deck.core_absent"), "a final defense must not bypass all core gates by marking every main slide supporting");
+
+const kindLayoutMismatch = deck([slide("fake-agenda", 1, {
+  kind: "agenda",
+  priority: undefined,
+  layout: { family: "agenda", variant: "four-point-list" },
+})]);
+assert(codes(validateScientificDesign(kindLayoutMismatch)).includes("scientific.shell.kind_layout_mismatch"), "kind=agenda must resolve to the profile agenda renderer");
+
+const reverseShellMismatch = deck([slide("cover-as-content", 1, {
+  layout: { family: "title", variant: "cover" },
+})]);
+assert(codes(validateScientificDesign(reverseShellMismatch)).includes("scientific.shell.layout_kind_mismatch"), "a cover renderer must not masquerade as a content slide");
+
+const crossProfileLayout = deck([slide("group-layout-in-final", 1, {
+  layout: { family: "discussion", variant: "discussion-questions" },
+})]);
+assert(codes(validateScientificDesign(crossProfileLayout)).includes("scientific.layout.profile_mismatch"), "a production deck must not borrow a body renderer from another profile registry");
+
+const explicitRendererPlaceholder = deck([slide("placeholder-copy", 1, {
+  content: { title: "空内容", bullets: ["要点 01"] },
+})]);
+assert(codes(validateScientificDesign(explicitRendererPlaceholder)).includes("scientific.content.renderer_placeholder"), "renderer fallback copy must never be accepted as production content");
+
+const emptyRendererPayload = deck([slide("empty-four-point", 1, {
+  layout: { family: "summary", variant: "four-point-list" },
+  content: { title: "只有标题", body: [], bullets: [] },
+  render_data: {},
+})]);
+assert(codes(validateScientificDesign(emptyRendererPayload)).includes("scientific.content.empty_renderer_fallback"), "an empty semantic layout must fail validation before the renderer can inject generic points");
+
+for (const kind of ["summary", "questions"]) {
+  const disguisedEmptyBody = deck([slide(`${kind}-as-empty-body`, 1, {
+    kind,
+    priority: "supporting",
+    layout: { family: "summary", variant: "four-point-list" },
+    content: { title: "不得绕过正文门禁", body: [], bullets: [] },
+    render_data: {},
+  })]);
+  const disguisedCodes = codes(validateScientificDesign(disguisedEmptyBody, { strict: true }));
+  assert(disguisedCodes.includes("scientific.content.empty_renderer_fallback"), `kind=${kind} must not bypass production placeholder gates`);
+  assert(disguisedCodes.includes("scientific.deck.core_absent"), `kind=${kind} must count when enforcing at least one core substantive slide`);
+}
+
+const summaryCoreGates = deck([slide("summary-core-gates", 1, {
+  kind: "summary",
+  priority: undefined,
+  audience_question: null,
+  relationship_topology: undefined,
+  layout: { family: "summary", variant: "four-point-list" },
+  render_data: { items: [{ title: "结论", body: "证据性收束" }] },
+})]);
+const summaryCoreGateCodes = codes(validateScientificDesign(summaryCoreGates, { strict: true }));
+assert(summaryCoreGateCodes.includes("scientific.storyboard.priority_missing"), "kind=summary must declare priority like every other substantive production slide");
+
+const emptyDiscussionQuestions = deck([slide("empty-discussion", 1, {
+  kind: "questions",
+  layout: { family: "discussion", variant: "discussion-questions" },
+  render_data: {},
+})], { profile: "group_meeting_literature" });
+assert(codes(validateScientificDesign(emptyDiscussionQuestions)).includes("scientific.content.partial_renderer_payload"), "kind=questions must not let the discussion renderer invent generic questions");
+
+const emptyPaperConclusion = deck([slide("empty-paper-conclusion", 1, {
+  kind: "summary",
+  layout: { family: "summary", variant: "paper-conclusion" },
+  render_data: {},
+})], { profile: "group_meeting_literature" });
+assert(codes(validateScientificDesign(emptyPaperConclusion)).includes("scientific.content.partial_renderer_payload"), "kind=summary must not let the paper-conclusion renderer invent findings, evidence, or boundaries");
+
+const partialClaimEvidence = deck([slide("partial-claim-evidence", 1, {
+  layout: { family: "evidence_chain", variant: "claim-evidence" },
+  render_data: {
+    items: [{ title: "唯一证据", body: "" }],
+    boundary: "结论只适用于已验证工况",
+    synthesis: "多源证据共同支持本页结论",
+  },
+})]);
+assert(codes(validateScientificDesign(partialClaimEvidence)).includes("scientific.content.partial_renderer_payload"), "a titled item with an empty evidence body must fail before claim-evidence injects fallback prose");
+
 const noEmphasis = deck([slide("method", 1, { render_data: {} })]);
 assert(codes(validateScientificDesign(noEmphasis)).includes("scientific.deck.emphasis_absent"), "production final defense must not have zero emphasis and zero visual focus");
 const visualFocusExemption = structuredClone(noEmphasis);
@@ -117,6 +197,29 @@ assert(codes(validateScientificDesign(treated)).includes("scientific.visuals.unp
 treated.assets = [{ id: "plot-ready", path: "assets/figures/ready/plot-annotated.png" }];
 treated.slides[0].visuals[0].asset_ref = "plot-ready";
 assert(!codes(validateScientificDesign(treated)).includes("scientific.visuals.unprocessed"), "a selected asset from the ready derivative directory must satisfy the treatment gate");
+
+const ignoredReadySecondSlot = deck([slide("ready-outside-renderer-slot", 1, {
+  purpose: "验证关键结果",
+  narrative_roles: ["validation"],
+  layout: { family: "evidence_chain", variant: "claim-evidence" },
+  render_data: {
+    items: [{ title: "稳定性证据", body: "原始曲线展示临界频段的变化" }],
+    boundary: "结论限于当前工况",
+  },
+  visuals: [
+    { type: "chart", include: true, asset_ref: "raw-first" },
+    { type: "chart", include: true, asset_ref: "ready-second" },
+  ],
+})], {
+  assets: [
+    { id: "raw-first", path: "assets/figures/raw/original.png" },
+    { id: "ready-second", path: "assets/figures/ready/annotated.png" },
+  ],
+});
+const ignoredReadySecondCodes = codes(validateScientificDesign(ignoredReadySecondSlot, { strict: true }));
+assert(ignoredReadySecondCodes.includes("scientific.visuals.unconsumed"), "a ready visual outside claim-evidence's first rendered slot must be rejected as surplus");
+assert(ignoredReadySecondCodes.includes("scientific.visuals.unprocessed"), "the untreated first rendered visual must still fail treatment even when a later unused visual is ready");
+assert(ignoredReadySecondCodes.includes("scientific.core_result.visual_focus_missing"), "an unused ready visual must not satisfy the rendered focal-treatment gate");
 
 const complexDual = deck([slide("dual", 1, {
   layout: { family: "comparison", variant: "two-image-results" },
@@ -235,6 +338,21 @@ const resultWithEmphasis = structuredClone(resultWithoutFocus);
 resultWithEmphasis.slides[0].text_emphasis = [{ text: "45 Hz", role: "result" }];
 assert(!codes(validateScientificDesign(resultWithEmphasis)).includes("scientific.core_result.visual_focus_missing"), "text emphasis must satisfy the per-slide focal gate");
 
+const ignoredReadyVisual = structuredClone(resultWithoutFocus);
+ignoredReadyVisual.assets = [{ id: "bode-ready", path: "assets/figures/ready/bode-annotated.png" }];
+ignoredReadyVisual.slides[0].visuals[0].asset_ref = "bode-ready";
+ignoredReadyVisual.slides[0].layout = { family: "summary", variant: "four-point-list" };
+const ignoredReadyCodes = codes(validateScientificDesign(ignoredReadyVisual));
+assert(ignoredReadyCodes.includes("scientific.visuals.renderer_mismatch"), "a ready visual must be rejected when the effective renderer ignores slide.visuals");
+assert(ignoredReadyCodes.includes("scientific.core_result.visual_focus_missing"), "an ignored ready visual must not satisfy the core-result focal gate");
+
+const ignoredFormula = deck([slide("ignored-formula", 1, {
+  layout: { family: "summary", variant: "four-point-list" },
+  formula: { include: true, asset_ref: "equation-ready", render_method: "latex_svg" },
+  assets: undefined,
+})], { assets: [{ id: "equation-ready", path: "assets/formulas/ready/equation.svg" }] });
+assert(codes(validateScientificDesign(ignoredFormula)).includes("scientific.formula.renderer_mismatch"), "formula metadata must fail when the selected renderer never consumes it");
+
 const invalidTopologyGallery = { ...structuredClone(nonlinear), artifact_purpose: "layout_gallery" };
 const invalidGalleryResult = validateScientificDesign(invalidTopologyGallery, { strict: true });
 assert.equal(invalidGalleryResult.library_gallery_exempt, true);
@@ -265,6 +383,25 @@ try {
   const cliResult = JSON.parse(cli.stdout);
   assert.equal(cliResult.ok, true);
   assert.equal(cliResult.library_gallery_exempt, true);
+
+  const missingFormulaFile = deck([slide("missing-formula-file", 1, {
+    purpose: "解释核心方程",
+    layout: { family: "figure_formula", variant: "formula-visual" },
+    formula: { include: true, asset_ref: "missing-equation", render_method: "latex_svg", latex: "x=y" },
+    text_emphasis: [{ text: "核心方程", role: "key" }],
+  })], { assets: [{ id: "missing-equation", path: "assets/formulas/ready/missing.svg" }] });
+  const missingFormulaPath = path.join(temporary, "missing-formula.json");
+  await fs.writeFile(missingFormulaPath, `${JSON.stringify(missingFormulaFile)}\n`, "utf8");
+  const missingFormulaResult = await validateScientificDesignFile(missingFormulaPath);
+  assert(codes(missingFormulaResult).includes("scientific.formula.asset_unavailable"), "a declared formula path must resolve to a real local file before it counts as rendered evidence");
+
+  const missingReadyVisual = structuredClone(resultWithoutFocus);
+  missingReadyVisual.assets = [{ id: "missing-ready-chart", path: "assets/figures/ready/missing.png" }];
+  missingReadyVisual.slides[0].visuals[0].asset_ref = "missing-ready-chart";
+  const missingReadyPath = path.join(temporary, "missing-ready-visual.json");
+  await fs.writeFile(missingReadyPath, `${JSON.stringify(missingReadyVisual)}\n`, "utf8");
+  const missingReadyResult = await validateScientificDesignFile(missingReadyPath);
+  assert(codes(missingReadyResult).includes("scientific.core_result.visual_focus_missing"), "a ready-directory path that does not exist must not satisfy the rendered focal-treatment gate");
 } finally {
   await fs.rm(temporary, { recursive: true, force: true });
 }

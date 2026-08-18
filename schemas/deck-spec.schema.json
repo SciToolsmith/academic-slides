@@ -49,9 +49,9 @@
       "additionalProperties": false,
       "required": ["ratio", "width_inches", "height_inches"],
       "properties": {
-        "ratio": {"enum": ["16:9", "4:3", "custom"]},
-        "width_inches": {"type": "number", "exclusiveMinimum": 0},
-        "height_inches": {"type": "number", "exclusiveMinimum": 0}
+        "ratio": {"const": "16:9"},
+        "width_inches": {"const": 13.333},
+        "height_inches": {"const": 7.5}
       }
     },
     "timing": {"$ref": "#/$defs/timing"},
@@ -875,7 +875,7 @@
       "additionalProperties": false,
       "required": ["script", "transition", "estimated_seconds", "sources"],
       "properties": {
-        "script": {"type": "string"},
+        "script": {"type": "string", "minLength": 1},
         "transition": {"type": "string"},
         "estimated_seconds": {"type": "number", "minimum": 0},
         "sources": {

@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 
 import { execFile } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { createProjectBuilder } from "./create-project-builder.mjs";
+import { normalizeSpeakerNotes } from "./speaker-notes.mjs";
+import { validateDeckSpec } from "./validate-deck-spec.mjs";
+import { validateScientificDesign } from "./validate-scientific-design.mjs";
 
 const execFileAsync = promisify(execFile);
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -209,15 +214,193 @@ async function archiveEntries(filePath) {
   return stdout.split(/\r?\n/).filter(Boolean);
 }
 
+function unzipEntryPattern(entry) {
+  return entry.replaceAll("[", "[[]").replaceAll("*", "[*]").replaceAll("?", "[?]");
+}
+
+async function archiveText(filePath, entry) {
+  const result = await execFileAsync("unzip", ["-p", filePath, unzipEntryPattern(entry)], {
+    encoding: "buffer",
+    maxBuffer: 30 * 1024 * 1024,
+    timeout: 30_000,
+  });
+  return Buffer.from(result.stdout).toString("utf8");
+}
+
+function decodeXmlText(value) {
+  return String(value ?? "")
+    .replace(/&#x([0-9a-f]+);/gi, (match, digits) => String.fromCodePoint(Number.parseInt(digits, 16)))
+    .replace(/&#([0-9]+);/g, (match, digits) => String.fromCodePoint(Number.parseInt(digits, 10)))
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", "\"")
+    .replaceAll("&apos;", "'");
+}
+
+function xmlRunText(xml, prefix) {
+  const pattern = new RegExp(`<${prefix}:t(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${prefix}:t>`, "g");
+  return decodeXmlText([...String(xml ?? "").matchAll(pattern)].map((match) => match[1]).join(""));
+}
+
+function xmlParagraphTexts(xml, prefix) {
+  const pattern = new RegExp(`<${prefix}:p(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${prefix}:p>`, "g");
+  return [...String(xml ?? "").matchAll(pattern)].map((match) => xmlRunText(match[1], prefix));
+}
+
+function normalizeComparableScript(value) {
+  return String(value ?? "").replace(/[\s\u00a0\u3000]+/gu, " ").trim();
+}
+
+function entryNumber(entry, expression) {
+  return Number(entry.match(expression)?.[1] ?? Number.NaN);
+}
+
+function assertSequentialEntries(entries, expression, label) {
+  const numbers = entries.map((entry) => entryNumber(entry, expression));
+  for (const [index, number] of numbers.entries()) {
+    if (number !== index + 1) throw new Error(`Delivery PPTX/DOCX parity failed: ${label} entries are not a contiguous 1-based sequence.`);
+  }
+}
+
+function relationshipAttribute(tag, name) {
+  return decodeXmlText(tag.match(new RegExp(`\\b${name}=["']([^"']+)["']`, "i"))?.[1] ?? "");
+}
+
+function notesRelationshipTarget(relationshipsXml) {
+  for (const match of String(relationshipsXml ?? "").matchAll(/<Relationship\b[^>]*\/?\s*>/gi)) {
+    if (relationshipAttribute(match[0], "Type").endsWith("/notesSlide")) return relationshipAttribute(match[0], "Target");
+  }
+  return "";
+}
+
+function resolvePackageTarget(sourceEntry, target) {
+  const decoded = decodeXmlText(target).replaceAll("\\", "/");
+  const resolved = decoded.startsWith("/")
+    ? decoded.slice(1)
+    : path.posix.normalize(path.posix.join(path.posix.dirname(sourceEntry), decoded));
+  if (!resolved || resolved.startsWith("../") || path.posix.isAbsolute(resolved)) {
+    throw new Error(`Delivery PPTX/DOCX parity failed: unsafe notes relationship target ${target || "<empty>"}.`);
+  }
+  return resolved;
+}
+
+function notesBodyText(notesXml, slideNumber) {
+  const shapes = [...String(notesXml ?? "").matchAll(/<p:sp(?:\s[^>]*)?>[\s\S]*?<\/p:sp>/g)].map((match) => match[0]);
+  const body = shapes.find((shape) => /<p:ph\b[^>]*\btype=["']body["']/i.test(shape));
+  if (!body) throw new Error(`Delivery PPTX/DOCX parity failed: slide ${slideNumber} has no speaker-notes body placeholder.`);
+  return xmlParagraphTexts(body, "a").join("\n");
+}
+
+function compactNotesScript(notesText, slideNumber) {
+  const openMatches = notesText.match(/\[Sources\]/g) ?? [];
+  const closeMatches = notesText.match(/\[\/Sources\]/g) ?? [];
+  if (openMatches.length !== 1 || closeMatches.length !== 1) {
+    throw new Error(`Delivery PPTX/DOCX parity failed: slide ${slideNumber} notes need exactly one [Sources] block.`);
+  }
+  const openIndex = notesText.indexOf("[Sources]");
+  const closeIndex = notesText.indexOf("[/Sources]");
+  if (openIndex < 0 || closeIndex < openIndex || notesText.slice(closeIndex + "[/Sources]".length).trim()) {
+    throw new Error(`Delivery PPTX/DOCX parity failed: slide ${slideNumber} has a malformed [Sources] block.`);
+  }
+  const body = notesText.slice(0, openIndex).trim();
+  const transitionToken = "\n\n过渡：";
+  const transitionIndex = body.lastIndexOf(transitionToken);
+  const script = transitionIndex >= 0 ? body.slice(0, transitionIndex).trim() : body;
+  const transition = transitionIndex >= 0 ? body.slice(transitionIndex + transitionToken.length).trim() : "";
+  const compact = transition && !script.includes(transition) ? `${script} ${transition}` : script;
+  const normalized = normalizeComparableScript(compact);
+  if (!normalized) throw new Error(`Delivery PPTX/DOCX parity failed: slide ${slideNumber} has an empty speaker script.`);
+  return normalized;
+}
+
+function wordPageScripts(documentXml, slideCount) {
+  const paragraphs = xmlParagraphTexts(documentXml, "w").map((text) => text.trim()).filter(Boolean);
+  if (paragraphs.some((text) => /\[\/?Sources\]/i.test(text))) {
+    throw new Error("Delivery PPTX/DOCX parity failed: the customer Word script contains a reserved Sources marker.");
+  }
+  if (paragraphs.length !== slideCount + 1) {
+    throw new Error(`Delivery PPTX/DOCX parity failed: Word must contain one title plus ${slideCount} page paragraphs; found ${paragraphs.length}.`);
+  }
+  if (/^第\d+页：/u.test(paragraphs[0])) {
+    throw new Error("Delivery PPTX/DOCX parity failed: Word is missing its standalone title paragraph.");
+  }
+  return paragraphs.slice(1).map((paragraph, index) => {
+    const match = paragraph.match(/^第(\d+)页：([\s\S]*)$/u);
+    if (!match || Number(match[1]) !== index + 1) {
+      throw new Error(`Delivery PPTX/DOCX parity failed: Word page labels must be contiguous; expected 第${index + 1}页：.`);
+    }
+    const script = normalizeComparableScript(match[2]);
+    if (!script) throw new Error(`Delivery PPTX/DOCX parity failed: Word page ${index + 1} has an empty speaker script.`);
+    return script;
+  });
+}
+
+export async function validatePresentationScriptParity(pptxPath, docxPath, deckSpec = null) {
+  const pptx = await requireRegularFile(pptxPath, ".pptx");
+  const docx = await requireRegularFile(docxPath, ".docx");
+  const pptEntries = await archiveEntries(pptx);
+  const slideExpression = /^ppt\/slides\/slide(\d+)\.xml$/;
+  const noteExpression = /^ppt\/notesSlides\/notesSlide(\d+)\.xml$/;
+  const slides = pptEntries.filter((entry) => slideExpression.test(entry)).sort((left, right) => entryNumber(left, slideExpression) - entryNumber(right, slideExpression));
+  const notes = pptEntries.filter((entry) => noteExpression.test(entry)).sort((left, right) => entryNumber(left, noteExpression) - entryNumber(right, noteExpression));
+  if (slides.length === 0) throw new Error("Delivery PPTX/DOCX parity failed: PowerPoint contains no slides.");
+  assertSequentialEntries(slides, slideExpression, "slide");
+  assertSequentialEntries(notes, noteExpression, "notes-slide");
+  if (notes.length !== slides.length) {
+    throw new Error(`Delivery PPTX/DOCX parity failed: PowerPoint has ${slides.length} slides but ${notes.length} notes slides.`);
+  }
+
+  const noteEntrySet = new Set(notes);
+  const usedNotes = new Set();
+  const pptScripts = [];
+  for (const [index, slideEntry] of slides.entries()) {
+    const relationshipsEntry = `${path.posix.dirname(slideEntry)}/_rels/${path.posix.basename(slideEntry)}.rels`;
+    if (!pptEntries.includes(relationshipsEntry)) {
+      throw new Error(`Delivery PPTX/DOCX parity failed: slide ${index + 1} has no relationship file for speaker notes.`);
+    }
+    const target = notesRelationshipTarget(await archiveText(pptx, relationshipsEntry));
+    const notesEntry = resolvePackageTarget(slideEntry, target);
+    if (!noteEntrySet.has(notesEntry) || usedNotes.has(notesEntry)) {
+      throw new Error(`Delivery PPTX/DOCX parity failed: slide ${index + 1} does not map to one unique notes slide.`);
+    }
+    usedNotes.add(notesEntry);
+    pptScripts.push(compactNotesScript(notesBodyText(await archiveText(pptx, notesEntry), index + 1), index + 1));
+  }
+
+  const documentXml = await archiveText(docx, "word/document.xml");
+  const wordScripts = wordPageScripts(documentXml, slides.length);
+  const specScripts = deckSpec ? deckSpec.slides.map((slide) => {
+    const notes = normalizeSpeakerNotes(slide);
+    const transition = notes.transition && !notes.script.includes(notes.transition) ? ` ${notes.transition}` : "";
+    return normalizeComparableScript(`${notes.script}${transition}`);
+  }) : null;
+  if (specScripts && specScripts.length !== slides.length) {
+    throw new Error(`Delivery source parity failed: embedded specification has ${specScripts.length} slides but PowerPoint has ${slides.length}.`);
+  }
+  for (const [index, script] of pptScripts.entries()) {
+    if (script !== wordScripts[index]) {
+      throw new Error(`Delivery PPTX/DOCX parity failed: slide ${index + 1} speaker script differs between PowerPoint notes and Word.`);
+    }
+    if (specScripts && script !== specScripts[index]) {
+      throw new Error(`Delivery source parity failed: slide ${index + 1} speaker script differs from the embedded specification.`);
+    }
+  }
+  return {
+    slideCount: slides.length,
+    notesCount: notes.length,
+    wordPageCount: wordScripts.length,
+    ...(specScripts ? { specSlideCount: specScripts.length } : {}),
+  };
+}
+
 async function scanArchive(filePath) {
   try {
     const entries = await archiveEntries(filePath);
     const blocked = entries.find((entry) => FORBIDDEN_ARCHIVE_ENTRY.test(entry));
     if (blocked) throw new Error(`Forbidden macro, OLE, embedded package, ActiveX, or custom XML entry: ${blocked}`);
     for (const entry of entries.filter((item) => /\.(?:xml|rels|txt|json)$/i.test(item))) {
-      const unzipPattern = entry.replaceAll("[", "[[]").replaceAll("*", "[*]").replaceAll("?", "[?]");
-      const result = await execFileAsync("unzip", ["-p", filePath, unzipPattern], { encoding: "buffer", maxBuffer: 30 * 1024 * 1024, timeout: 30_000 });
-      const value = Buffer.from(result.stdout).toString("utf8");
+      const value = await archiveText(filePath, entry);
       const location = `${path.basename(filePath)}::${entry}`;
       scanText(value, location, { packageXml: true });
       if (/docProps\/core\.xml$/i.test(entry)) validateOfficeMetadata(value, location);
@@ -250,22 +433,55 @@ async function scanDelivery(directory) {
   await visit(directory);
 }
 
-async function readBuilderContract(filePath) {
+function canonicalSpecHash(spec) {
+  return crypto.createHash("sha256").update(JSON.stringify(spec)).digest("hex");
+}
+
+export async function readBuilderPayload(filePath) {
   const source = await fs.readFile(filePath, "utf8");
   const line = source.match(/^\/\/ academic-slides-delivery:\s*(\{[^\r\n]+\})\s*$/m)?.[1];
   if (!line) throw new Error("Project MJS does not contain an academic-slides delivery contract header.");
   let contract;
   try { contract = JSON.parse(line); } catch { throw new Error("Project MJS delivery contract header is invalid JSON."); }
-  return contract;
+  const specText = source.match(/\nconst deckSpec = (\{[\s\S]*?\});\nconst themePreset =/)?.[1];
+  if (!specText) throw new Error("Project MJS does not contain the generated embedded deck specification.");
+  let spec;
+  try { spec = JSON.parse(specText); } catch { throw new Error("Project MJS embedded deck specification is invalid JSON."); }
+  return { contract, spec };
 }
 
-function assertBuilderContract(contract, stem) {
+async function readBuilderContract(filePath) {
+  return (await readBuilderPayload(filePath)).contract;
+}
+
+function assertBuilderContract(contract, stem, spec = null) {
   const expected = { stem, pptx: `${stem}.pptx`, docx: `${stem}_发言稿.docx` };
   if (!contract || contract.stem !== expected.stem || contract.pptx !== expected.pptx || contract.docx !== expected.docx) {
     throw new Error(`Project MJS output contract does not match delivery stem ${stem}.`);
   }
   if (contract.artifact_purpose !== "production") {
     throw new Error("Only artifact_purpose=production project builders may be staged as customer deliveries; layout galleries and legacy builders without an explicit production contract are rejected.");
+  }
+  if (contract.contract_version !== 2 || contract.generator !== "academic-slides/create-project-builder") {
+    throw new Error("Project MJS is not a current academic-slides generated customer builder.");
+  }
+  if (!spec || (spec.artifact_purpose ?? "production") !== "production") {
+    throw new Error("Project MJS embedded specification must use artifact_purpose=production.");
+  }
+  if (!/^[a-f0-9]{64}$/i.test(String(contract.spec_sha256 ?? "")) || canonicalSpecHash(spec) !== contract.spec_sha256) {
+    throw new Error("Project MJS embedded specification does not match its delivery contract hash.");
+  }
+}
+
+async function validateEmbeddedProductionSpec(spec) {
+  const deckValidation = await validateDeckSpec(spec, { strict: true, requireSchema: true });
+  const deckErrors = deckValidation.issues.filter((item) => item.severity === "error");
+  if (deckErrors.length) {
+    throw new Error(`Embedded deck specification failed strict schema/semantic validation (${deckErrors.length} issue(s)): ${deckErrors.slice(0, 5).map((item) => item.code).join(", ")}.`);
+  }
+  const scientific = validateScientificDesign(spec, { strict: true });
+  if (!scientific.ok) {
+    throw new Error(`Embedded deck specification failed scientific-design validation (${scientific.summary.errors} issue(s)): ${scientific.issues.slice(0, 5).map((item) => item.code).join(", ")}.`);
   }
 }
 
@@ -276,16 +492,46 @@ async function assertRootContract(directory, stem) {
 }
 
 async function runProjectBuilder(mjsPath, directory) {
+  const inheritedKeys = [
+    "PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "LC_CTYPE",
+    "RUNTIME_NODE_MODULES", "ACADEMIC_SLIDES_CJK_FONT", "FONTCONFIG_FILE", "SYSTEMROOT", "WINDIR",
+  ];
+  const environment = Object.fromEntries(inheritedKeys
+    .filter((key) => process.env[key] !== undefined)
+    .map((key) => [key, process.env[key]]));
+  environment.ACADEMIC_SLIDES_SKILL_DIR = SKILL_DIR;
   await execFileAsync(process.execPath, [mjsPath, "--all"], {
     cwd: directory,
-    env: {
-      ...process.env,
-      ACADEMIC_SLIDES_SKILL_DIR: process.env.ACADEMIC_SLIDES_SKILL_DIR || SKILL_DIR,
-    },
+    env: environment,
     encoding: "utf8",
     maxBuffer: 50 * 1024 * 1024,
     timeout: 300_000,
   });
+}
+
+async function createAndVerifyCanonicalBuilder(inputMjs, payload, directory, stem) {
+  const specPath = path.join(directory, ".delivery-deck-spec.json");
+  const canonicalMjs = path.join(directory, `${stem}.mjs`);
+  await fs.writeFile(specPath, `${JSON.stringify(payload.spec, null, 2)}\n`, "utf8");
+  try {
+    await createProjectBuilder({
+      spec: specPath,
+      output: canonicalMjs,
+      pptxName: `${stem}.pptx`,
+      docxName: `${stem}_发言稿.docx`,
+      theme: payload.contract.theme,
+    });
+  } finally {
+    await fs.rm(specPath, { force: true });
+  }
+  const [inputSource, canonicalSource] = await Promise.all([
+    fs.readFile(inputMjs),
+    fs.readFile(canonicalMjs),
+  ]);
+  if (!inputSource.equals(canonicalSource)) {
+    throw new Error("Project MJS is not the canonical source generated by this installed academic-slides Skill. Regenerate the project MJS before staging.");
+  }
+  return canonicalMjs;
 }
 
 export async function stageDelivery(args) {
@@ -293,7 +539,9 @@ export async function stageDelivery(args) {
   const output = assertSafeOutput(args.output);
   const stem = validateDeliveryStem(path.basename(output), args.forbiddenTerms);
   const mjs = await requireRegularFile(args.mjs, ".mjs");
-  assertBuilderContract(await readBuilderContract(mjs), stem);
+  const payload = await readBuilderPayload(mjs);
+  assertBuilderContract(payload.contract, stem, payload.spec);
+  await validateEmbeddedProductionSpec(payload.spec);
   const parent = path.dirname(output);
   await fs.mkdir(parent, { recursive: true });
   const outputExists = await exists(output);
@@ -303,16 +551,16 @@ export async function stageDelivery(args) {
   const previous = `${temporary}.previous`;
   let previousMoved = false;
   try {
-    const stagedMjs = path.join(temporary, `${stem}.mjs`);
-    await fs.copyFile(mjs, stagedMjs);
     const assetsTarget = path.join(temporary, "assets");
     await fs.mkdir(assetsTarget, { recursive: true });
     const assets = await copyAssets(args.assets, assetsTarget);
+    const stagedMjs = await createAndVerifyCanonicalBuilder(mjs, payload, temporary, stem);
     await runProjectBuilder(stagedMjs, temporary);
-    await requireRegularFile(path.join(temporary, `${stem}.pptx`), ".pptx");
-    await requireRegularFile(path.join(temporary, `${stem}_发言稿.docx`), ".docx");
+    const pptx = await requireRegularFile(path.join(temporary, `${stem}.pptx`), ".pptx");
+    const docx = await requireRegularFile(path.join(temporary, `${stem}_发言稿.docx`), ".docx");
     await validateAssetTree(assetsTarget);
     await assertRootContract(temporary, stem);
+    const parity = await validatePresentationScriptParity(pptx, docx, payload.spec);
     await scanDelivery(temporary);
 
     if (outputExists) {
@@ -326,7 +574,7 @@ export async function stageDelivery(args) {
       throw error;
     }
     if (previousMoved) await fs.rm(previous, { recursive: true, force: true });
-    return { output, stem, files: [`${stem}.pptx`, `${stem}.mjs`, `${stem}_发言稿.docx`, "assets/"], assets };
+    return { output, stem, files: [`${stem}.pptx`, `${stem}.mjs`, `${stem}_发言稿.docx`, "assets/"], assets, parity };
   } catch (error) {
     if (await exists(temporary)) await fs.rm(temporary, { recursive: true, force: true });
     if (previousMoved && !(await exists(output)) && await exists(previous)) await fs.rename(previous, output);

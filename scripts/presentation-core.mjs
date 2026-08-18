@@ -4,6 +4,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { serializeSpeakerNotes } from "./speaker-notes.mjs";
+import {
+  isProductionSubstantiveKind,
+  productionPayloadProblems,
+  rendererVisualConsumption,
+} from "./validate-scientific-design.mjs";
 
 async function loadArtifactTool() {
   const attempts = [
@@ -68,6 +73,11 @@ const PROFILE_TEMPLATE_DIRS = Object.freeze(Object.fromEntries(Object.entries(PR
   }
   return [id, resolved];
 })));
+const PROFILE_LAYOUT_IDS = Object.freeze(Object.fromEntries(await Promise.all(Object.entries(PROFILE_TEMPLATE_DIRS).map(async ([profile, templateDir]) => {
+  const registry = JSON.parse(await fs.readFile(path.join(templateDir, "layout-registry.json"), "utf8"));
+  return [profile, new Set(list(registry.layouts).map((layout) => String(layout?.id ?? "").trim()).filter(Boolean))];
+}))));
+const REGISTERED_LAYOUT_IDS = new Set(Object.values(PROFILE_LAYOUT_IDS).flatMap((layouts) => [...layouts]));
 const PPT_FONT_SCALE = 4 / 3;
 
 const DEFAULT_TOKENS = Object.freeze({
@@ -161,6 +171,29 @@ const MILESTONE_EXCLUSIVE_LAYOUTS = new Set([
 ]);
 const PROPOSAL_ONLY_LAYOUTS = new Set(["innovation-claims", "expected-outcomes", "baseline-gantt", "proposal-decision-check"]);
 const MIDTERM_ONLY_LAYOUTS = new Set(["progress-snapshot", "plan-vs-actual", "leading-result-single", "leading-results-multipanel", "deviation-cause-action", "remaining-work-updated-plan"]);
+const PROFILE_SHELL_LAYOUTS = Object.freeze({
+  final_defense: Object.freeze({
+    title: new Set(["cover"]),
+    agenda: new Set(["agenda"]),
+    section: new Set(["section-divider"]),
+    closing: new Set(["closing"]),
+  }),
+  group_meeting_literature: Object.freeze({
+    title: new Set(["group-cover"]),
+    agenda: new Set(["paper-agenda"]),
+    section: new Set(["paper-divider"]),
+    closing: new Set(["group-closing"]),
+  }),
+  proposal_midterm: Object.freeze({
+    title: new Set(["cover-short-title", "cover-long-title"]),
+    agenda: new Set(["agenda-adaptive"]),
+    section: new Set(["section-divider"]),
+    closing: new Set(["closing-feedback"]),
+  }),
+});
+const SHELL_KIND_BY_LAYOUT = new Map(Object.values(PROFILE_SHELL_LAYOUTS).flatMap((byKind) => Object.entries(byKind)
+  .flatMap(([kind, layoutIds]) => [...layoutIds].map((layoutId) => [layoutId, kind]))));
+const FORMULA_RENDERER_LAYOUTS = new Set(["formula-visual", "model-formula"]);
 const SLIDE_TEXT_REGISTRY = new WeakMap();
 
 function isObject(value) {
@@ -751,36 +784,7 @@ function normalizeLayoutId(slide) {
   const raw = String(first(slide.layout_id, slide.layoutId, layout.id, layout.family, slide.kind, "claim-evidence")).toLowerCase();
   const variant = String(first(layout.variant, "")).toLowerCase();
   const normalizedVariant = variant.replaceAll("_", "-");
-  const registered = new Set([
-    "cover", "agenda", "section-divider", "claim-evidence", "image-left-text-right",
-    "text-left-image-right", "image-compare", "chart-insight", "table-insight",
-    "formula-visual", "process", "timeline", "framework", "quote-analysis",
-    "case-compare", "validation-matrix", "contribution", "limitations", "references",
-    "free-evidence", "closing", "three-column-overview", "three-level-analysis",
-    "four-point-list", "three-row-content", "multi-image-evidence", "four-objectives",
-    "thesis-framework", "radial-methods", "four-step-ribbon", "innovation-brackets",
-    "four-results-cycle", "two-image-results", "figure-conclusion", "conclusion-list",
-    "three-outlook-columns",
-    "group-cover", "paper-agenda", "paper-divider", "paper-profile",
-    "selection-rationale", "known-gap-question", "concept-framework",
-    "study-design", "method-sequence", "method-comparison",
-    "sample-data-profile", "single-result-evidence", "result-compare",
-    "multi-result-evidence", "table-chart-result", "mechanism-explanation", "claim-evidence-boundary",
-    "paper-conclusion", "critical-appraisal", "reproducibility-check",
-    "cross-paper-matrix", "consensus-divergence", "evidence-quality-map",
-    "research-evolution", "transfer-to-our-work", "discussion-questions",
-    "decision-request", "next-reading-actions", "selected-sources", "group-closing",
-    "cover-short-title", "cover-long-title", "agenda-adaptive", "evaluation-focus",
-    "closing-feedback", "context-stakes", "literature-landscape", "evidence-gap",
-    "question-hypothesis", "objectives-workpackages", "conceptual-framework",
-    "scope-boundaries", "contribution-value", "technical-route", "method-architecture",
-    "data-sample-variables", "model-formula", "validation-plan-status",
-    "feasibility-resources", "risk-ethics-contingency", "innovation-claims",
-    "expected-outcomes", "baseline-gantt", "proposal-decision-check",
-    "progress-snapshot", "plan-vs-actual", "leading-result-single",
-    "leading-results-multipanel", "deviation-cause-action", "remaining-work-updated-plan",
-  ]);
-  if (registered.has(normalizedVariant)) return normalizedVariant;
+  if (REGISTERED_LAYOUT_IDS.has(normalizedVariant)) return normalizedVariant;
   if (normalizedVariant) {
     if (raw === "free_canvas" && normalizedVariant.startsWith("custom:")) return "free-evidence";
     throw new Error(`Unknown layout variant "${variant}". Use a registered layout ID, omit variant to map from family, or use family=free_canvas with variant=custom:<slug>.`);
@@ -868,6 +872,139 @@ function semanticItems(slide, keys = [], fallbackCount = 3) {
       body: cleanText(first(entry.body, entry.detail, entry.description, entry.evidence, entry.caption, "")),
     };
   });
+}
+
+const VISUAL_ASSET_MINIMUMS = new Map([
+  ["paper-profile", 1],
+  ["image-left-text-right", 1],
+  ["text-left-image-right", 1],
+  ["image-compare", 2],
+  ["case-compare", 2],
+  ["multi-image-evidence", 2],
+  ["two-image-results", 2],
+  ["figure-conclusion", 1],
+  ["single-result-evidence", 1],
+  ["result-compare", 2],
+  ["multi-result-evidence", 2],
+  ["mechanism-explanation", 1],
+  ["leading-result-single", 1],
+  ["leading-results-multipanel", 2],
+]);
+const DIAGRAM_DATA_LAYOUTS = new Set([
+  "process", "framework", "technical-route", "method-architecture", "conceptual-framework",
+  "method-sequence", "research-evolution",
+]);
+const TABLE_DATA_LAYOUTS = new Set(["table-insight", "validation-matrix", "method-comparison", "cross-paper-matrix"]);
+const CHART_DATA_LAYOUTS = new Set(["chart-insight", "table-chart-result"]);
+const INTERNAL_PLACEHOLDER_TEXT = [
+  /^\s*要点\s*\d{1,2}\s*$/u,
+  /^用与论文证据对应的短句替换这里的说明。?$/u,
+  /^先给出本页的一句话结论。?$/u,
+  /^用一句话解释趋势，而不是复述坐标轴。?$/u,
+  /^示例数据$/u,
+  /^说明本步骤的输入、动作与输出。?$/u,
+  /^说明后续方向、验证方法与可交付结果。?$/u,
+];
+
+function isProductionArtifact(spec) {
+  return cleanText(first(spec?.artifact_purpose, "production")).toLowerCase() !== "layout_gallery";
+}
+
+function hasMeaningfulValue(value) {
+  if (typeof value === "string") return Boolean(cleanText(value));
+  if (typeof value === "number" || typeof value === "boolean") return true;
+  if (Array.isArray(value)) return value.some(hasMeaningfulValue);
+  if (isObject(value)) return Object.values(value).some(hasMeaningfulValue);
+  return false;
+}
+
+function containsInternalPlaceholder(value) {
+  if (typeof value === "string") return INTERNAL_PLACEHOLDER_TEXT.some((pattern) => pattern.test(value.trim()));
+  if (Array.isArray(value)) return value.some(containsInternalPlaceholder);
+  if (isObject(value)) return Object.values(value).some(containsInternalPlaceholder);
+  return false;
+}
+
+function customFormulaElementMatches(slideSpec, formulaAssetRef) {
+  return list(first(renderData(slideSpec).custom_elements, renderData(slideSpec).customElements, []))
+    .some((element) => cleanText(element?.type).toLowerCase() === "formula"
+      && (!formulaAssetRef || cleanText(first(element?.asset_ref, element?.assetRef, element?.asset, element?.path, element?.src)) === formulaAssetRef));
+}
+
+function assertProfileAndShellContract(slideSpec, context, layoutId, slideNumber) {
+  const allowed = PROFILE_LAYOUT_IDS[context.profile];
+  const customEscape = layoutId === "free-evidence" && cleanText(slideSpec.layout?.family).toLowerCase() === "free_canvas";
+  if (!allowed?.has(layoutId) && !customEscape) {
+    throw new Error(`Layout "${layoutId}" is not registered for profile=${context.profile} on slide ${slideSpec.id ?? slideNumber}. Select a layout from the active profile or use an explicit custom free_canvas.`);
+  }
+  if (!isProductionArtifact(context.spec)) return;
+  const kind = cleanText(slideSpec.kind).toLowerCase();
+  const expected = PROFILE_SHELL_LAYOUTS[context.profile]?.[kind];
+  if (expected && !expected.has(layoutId)) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} has kind=${kind} but resolves to layout="${layoutId}"; expected one of: ${[...expected].join(", ")}.`);
+  }
+  const shellKind = SHELL_KIND_BY_LAYOUT.get(layoutId);
+  if (shellKind && shellKind !== kind) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} resolves to ${shellKind} shell layout="${layoutId}" but declares kind=${kind || "missing"}.`);
+  }
+}
+
+function assertProductionRendererPayload(slideSpec, context, layoutId, slideNumber) {
+  if (!isProductionArtifact(context.spec)) return;
+  if (containsInternalPlaceholder({ content: slideSpec.content, render_data: slideSpec.render_data, bullets: slideSpec.bullets })) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} contains renderer placeholder copy. Replace it with thesis-specific evidence before building.`);
+  }
+  if (!isProductionSubstantiveKind(slideSpec)) return;
+  const payloadProblems = productionPayloadProblems(slideSpec, layoutId);
+  if (payloadProblems.length > 0) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} has an incomplete payload for layout="${layoutId}": ${payloadProblems[0]}`);
+  }
+  const assets = slideAssetRequests(slideSpec, context.assetIndex, context.baseDir).filter((asset) => asset && !asset.placeholder);
+  const minimumAssets = VISUAL_ASSET_MINIMUMS.get(layoutId);
+  if (minimumAssets && assets.length < minimumAssets) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs ${minimumAssets} real asset(s) for layout="${layoutId}"; visual placeholders are not allowed.`);
+  }
+  if (CHART_DATA_LAYOUTS.has(layoutId)) {
+    const chart = first(renderData(slideSpec).chart, slideSpec.chart);
+    if (assets.length === 0 && !(isObject(chart) && list(chart.series).length > 0 && list(chart.categories).length > 0)) {
+      throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs a declared chart asset or explicit chart categories and series; sample chart data is forbidden.`);
+    }
+  }
+  if (TABLE_DATA_LAYOUTS.has(layoutId)) {
+    const table = first(renderData(slideSpec).table, slideSpec.table);
+    const rows = first(table?.rows, renderData(slideSpec).rows, slideSpec.rows);
+    const headers = first(table?.headers, renderData(slideSpec).columns, slideSpec.columns);
+    if (!hasMeaningfulValue(rows) || !hasMeaningfulValue(headers)) {
+      throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs explicit table headers and rows; renderer example rows are forbidden.`);
+    }
+  }
+  if (DIAGRAM_DATA_LAYOUTS.has(layoutId)) {
+    const events = first(renderData(slideSpec).events, slideSpec.events, slideSpec.timeline, slideSpec.diagram?.nodes, slideSpec.nodes);
+    if (!hasMeaningfulValue(events)) {
+      throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs explicit nodes/events for layout="${layoutId}"; renderer example nodes are forbidden.`);
+    }
+  }
+  if (layoutId === "quote-analysis" && !hasMeaningfulValue(first(renderData(slideSpec).quote, slideSpec.quote, slideSpec.content?.quote?.text))) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs an explicit source quotation; renderer placeholder prose is forbidden.`);
+  }
+  if (["references", "selected-sources"].includes(layoutId)
+    && !hasMeaningfulValue(first(renderData(slideSpec).references, slideSpec.references, slideSpec.bullets, slideSpec.content?.body))) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} needs explicit references; renderer example citations are forbidden.`);
+  }
+  const visualConsumption = rendererVisualConsumption(slideSpec, layoutId);
+  if (visualConsumption.declared.length > 0 && !visualConsumption.supported) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} declares scientific visuals, but layout="${layoutId}" does not render them.`);
+  }
+  if (visualConsumption.unconsumed.length > 0) {
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} declares ${visualConsumption.declared.length} scientific visual(s), but layout="${layoutId}" consumes only ${visualConsumption.consumed.length} of them in renderer order.`);
+  }
+  if (slideSpec.formula?.include === true) {
+    const formulaRef = cleanText(first(slideSpec.formula.asset_ref, slideSpec.formula.assetRef, slideSpec.formula.asset_path, slideSpec.formula.assetPath));
+    const customFormula = layoutId === "free-evidence" && customFormulaElementMatches(slideSpec, formulaRef);
+    if (!FORMULA_RENDERER_LAYOUTS.has(layoutId) && !customFormula) {
+      throw new Error(`Production slide ${slideSpec.id ?? slideNumber} declares formula.include=true, but layout="${layoutId}" does not render that formula.`);
+    }
+  }
 }
 
 function buildAssetIndex(spec, baseDir) {
@@ -4447,6 +4584,8 @@ async function renderSlide(slide, spec, slideSpec, context, slideNumber) {
   if (context.profile !== "proposal_midterm" && MILESTONE_EXCLUSIVE_LAYOUTS.has(layoutId)) {
     throw new Error(`Layout "${layoutId}" belongs to profile=proposal_midterm, but slide ${slideSpec.id ?? slideNumber} uses profile=${context.profile}. Use that profile or select a layout/free canvas appropriate to the active profile.`);
   }
+  assertProfileAndShellContract(slideSpec, context, layoutId, slideNumber);
+  assertProductionRendererPayload(slideSpec, context, layoutId, slideNumber);
   if (context.profile === "proposal_midterm") {
     const galleryMode = context.spec?.project_id === "proposal-midterm-layout-library"
       ? cleanText(renderData(slideSpec).mode)
@@ -4822,7 +4961,10 @@ export async function createPresentationFromSpec(spec, options = {}) {
   const layouts = createSemanticLayouts(presentation, colors);
   const sectionIndex = new Map(list(spec.sections).map((section) => [section?.id, section]));
   const mode = profile === "proposal_midterm" ? normalizeMilestoneMode(spec) : null;
-  const context = { spec, profile, mode, tokens, colors, brand, baseDir, assetIndex, sectionIndex, allowPlaceholder: options.allowPlaceholder ?? true };
+  const context = {
+    spec, profile, mode, tokens, colors, brand, baseDir, assetIndex, sectionIndex,
+    allowPlaceholder: isProductionArtifact(spec) ? false : (options.allowPlaceholder ?? true),
+  };
   const slides = [...spec.slides].sort((left, right) => Number(first(left.order, 0)) - Number(first(right.order, 0)));
   for (const [index, slideSpec] of slides.entries()) {
     const slide = presentation.slides.add();

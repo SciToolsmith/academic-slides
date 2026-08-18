@@ -132,4 +132,4 @@ JSON Schema 之外至少检查：
 
 在内部工作区记录检查时间、输入版本、构建命令、渲染方式、通过项、剩余警告和已知限制；QA 报告不进入客户包。硬失败为零且重要警告已修复或明确披露时即标记为可交付并停止，不再为可选润色消耗额外轮次。
 
-维护或发布 Skill 时，额外运行 `scripts/run-skill-evals.mjs`、`scripts/validate-skill-assets.mjs --profile release --strict` 和精简发布打包检查。真实模型触发、叙事质量与视觉判断仍需代表性人工抽查；确定性脚本不得把结构覆盖率伪装成模型质量分数。
+维护或发布 Skill 时，先运行 `scripts/validate-skill-assets.mjs --profile release --strict`；它已包含规定的测试、确定性 eval 和预发布打包检查。只有实际写出发布暂存目录或压缩包时才再次调用 `package-skill.mjs`，不要单独重复运行全套测试或 `run-skill-evals.mjs`。只有隔离失败、采集耗时或开发某项测试时才定向运行对应命令。真实模型触发、叙事质量与视觉判断仍需代表性人工抽查；确定性脚本不得把结构覆盖率伪装成模型质量分数。
