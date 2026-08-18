@@ -154,7 +154,12 @@ function canonicalSpecHash(spec) {
 }
 
 function builderSource(spec, names, themePreset) {
-  const serialized = JSON.stringify(spec, null, 2).replaceAll("</script>", "<\\/script>");
+  // Encode doubled JSON backslashes as Unicode escapes in the generated source.
+  // The embedded object round-trips exactly, while delivery scanners no longer
+  // mistake JSON-escaped LaTeX commands (for example "\\\\frac") for UNC paths.
+  const serialized = JSON.stringify(spec, null, 2)
+    .replaceAll("\\\\", "\\u005c")
+    .replaceAll("</script>", "<\\/script>");
   const specSha256 = canonicalSpecHash(spec);
   return `#!/usr/bin/env node
 

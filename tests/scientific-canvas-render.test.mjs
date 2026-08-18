@@ -80,12 +80,12 @@ const scientificDeck = makeOneSlideDeck(sample, {
 }, {
   chrome: "none",
   custom_elements: [
-    { type: "shape", name: "shared-model", text: "", x: 60, y: 220, w: 220, h: 100, fill: "primaryLight", line: "primary" },
+    { type: "shape", name: "shared-model", geometry: "rounded_rect", text: "", x: 60, y: 220, w: 220, h: 100, fill: "primaryLight", line: "primary" },
     { type: "text", name: "shared-label", text: "公共模型", x: 84, y: 246, w: 170, h: 44, style: { fontSize: 22, bold: true, color: "primaryDark", alignment: "center" } },
     { type: "connector", name: "branch-up", direction: "right", x: 282, y: 192, w: 120, h: 18, color: "secondary" },
     { type: "connector", name: "branch-down", direction: "right", x: 282, y: 332, w: 120, h: 18, color: "secondary" },
     { type: "formula", name: "equation-slot", asset_ref: null, alt: "LaTeX 公式", x: 430, y: 176, w: 310, h: 86 },
-    { type: "annotation", name: "claim-callout", text: "分支工况在同一验证层汇合", x: 780, y: 214, w: 360, h: 82, fill: "primaryLight", color: "emphasis" },
+    { type: "annotation", name: "claim-callout", geometry: "rounded-rect", text: "分支工况在同一验证层汇合", x: 780, y: 214, w: 360, h: 82, fill: "primaryLight", color: "emphasis" },
     { type: "highlight", name: "evidence-highlight", geometry: "ellipse", x: 430, y: 300, w: 250, h: 120, color: "emphasis" },
     { type: "metric", name: "result-metric", text: "+24%", x: 820, y: 344, w: 230, h: 66, color: "emphasis" },
   ],
@@ -111,6 +111,57 @@ try {
   assert.match(slideXml.stdout, /\+24%/);
 } finally {
   await fs.rm(temporary, { recursive: true, force: true });
+}
+
+const groupedReferenceDeck = makeOneSlideDeck(sample, {
+  family: "summary",
+  variant: "references",
+  rationale: "Reference groups must render from explicit grouped content.",
+  reading_order: ["模型来源", "验证来源"],
+}, {
+  groups: [
+    { label: "模型来源", entries: [{ text: "[1] 原论文，第2章。" }] },
+    { label: "验证来源", items: ["[2] 原论文，图4-7。"] },
+  ],
+});
+const builtReferences = await createPresentationFromSpec(groupedReferenceDeck, { allowPlaceholder: true });
+const referencesTemporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-reference-groups-"));
+try {
+  const output = path.join(referencesTemporary, "reference-groups.pptx");
+  await exportPresentation(builtReferences.presentation, output);
+  const slideXml = await execFileAsync("unzip", ["-p", output, "ppt/slides/slide1.xml"], {
+    encoding: "utf8",
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  for (const expected of ["模型来源", "验证来源", "原论文，第2章", "原论文，图4-7"]) {
+    assert.match(slideXml.stdout, new RegExp(expected), `expected grouped reference content ${expected}`);
+  }
+  assert.doesNotMatch(slideXml.stdout, /作者\. 题名/);
+} finally {
+  await fs.rm(referencesTemporary, { recursive: true, force: true });
+}
+
+const contentReferenceDeck = makeOneSlideDeck(sample, {
+  family: "summary",
+  variant: "references",
+  rationale: "Reference bullets in content must be rendered.",
+  reading_order: ["来源"],
+}, {}, {
+  content: { title: "来源索引", bullets: [{ text: "[1] 原论文，第3章。", level: 0 }], body: [] },
+});
+const builtContentReferences = await createPresentationFromSpec(contentReferenceDeck, { allowPlaceholder: true });
+const contentReferencesTemporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-reference-content-"));
+try {
+  const output = path.join(contentReferencesTemporary, "reference-content.pptx");
+  await exportPresentation(builtContentReferences.presentation, output);
+  const slideXml = await execFileAsync("unzip", ["-p", output, "ppt/slides/slide1.xml"], {
+    encoding: "utf8",
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  assert.match(slideXml.stdout, /原论文，第3章/);
+  assert.doesNotMatch(slideXml.stdout, /作者\. 题名/);
+} finally {
+  await fs.rm(contentReferencesTemporary, { recursive: true, force: true });
 }
 
 const wrongRibbon = makeOneSlideDeck(sample, {

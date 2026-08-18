@@ -1,11 +1,12 @@
 # 素材准备与资产目录
 
-在设计大纲前建立可追溯的素材库。完整提取用于检索，是否进入 PPT 由后续叙事决定。
+在设计大纲前建立可追溯的候选索引。原始解析结果只留在来源缓存；正式资产目录只接收入选或用户明确要求交付的素材。
 
 ## 目录
 
 - [建议目录](#建议目录)
 - [论文图片提取](#论文图片提取)
+- [MinerU 候选资产](#mineru-候选资产)
 - [图片说明文档](#图片说明文档)
 - [表格和数据图表](#表格和数据图表)
 - [公式](#公式)
@@ -17,6 +18,14 @@
 ```text
 project/
 ├── source/
+│   └── normalized/
+│   │   ├── document-index.json
+│   │   ├── blocks.ndjson
+│   │   ├── page-map.json
+│   │   ├── figure-candidates.json
+│   │   ├── table-candidates.json
+│   │   ├── formula-candidates.json
+│   │   └── extraction-record.json
 ├── assets/
 │   ├── figures/
 │   │   ├── original/
@@ -32,13 +41,14 @@ project/
 │       ├── logo.png
 │       └── logo.meta.json
 ├── evidence-index.json
+├── phase-metrics.json
 ├── project-config.json
 └── deck-spec.json
 ```
 
-以上目录是 Codex 内部工作区，不是客户交付结构。`source/`、manifest、项目配置、deck spec、证据索引、联系表、logo 元数据和分析文件不得整目录复制给客户。
+以上目录是 Codex 内部工作区，不是客户交付结构。供应商原始包与远程响应应放在可忽略的缓存目录，而不是 `assets/`。`source/`、manifest、项目配置、deck spec、deck map、证据索引、阶段指标、联系表、logo 元数据和分析文件不得整目录复制给客户。
 
-客户包只保留 `references/delivery.md` 规定的 `assets/`。先在内部建立一个“已筛选素材目录”，再交给 staging 脚本；不要直接传入完整工作资产库。交付侧按需创建 `figures/`、`formulas/`、`branding/` 和 `data/`；空子目录不创建。论文/单篇文献项目可按用户要求交付完整忠实图集与 `论文图片说明.md`；多篇文献组会默认只交付入选和重点分析图片。机器 manifest、联系表、公式临时 PDF、编译日志、品牌元数据、未使用素材和品牌候选不交付。交付 `data/` 只允许本稿真正依赖的 CSV/XLSX；内部 JSON 数据应在 MJS 中嵌入或转成受控表格，不直接散发。
+客户包只保留 `references/delivery.md` 规定的 `assets/`。先在内部建立一个“已筛选素材目录”，再交给 staging 脚本；不要直接传入完整工作资产库。交付侧按需创建 `figures/`、`formulas/`、`branding/` 和 `data/`；空子目录不创建。论文/单篇文献项目只有在用户明确要求时才交付完整忠实图集与 `论文图片说明.md`，并把它们计入显式选择集；多篇文献组会默认只交付入选和重点分析图片。机器 manifest、联系表、公式临时 PDF、编译日志、品牌元数据、未使用素材和品牌候选不交付。交付 `data/` 只允许本稿真正依赖的 CSV/XLSX；内部 JSON 数据应在 MJS 中嵌入或转成受控表格，不直接散发。
 
 论文图、表格、公式、校徽和装饰素材必须分开。不得覆盖 `original/`；裁白边、增强、标注、拆分或格式转换的结果放入 `ready/` 并记录转换过程。
 
@@ -56,6 +66,18 @@ project/
 8. 校验“识别到的图注数、manifest 记录数、实际文件数”，解释所有差异。
 
 低清、缺图例、裁切不完整或疑似引用外部资料的图片标记复核。不要默认使用生成式修复补出不存在的细节。
+
+## MinerU 候选资产
+
+只有在用户明确授权上传或提供现成 MinerU 解压结果时，才按 `references/mineru-source.md` 使用 MinerU。解析器输出的图、表和公式都是候选，不是已核验资产：
+
+1. 首次只读取 `document-index.json`；不得直接读取候选清单、`blocks.ndjson`、`full.md`、`content_list`、`model`/`layout`、HTML 或 TeX；
+2. 此后只通过 `scripts/retrieve-source-evidence.mjs` 按页码、候选 ID、类型或关键词 hydrate 当前叙事需要的证据；
+3. 仅把入选候选复制或忠实重裁到 `assets/**/original/`，再为实际页面需要建立 `ready/` 变体；
+4. 用源 PDF 核对关键数字、单位、公式上下标、表格列关系、图注归属和多面板组合；
+5. MinerU 小图不满足投影清晰度时，从源 PDF 高分辨率重裁，不做生成式补细节。
+
+同页多个图片块可能属于一张多面板图。结合图号、图注、bbox、阅读顺序和源页视觉检查后再决定整体保留或拆分；不得把解析器的块边界当作论文语义边界。归一化候选 ID 保持稳定，正式 manifest 记录其候选 ID、源页、原始 bbox、验证状态和后续转换。
 
 ## 图片说明文档
 
@@ -123,9 +145,10 @@ project/
 
 ## 资产选择与加工
 
-- 在大纲阶段先选择稳定资产 ID，再制作 `ready/` 版本。
+- 在大纲阶段先选择稳定资产 ID，再制作 `ready/` 版本。除显式完整图集外，`ready/` 的规范资产数不得大于入选资产数；一个入选资产可以因已记录的兼容或版式需要拥有少量变体。
 - 论文原创图与论文引用图必须区分；后者不能写成作者原创成果。
 - 标注只突出已有证据，不添加论文未支持的结论。
 - 裁切、旋转、增强、重绘和格式转换全部进入 provenance。
 - 视觉素材应有 alt text 或可供讲稿使用的内容说明。
 - 同一资产在多页复用时保持颜色、标注含义和裁切逻辑一致。
+- 每次资产阶段结束时记录候选数、入选数、实际加工数、未引用 ready 变体数、缓存命中和耗时；未引用变体必须删除项目引用或记录合法保留理由，不继续批量加工。

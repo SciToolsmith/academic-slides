@@ -18,6 +18,17 @@ coverage/
 *.log
 *.tmp
 
+# Remote source parsing secrets and caches
+.academic-slides-cache/
+.academic-slides-mineru-cache/
+.mineru/
+.mineru-cache/
+mineru-output/
+mineru-raw/
+*.mineru.zip
+raw-retention.json
+phase-metrics.json
+
 # Generated layout inspection and preview artifacts
 assets/*-universal/layout-library.build.json
 assets/*-universal/layout-library*.inspect.ndjson

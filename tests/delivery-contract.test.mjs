@@ -170,11 +170,53 @@ async function main() {
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-delivery-"));
   try {
     const sample = JSON.parse(await fs.readFile(SAMPLE_SPEC, "utf8"));
+    const deliverySpec = threeSlideSpec(sample);
+    const latexRoundTrip = String.raw`\begin{aligned}SCR&=\frac{V_G}{\omega_0 L_g I_N}\end{aligned}`;
+    const formulaSlide = deliverySpec.slides[2];
+    formulaSlide.layout = { ...formulaSlide.layout, family: "figure_formula", variant: "formula-visual" };
+    formulaSlide.content.title = "公式与响应关系";
+    formulaSlide.text_emphasis = [{ text: "公式与响应关系", role: "key" }];
+    formulaSlide.formula = {
+      include: true,
+      reason: "Delivery serialization regression fixture for LaTeX metadata.",
+      equation_ref: "Eq. fixture",
+      latex: latexRoundTrip,
+      render_method: "latex_svg",
+      role: "method_core",
+      variables_to_explain: [{ symbol: "SCR", meaning: "short-circuit ratio", unit: null }],
+      plain_meaning: "The equation links grid strength to the modeled inductive impedance.",
+      source_refs: ["layout-registry"],
+      asset_ref: "latex-fixture",
+    };
+    formulaSlide.visuals = [{
+      id: "latex-linked-result",
+      type: "chart",
+      role: "explanation",
+      include: true,
+      rationale: "Show the response associated with the equation.",
+      asset_ref: "linked-result",
+      source_refs: ["layout-registry"],
+      caption: "Response linked to the equation",
+      alt_text: "Response curve",
+      placement: "right",
+      crop: "contain",
+      highlight: "critical response",
+      transformations: ["annotate"],
+    }];
+    deliverySpec.assets = [
+      { id: "latex-fixture", path: "assets/formulas/latex-fixture.svg", type: "formula", alt_text: "Rendered formula", caption: null, source_ref: "layout-registry", fit: "contain" },
+      { id: "linked-result", path: "assets/figures/ready/linked-result.svg", type: "chart", alt_text: "Linked response", caption: "Response linked to the equation", source_ref: "layout-registry", fit: "contain" },
+    ];
+    const fixtureSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120"><rect width="400" height="120" fill="white"/><path d="M20 100 C120 20 260 100 380 20" fill="none" stroke="#1f5aa6" stroke-width="4"/></svg>';
+    await fs.mkdir(path.join(temporary, "assets", "formulas"), { recursive: true });
+    await fs.mkdir(path.join(temporary, "assets", "figures", "ready"), { recursive: true });
+    await fs.writeFile(path.join(temporary, deliverySpec.assets[0].path), fixtureSvg, "utf8");
+    await fs.writeFile(path.join(temporary, deliverySpec.assets[1].path), fixtureSvg, "utf8");
     const specPath = path.join(temporary, "deck-spec.json");
-    await fs.writeFile(specPath, `${JSON.stringify(threeSlideSpec(sample), null, 2)}\n`, "utf8");
+    await fs.writeFile(specPath, `${JSON.stringify(deliverySpec, null, 2)}\n`, "utf8");
     const validation = await validateDeckSpecFile(specPath, { strict: true, requireSchema: true });
     assert.deepEqual(validation.issues, []);
-    const inMemoryValidation = await validateDeckSpec(threeSlideSpec(sample), { strict: true, requireSchema: true });
+    const inMemoryValidation = await validateDeckSpec(deliverySpec, { strict: true, requireSchema: true });
     assert.deepEqual(inMemoryValidation.issues, []);
 
     const invalidCases = [
@@ -228,6 +270,13 @@ async function main() {
     assert.match(generated, /"artifact_purpose":"production"/);
     assert.match(generated, /validate-scientific-design\.mjs/);
     assert.match(generated, /validateScientificDesign\(deckSpec, \{ strict: true \}\)/);
+    assert.match(generated, /\\u005cbegin\{aligned\}/, "generated source should encode JSON-escaped LaTeX backslashes as Unicode escapes");
+    assert.doesNotMatch(generated, /"latex"\s*:\s*"\\\\begin/, "generated source must not expose LaTeX as a UNC-like doubled-backslash prefix");
+    const embeddedJson = generated.slice(
+      generated.indexOf("const deckSpec = ") + "const deckSpec = ".length,
+      generated.indexOf(";\nconst themePreset ="),
+    );
+    assert.equal(JSON.parse(embeddedJson).slides[2].formula.latex, latexRoundTrip, "Unicode escape serialization must preserve the exact formula string");
     await assert.rejects(() => createProjectBuilder({
       spec: specPath,
       output: path.join(temporary, `${STEM}.mjs`),
@@ -335,13 +384,17 @@ async function main() {
 
     const assetSource = path.join(temporary, "asset-source");
     await fs.mkdir(path.join(assetSource, "figures", "original"), { recursive: true });
+    await fs.mkdir(path.join(assetSource, "figures", "ready"), { recursive: true });
+    await fs.mkdir(path.join(assetSource, "formulas"), { recursive: true });
     await fs.writeFile(path.join(assetSource, "figures", "original", "图1.1 示例图.png"), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+    await fs.writeFile(path.join(assetSource, "figures", "ready", "linked-result.svg"), fixtureSvg, "utf8");
+    await fs.writeFile(path.join(assetSource, "formulas", "latex-fixture.svg"), fixtureSvg, "utf8");
     await fs.writeFile(path.join(assetSource, "figures", "论文图片说明.md"), "# 论文图片说明\n", "utf8");
     const delivery = path.join(temporary, STEM);
     const staged = await stageDelivery({ output: delivery, mjs: mjsPath, assets: assetSource });
     assert.deepEqual(staged.parity, { slideCount: 6, notesCount: 6, wordPageCount: 6, specSlideCount: 6 });
     assert.deepEqual((await fs.readdir(delivery)).sort(), [`${STEM}.mjs`, `${STEM}.pptx`, `${STEM}_发言稿.docx`, "assets"].sort());
-    assert.equal(await fs.access(path.join(delivery, "assets", "formulas")).then(() => true).catch(() => false), false);
+    assert.equal(await fs.access(path.join(delivery, "assets", "formulas", "latex-fixture.svg")).then(() => true).catch(() => false), true);
 
     const tamperedRoot = path.join(temporary, "tampered-builder");
     await fs.mkdir(tamperedRoot, { recursive: true });

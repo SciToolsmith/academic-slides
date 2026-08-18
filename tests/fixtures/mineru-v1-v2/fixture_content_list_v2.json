@@ -1,0 +1,86 @@
+[
+  [
+    {
+      "type": "title",
+      "content": {
+        "title_content": [{ "type": "text", "content": "第一章 稳定性研究" }],
+        "level": 1
+      },
+      "bbox": [100, 50, 500, 100]
+    },
+    {
+      "type": "paragraph",
+      "content": {
+        "paragraph_content": [{ "type": "text", "content": "本文研究并联系统的小信号稳定性。" }]
+      },
+      "bbox": [100, 120, 900, 190]
+    },
+    {
+      "type": "chart",
+      "content": {
+        "image_source": { "path": "images/panel-left.jpg" },
+        "chart_caption": [],
+        "chart_footnote": []
+      },
+      "bbox": [100, 250, 470, 600]
+    },
+    {
+      "type": "chart",
+      "content": {
+        "image_source": { "path": "images/panel-right.jpg" },
+        "chart_caption": [{ "type": "text", "content": "图1-1 两种控制方式的稳定域对比" }],
+        "chart_footnote": []
+      },
+      "bbox": [500, 250, 870, 600]
+    }
+  ],
+  [
+    {
+      "type": "title",
+      "content": {
+        "title_content": [{ "type": "text", "content": "2.1 控制模型" }],
+        "level": 2
+      },
+      "bbox": [100, 50, 400, 95]
+    },
+    {
+      "type": "equation_interline",
+      "content": {
+        "math_content": "G(s)=\\frac{1}{s+1}\\tag{2.1}",
+        "math_type": "latex",
+        "image_source": { "path": "images/formula.jpg" }
+      },
+      "bbox": [250, 180, 750, 330]
+    },
+    {
+      "type": "table",
+      "content": {
+        "image_source": { "path": "images/parameters.jpg" },
+        "table_caption": [{ "type": "text", "content": "表2-1 参数设置" }],
+        "table_footnote": [],
+        "html": "<table><tr><td>K</td><td>2</td></tr></table>"
+      },
+      "bbox": [120, 400, 880, 650]
+    }
+  ],
+  [
+    {
+      "type": "list",
+      "content": {
+        "list_type": "reference_list",
+        "list_items": [{
+          "item_type": "text",
+          "item_content": [{ "type": "text", "content": "[1] Example, Stable systems, 2025." }]
+        }]
+      },
+      "bbox": [100, 100, 900, 160]
+    },
+    {
+      "type": "page_number",
+      "content": {
+        "page_number_content": [{ "type": "text", "content": "3" }]
+      },
+      "bbox": [490, 930, 510, 950]
+    }
+  ]
+]

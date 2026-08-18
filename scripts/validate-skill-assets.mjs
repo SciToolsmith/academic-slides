@@ -15,6 +15,8 @@ const REQUIRED_SCRIPTS = [
   "validate-deck-spec.mjs",
   "validate-scientific-design.mjs",
   "build-outline.mjs",
+  "build-deck-map.mjs",
+  "audit-production-budget.mjs",
   "build-project.mjs",
   "create-layout-library.mjs",
   "create-group-meeting-layout-library.mjs",
@@ -30,6 +32,8 @@ const REQUIRED_SCRIPTS = [
   "render-word-qa.mjs",
   "create-project-builder.mjs",
   "stage-delivery.mjs",
+  "prepare-source-mineru.mjs",
+  "retrieve-source-evidence.mjs",
 ];
 const RELEASE_ONLY_SCRIPTS = ["build.mjs"];
 const REQUIRED_SCHEMAS = ["project-config.schema.json", "deck-spec.schema.json", "figures-manifest.schema.json", "paper-index.schema.json", "evidence-index.schema.json", "milestone-analysis.schema.json"];
@@ -48,6 +52,10 @@ const REQUIRED_TESTS = [
   "scientific-canvas-render.test.mjs",
   "build-project-cache.test.mjs",
   "final-defense-structure.test.mjs",
+  "production-budget.test.mjs",
+  "mineru-api-contract.test.mjs",
+  "mineru-normalization.test.mjs",
+  "mineru-retrieval.test.mjs",
 ];
 const PROFILE_REGISTRY_PATH = path.join("assets", "profile-registry.json");
 const PROFILE_ASSET_FIELDS = ["layoutLibrary", "layoutRegistry", "templateMap", "designTokens", "themePresets", "librarySpec", "preview"];

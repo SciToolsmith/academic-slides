@@ -1,0 +1,20 @@
+{
+  "assets": {
+    "allowed_missing_refs": [
+      "missing-only"
+    ],
+    "max_unselected_ready_count": 99,
+    "max_unselected_ready_ratio": 1,
+    "untracked_ready_severity": "pass"
+  },
+  "previews": {
+    "max_full_deck_sets": 2
+  },
+  "context": {
+    "max_deck_map_ratio": 0.35,
+    "max_deck_map_bytes": 131072
+  },
+  "word_qa": {
+    "max_full_sets": 2
+  }
+}
