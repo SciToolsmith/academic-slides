@@ -90,6 +90,7 @@ function issue(severity, code, pointer, message, options = {}) {
   const output = { severity, code, path: pointer, message };
   if (options.slideId) output.slide_id = options.slideId;
   if (options.order != null) output.order = options.order;
+  if (options.strictExempt === true) output.strict_exempt = true;
   return output;
 }
 
@@ -807,7 +808,7 @@ export function validateScientificDesign(deck, options = {}) {
         "scientific.visuals.unprocessed",
         `${pointer}/visuals`,
         "All scientific visuals actually consumed by the renderer are only contained/cropped or have no presentation treatment. Add an evidence-directed annotation, split, zoom, inset, or faithful redraw where it improves reading.",
-        optionsForSlide,
+        { ...optionsForSlide, strictExempt: !isCoreResultOrValidation(slide) },
       ));
     }
 
@@ -817,7 +818,7 @@ export function validateScientificDesign(deck, options = {}) {
         "scientific.visuals.complex_dual_column_unannotated",
         `${pointer}/layout`,
         "A complex chart/diagram is placed in a dual-column comparison without an applied per-visual treatment. Prepare an annotated/zoomed/split asset or use a custom scientific canvas; metadata-only annotation plans do not alter the rendered slide.",
-        optionsForSlide,
+        { ...optionsForSlide, strictExempt: clean(slide?.priority).toLowerCase() !== "core" },
       ));
     }
 
@@ -828,7 +829,7 @@ export function validateScientificDesign(deck, options = {}) {
         "scientific.conclusion.duplicated",
         pointer,
         `The same conclusion is repeated in ${duplicate[0].label} and ${duplicate[1].label}. Keep one conclusion and use the remaining space for evidence or boundary.`,
-        optionsForSlide,
+        { ...optionsForSlide, strictExempt: true },
       ));
     }
 
@@ -913,7 +914,7 @@ export function validateScientificDesign(deck, options = {}) {
         "scientific.layout.variant_repetition",
         slidePointer(first.index, "/layout/variant"),
         `Layout variant "${variant}" repeats for ${end - start} consecutive slides (orders ${first.slide?.order ?? "?"}–${last.slide?.order ?? "?"}). Vary the evidence canvas unless the repeated structure is analytically necessary.`,
-        slideOptions(first.slide),
+        { ...slideOptions(first.slide), strictExempt: true },
       ));
     }
     start = end;
@@ -963,6 +964,7 @@ export function validateScientificDesign(deck, options = {}) {
         "scientific.deck.layout_dominance",
         "$/slides",
         `Generic layout variant "${dominant[0]}" is used on ${dominant[1]} of ${coreTechnicalSlides.length} core slides. Recompose the thesis-specific evidence pages instead of repeating one shell.`,
+        { strictExempt: true },
       ));
     }
 
@@ -977,6 +979,7 @@ export function validateScientificDesign(deck, options = {}) {
         "scientific.deck.generic_shell_dominance",
         "$/slides",
         `${genericShellCount} of ${coreTechnicalSlides.length} core slides use generic card/process/dual-image shells. Recompose more thesis-specific evidence canvases instead of alternating a small set of templates.`,
+        { strictExempt: true },
       ));
     }
   }
@@ -985,7 +988,7 @@ export function validateScientificDesign(deck, options = {}) {
 }
 
 function finalize(findings, strict, galleryExempt) {
-  const issues = findings.map((item) => strict && item.severity === "warning" ? { ...item, severity: "error", promoted_by_strict: true } : item);
+  const issues = findings.map((item) => strict && item.severity === "warning" && item.strict_exempt !== true ? { ...item, severity: "error", promoted_by_strict: true } : item);
   const counts = issues.reduce((result, item) => {
     result[item.severity] = (result[item.severity] ?? 0) + 1;
     return result;

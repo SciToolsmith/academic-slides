@@ -185,8 +185,10 @@ function checkCategoryContract(testCase, location, findings) {
     }
     case "degraded_environment": {
       if (!requireObject(testCase.environment, "case.environment", `${location}.environment`, findings)) break;
-      for (const key of ["latex", "localMathRenderer", "verifiedLogoMatch"]) if (testCase.environment[key] !== false) findings.push(finding("error", "case.degraded-flag", `${location}.environment.${key}`, "Degraded fixture must explicitly disable this capability."));
+      for (const key of ["latex", "verifiedLogoMatch"]) if (testCase.environment[key] !== false) findings.push(finding("error", "case.degraded-flag", `${location}.environment.${key}`, "Degraded fixture must explicitly disable this capability."));
+      if (testCase.environment.bundledMathJax !== true || testCase.environment.localMathRenderer !== true) findings.push(finding("error", "case.bundled-mathjax", `${location}.environment`, "The zero-install degraded fixture must retain the bundled MathJax renderer."));
       requireArray(expected.existingFormulaFallbacksAllowed, "case.formula-fallback", `${location}.expected.existingFormulaFallbacksAllowed`, findings);
+      requireArray(expected.newFormulaFallbacksAllowed, "case.formula-fallback", `${location}.expected.newFormulaFallbacksAllowed`, findings);
       requireArray(expected.brandingFallbacksAllowed, "case.branding-fallback", `${location}.expected.brandingFallbacksAllowed`, findings);
       if (expected.mustPreserveSelectedTheme !== true || expected.brandingFallbacksAllowed?.includes("neutral_theme")) {
         findings.push(finding("error", "case.branding-theme-independence", location, "Missing or unverified branding must not change the selected theme preset."));

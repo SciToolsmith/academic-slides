@@ -64,7 +64,7 @@
 }
 ```
 
-`connector` 只表示单段可编辑方向关系；分支或折线连线用多段 connector 组合，不得穿过文字。`formula` 引用已经 LaTeX 管线验证的 SVG/PNG 资产；`highlight` 与 `annotation` 必须指向具体证据，不作装饰。元素颜色优先使用 `primary`、`primaryDark`、`secondary`、`emphasis`、`warning` 等语义 token，正式规格不直写颜色值。
+`connector` 只表示单段可编辑方向关系；分支或折线连线用多段 connector 组合，不得穿过文字。`formula` 引用已经单一公式管线验证的 LaTeX 或内置 MathJax SVG/PNG 资产；`highlight` 与 `annotation` 必须指向具体证据，不作装饰。元素颜色优先使用 `primary`、`primaryDark`、`secondary`、`emphasis`、`warning` 等语义 token，正式规格不直写颜色值。
 
 ## 语义强调层
 
@@ -162,6 +162,7 @@ node scripts/validate-scientific-design.mjs deck-spec.json --strict
 
 - 流程图的形状必须服从论文关系。`diagram.edges` 存在分支、汇合、反馈、循环或节点多入/多出时，不得选择 `four-step-ribbon`、线性时间线、阶梯或流水线版式。并网/离网等共享基础后的并行分析应使用分叉—汇合、泳道或自由证据画布；控制闭环必须画出反馈。
 - 核心结果与验证页必须有已渲染的第一落点：可编辑 `text_emphasis`、已选中的 `ready/` 标注/局部放大/拆分资产，或自由画布中真实的 `annotation`/`highlight` 至少一种。`visual_focus` 和 `annotation_plan` 只记录设计意图，未被渲染器消费时不能独立通过落实门禁。不能只把两张复杂曲线缩进双栏，再把关键频点写在页脚。
+- 上一条只证明页面具有视觉焦点。在 `group_meeting_v1` 中，核心发现还必须让 renderer 真正消费对应的源图、表、源文本摘录或公式证据；`text_emphasis` 单独不能满足源证据合同。
 - 原论文图只做 `contain` 或普通裁边不算演示化处理。评委需要定位读图位置时，应按证据需要选择标注、局部放大、拆分面板或忠实重绘；不得为了通过门禁添加没有信息的箭头。
 - 复杂 chart/diagram 进入双栏前必须有 `annotation_plan`。若坐标轴、图例、单位或子图文字在投影尺度不可读，放大、拆页或从可靠数据忠实重绘，不能继续缩小。
 - 标题可承担结论，但同一句结论不得再原样出现在 `takeaway` 与底部结论条。其余空间用于证据、解释或适用边界。

@@ -1,5 +1,16 @@
 # Third-Party Notices
 
+## MathJax
+
+This repository includes a minimal, unmodified runtime subset of MathJax
+3.2.2 under `scripts/vendor/mathjax/3.2.2/`. MathJax is distributed under the
+Apache License 2.0. The bundled copy of that license and the selected-file
+manifest are stored alongside the runtime.
+
+Project: https://www.mathjax.org/
+
+Source: https://github.com/mathjax/MathJax/tree/3.2.2
+
 ## University names, seals, and logos
 
 This repository does not bundle university seals or logos.

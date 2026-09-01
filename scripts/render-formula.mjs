@@ -2,10 +2,17 @@
 
 import { spawn } from "node:child_process";
 import { access, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const require = createRequire(import.meta.url);
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const BUNDLED_MATHJAX_VERSION = "3.2.2";
+const BUNDLED_MATHJAX_ENTRY = path.join(SCRIPT_DIR, "vendor", "mathjax", BUNDLED_MATHJAX_VERSION, "es5", "node-main.js");
+let bundledMathJaxPromise = null;
 
 const MAX_EXPRESSION_LENGTH = 12_000;
 const SAFE_MATH_COMMANDS = new Set([
@@ -15,7 +22,7 @@ const SAFE_MATH_COMMANDS = new Set([
   "operatorname", "substack", "overset", "underset", "stackrel", "binom", "dbinom", "tbinom", "boxed", "overbrace", "underbrace", "overrightarrow", "overleftarrow",
   "mathbf", "mathrm", "mathit", "mathsf", "mathtt", "mathcal", "mathbb", "mathfrak", "boldsymbol", "bm", "text", "textnormal", "textrm", "textit", "textbf",
   "vec", "hat", "widehat", "bar", "overline", "underline", "tilde", "widetilde", "dot", "ddot", "dddot", "breve", "check", "acute", "grave",
-  "left", "right", "middle", "big", "Big", "bigg", "Bigg", "bigl", "bigr", "Bigl", "Bigr", "biggl", "biggr", "Biggl", "Biggr", "lbrace", "rbrace", "langle", "rangle", "lvert", "rvert", "lVert", "rVert", "lfloor", "rfloor", "lceil", "rceil",
+  "left", "right", "middle", "mid", "vert", "Vert", "big", "Big", "bigg", "Bigg", "bigl", "bigr", "Bigl", "Bigr", "biggl", "biggr", "Biggl", "Biggr", "lbrace", "rbrace", "langle", "rangle", "lvert", "rvert", "lVert", "rVert", "lfloor", "rfloor", "lceil", "rceil",
   "le", "leq", "ge", "geq", "ne", "neq", "approx", "sim", "simeq", "cong", "equiv", "propto", "ll", "gg", "prec", "succ", "preceq", "succeq",
   "in", "notin", "ni", "subset", "supset", "subseteq", "supseteq", "cup", "cap", "setminus", "emptyset", "varnothing",
   "cdot", "times", "div", "pm", "mp", "ast", "star", "circ", "bullet", "oplus", "ominus", "otimes", "oslash", "odot", "wedge", "vee",
@@ -36,21 +43,23 @@ function usage() {
     "       node render-formula.mjs --input <expression.tex> --output-dir <dir> --name <slug> [options]",
     "",
     "Options:",
-    "  --engine <auto|pdflatex|xelatex>  Compilation engine (default: auto)",
+    "  --renderer <auto|latex|mathjax>  Formula renderer (default: auto)",
+    "  --engine <auto|pdflatex|xelatex> LaTeX engine (default: auto)",
     "  --color <RRGGBB>                 Formula color (default: 17213A)",
     "  --dpi <number>                   Transparent PNG resolution (default: 600)",
+    "  --svg-font-size <number>         Natural SVG em size in px (default: 32)",
     "  --validate-only                  Validate expression safety without requiring LaTeX",
     "  -h, --help                       Show this help",
   ].join("\n");
 }
 
 function parseArgs(argv) {
-  const args = { engine: "auto", color: "17213A", dpi: 600 };
+  const args = { renderer: "auto", engine: "auto", color: "17213A", dpi: 600, svgFontSize: 32 };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "-h" || token === "--help") args.help = true;
     else if (token === "--validate-only") args.validateOnly = true;
-    else if (["--latex", "--input", "--output-dir", "--name", "--engine", "--color", "--dpi"].includes(token)) {
+    else if (["--latex", "--input", "--output-dir", "--name", "--renderer", "--engine", "--color", "--dpi", "--svg-font-size"].includes(token)) {
       const value = argv[++index];
       if (!value || value.startsWith("--")) throw new Error(`${token} requires a value.`);
       args[token.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
@@ -60,11 +69,14 @@ function parseArgs(argv) {
   if ((args.latex ? 1 : 0) + (args.input ? 1 : 0) !== 1) throw new Error("Use exactly one of --latex or --input.");
   if (!args.validateOnly && (!args.outputDir || !args.name)) throw new Error("--output-dir and --name are required unless --validate-only is used.");
   if (args.name && !/^[a-zA-Z0-9._-]+$/.test(args.name)) throw new Error("--name may contain only letters, digits, dot, underscore, and hyphen.");
+  if (!/^(auto|latex|mathjax)$/.test(args.renderer)) throw new Error("--renderer must be auto, latex, or mathjax.");
   if (!/^(auto|pdflatex|xelatex)$/.test(args.engine)) throw new Error("--engine must be auto, pdflatex, or xelatex.");
   args.color = String(args.color).replace(/^#/, "").toUpperCase();
   if (!/^[0-9A-F]{6}$/.test(args.color)) throw new Error("--color must be a six-digit hex value.");
   args.dpi = Number(args.dpi);
   if (!Number.isFinite(args.dpi) || args.dpi < 144 || args.dpi > 1200) throw new Error("--dpi must be between 144 and 1200.");
+  args.svgFontSize = Number(args.svgFontSize);
+  if (!Number.isFinite(args.svgFontSize) || args.svgFontSize < 12 || args.svgFontSize > 96) throw new Error("--svg-font-size must be between 12 and 96.");
   return args;
 }
 
@@ -199,18 +211,123 @@ async function chooseEngines(requested, expression) {
     return (await available(requested)) ? [requested] : [];
   }
   const preferred = hasUnicode ? ["xelatex"] : ["pdflatex", "xelatex"];
-  const found = [];
-  for (const engine of preferred) if (await available(engine)) found.push(engine);
-  return found.slice(0, 2);
+  for (const engine of preferred) if (await available(engine)) return [engine];
+  return [];
 }
 
-async function renderFormula(args) {
-  const raw = args.input ? await readFile(path.resolve(args.input), "utf8") : args.latex;
-  const expression = validateMathExpression(raw);
-  const engines = await chooseEngines(args.engine, expression);
-  if (!engines.length) {
-    throw new Error("No local pdflatex/xelatex compiler is available. Use a faithful source-PDF crop, an already available trusted local MathJax/KaTeX renderer, or unicode_text only for a short non-core expression.");
+function escapeXml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+async function loadBundledMathJax() {
+  if (!bundledMathJaxPromise) {
+    bundledMathJaxPromise = Promise.resolve().then(async () => {
+      await access(BUNDLED_MATHJAX_ENTRY);
+      const loader = require(BUNDLED_MATHJAX_ENTRY);
+      return loader.init({
+        loader: { load: ["input/tex-full", "output/svg"] },
+        svg: { fontCache: "none" },
+      });
+    });
   }
+  return bundledMathJaxPromise;
+}
+
+function makePortableSvg(serialized, expression, color, svgFontSize) {
+  const svgMatch = serialized.match(/<svg\b[\s\S]*?<\/svg>/);
+  if (!svgMatch) throw new Error("Bundled MathJax did not return an SVG element.");
+  let svg = svgMatch[0];
+  if (/data-mml-node="merror"|data-mjx-error=|<merror\b/i.test(svg)) throw new Error("Bundled MathJax reported an invalid or unsupported expression.");
+  if (/<text\b/i.test(svg)) throw new Error("Bundled MathJax would require a non-path system-font glyph. Use XeLaTeX or a faithful source-PDF crop for Unicode/CJK formula text.");
+
+  const viewBox = svg.match(/\bviewBox="([^"]+)"/i)?.[1]?.trim().split(/[\s,]+/).map(Number);
+  if (!viewBox || viewBox.length !== 4 || viewBox.some((value) => !Number.isFinite(value)) || viewBox[2] <= 0 || viewBox[3] <= 0) {
+    throw new Error("Bundled MathJax returned an SVG without a valid viewBox.");
+  }
+  const widthPx = (viewBox[2] / 1000) * svgFontSize;
+  const heightPx = (viewBox[3] / 1000) * svgFontSize;
+  const hexColor = `#${color}`;
+  const opening = svg.match(/^<svg\b[^>]*>/)?.[0];
+  if (!opening) throw new Error("Bundled MathJax returned malformed SVG markup.");
+  const portableOpening = opening
+    .replace(/\s(?:style|width|height|color|preserveAspectRatio)="[^"]*"/gi, "")
+    .replace(/^<svg\b/, `<svg width="${widthPx.toFixed(2)}px" height="${heightPx.toFixed(2)}px" color="${hexColor}" preserveAspectRatio="xMidYMid meet"`);
+  svg = `${portableOpening}<title>${escapeXml(expression)}</title>${svg.slice(opening.length)}`
+    .replaceAll("currentColor", hexColor);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${svg}\n`;
+}
+
+async function optionalSharp() {
+  const resolvers = [require];
+  if (process.env.RUNTIME_NODE_MODULES) {
+    resolvers.push(createRequire(path.join(path.resolve(process.env.RUNTIME_NODE_MODULES), "__academic_slides_runtime__.cjs")));
+  }
+  for (const resolver of resolvers) {
+    try {
+      const loaded = resolver("sharp");
+      return loaded.default ?? loaded;
+    } catch {
+      // SVG remains the primary artifact when the optional PNG renderer is absent.
+    }
+  }
+  return null;
+}
+
+export async function renderMathJaxSvg(expression, options = {}) {
+  const normalized = validateMathExpression(expression);
+  if (/[^\x00-\x7F]/.test(normalized)) {
+    throw new Error("Bundled MathJax only accepts ASCII TeX source so that every visible glyph remains a self-contained SVG path. Use XeLaTeX or a source-PDF crop for Unicode/CJK text.");
+  }
+  const color = String(options.color ?? "17213A").replace(/^#/, "").toUpperCase();
+  const svgFontSize = Number(options.svgFontSize ?? 32);
+  if (!/^[0-9A-F]{6}$/.test(color)) throw new Error("MathJax SVG color must be a six-digit hex value.");
+  if (!Number.isFinite(svgFontSize) || svgFontSize < 12 || svgFontSize > 96) throw new Error("MathJax SVG font size must be between 12 and 96 px.");
+  const mathjax = await loadBundledMathJax();
+  const mathml = mathjax.tex2mml(normalized, { display: true });
+  if (/<merror\b|data-mjx-error=|<mtext\b[^>]*mathcolor="red"[^>]*>\s*\\/i.test(mathml)) {
+    throw new Error("Bundled MathJax does not support one or more commands in this expression. Use local LaTeX or a faithful source-PDF crop.");
+  }
+  const node = mathjax.tex2svg(normalized, { display: true });
+  const serialized = mathjax.startup.adaptor.outerHTML(node);
+  return makePortableSvg(serialized, normalized, color, svgFontSize);
+}
+
+async function renderWithMathJax(args, expression, fallbackFrom = null) {
+  const outDir = path.resolve(args.outputDir);
+  await mkdir(outDir, { recursive: true });
+  const finalTex = path.join(outDir, `${args.name}.tex`);
+  const finalSvg = path.join(outDir, `${args.name}.svg`);
+  const finalPng = path.join(outDir, `${args.name}.png`);
+  const svg = await renderMathJaxSvg(expression, { color: args.color, svgFontSize: args.svgFontSize });
+  await writeFile(finalTex, texDocument(expression, args.color), "utf8");
+  await writeFile(finalSvg, svg, "utf8");
+
+  const sharp = await optionalSharp();
+  let pngWritten = false;
+  if (sharp) {
+    await sharp(Buffer.from(svg), { density: args.dpi }).png().toFile(finalPng);
+    pngWritten = true;
+  }
+  return {
+    ok: true,
+    renderer: "bundled-mathjax-svg",
+    mathJaxVersion: BUNDLED_MATHJAX_VERSION,
+    svgBackend: "mathjax-svg-paths",
+    expression,
+    fallbackFrom,
+    outputs: { tex: finalTex, svg: finalSvg, png: pngWritten ? finalPng : null },
+    recommendedAssetRef: finalSvg,
+    compatibilityAssetRef: pngWritten ? finalPng : null,
+    warnings: pngWritten ? [] : ["Optional sharp runtime was unavailable, so only the primary SVG was generated."],
+  };
+}
+
+async function renderWithLatex(args, expression, engines) {
   const outDir = path.resolve(args.outputDir);
   await mkdir(outDir, { recursive: true });
   const tempDir = await mkdtemp(path.join(os.tmpdir(), "academic-formula-"));
@@ -261,6 +378,7 @@ async function renderFormula(args) {
 
     return {
       ok: true,
+      renderer: "local-latex",
       engine: engineUsed,
       svgBackend,
       expression,
@@ -271,6 +389,32 @@ async function renderFormula(args) {
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
+}
+
+async function renderFormula(args) {
+  const normalizedArgs = {
+    renderer: "auto",
+    engine: "auto",
+    color: "17213A",
+    dpi: 600,
+    svgFontSize: 32,
+    ...args,
+  };
+  const raw = normalizedArgs.input ? await readFile(path.resolve(normalizedArgs.input), "utf8") : normalizedArgs.latex;
+  const expression = validateMathExpression(raw);
+  if (normalizedArgs.renderer === "mathjax") return renderWithMathJax(normalizedArgs, expression);
+
+  const engines = await chooseEngines(normalizedArgs.engine, expression);
+  if (engines.length) {
+    try {
+      return await renderWithLatex(normalizedArgs, expression, engines);
+    } catch (error) {
+      if (normalizedArgs.renderer === "latex") throw error;
+      return renderWithMathJax(normalizedArgs, expression, `local LaTeX failed: ${error.message.split("\n")[0]}`);
+    }
+  }
+  if (normalizedArgs.renderer === "latex") throw new Error("No local pdflatex/xelatex compiler is available.");
+  return renderWithMathJax(normalizedArgs, expression, "no local pdflatex/xelatex compiler was available");
 }
 
 async function main() {

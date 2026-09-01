@@ -19,7 +19,7 @@
   ],
   "properties": {
     "schema_version": {
-      "enum": ["1.0", "1.1"]
+      "enum": ["1.0", "1.1", "1.2"]
     },
     "project": {
       "type": "object",
@@ -79,6 +79,11 @@
           "enum": ["auto", "outline_first"],
           "default": "auto"
         },
+        "quality_budget": {
+          "enum": ["balanced_95", "strict_release"],
+          "default": "balanced_95",
+          "description": "Execution policy, not a numeric quality score. balanced_95 keeps all scientific hard gates and stops after one full QA pass plus targeted repair."
+        },
         "aspect_ratio": {
           "const": "16:9",
           "default": "16:9"
@@ -115,6 +120,9 @@
     },
     "milestone_profile": {
       "$ref": "#/$defs/milestoneProfile"
+    },
+    "paths": {
+      "$ref": "#/$defs/projectPaths"
     },
     "identity": {
       "type": "object",
@@ -314,6 +322,26 @@
       "type": "number",
       "minimum": 0,
       "maximum": 1
+    },
+    "projectPaths": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "source_dir": {"type": "string", "minLength": 1},
+        "source_manifest": {"type": "string", "minLength": 1},
+        "thesis_analysis": {"type": "string", "minLength": 1},
+        "milestone_analysis": {"type": "string", "minLength": 1},
+        "figures_manifest": {"type": "string", "minLength": 1},
+        "evidence_index": {"type": "string", "minLength": 1},
+        "paper_index": {"type": "string", "minLength": 1},
+        "outline": {"type": "string", "minLength": 1},
+        "outline_md": {"type": "string", "minLength": 1},
+        "deck_spec": {"type": "string", "minLength": 1},
+        "final_pptx": {"type": "string", "minLength": 1},
+        "output_pptx": {"type": "string", "minLength": 1},
+        "qa_dir": {"type": "string", "minLength": 1}
+      }
     },
     "document": {
       "type": "object",

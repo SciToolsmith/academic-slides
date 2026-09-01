@@ -21,7 +21,7 @@
     "qa"
   ],
   "properties": {
-    "schema_version": {"enum": ["1.0", "1.1"]},
+    "schema_version": {"enum": ["1.0", "1.1", "1.2"]},
     "profile": {
       "enum": ["final_defense", "proposal_midterm", "group_meeting_literature"],
       "description": "Explicit presentation profile used to resolve narrative rules and template assets."
@@ -96,7 +96,7 @@
     },
     {
       "if": {
-        "properties": {"schema_version": {"const": "1.1"}},
+        "properties": {"schema_version": {"enum": ["1.1", "1.2"]}},
         "required": ["schema_version"]
       },
       "then": {
@@ -243,6 +243,11 @@
         },
         "synthesis_question": {
           "type": ["string", "null"]
+        },
+        "scientific_contract": {
+          "enum": ["legacy", "group_meeting_v1"],
+          "default": "group_meeting_v1",
+          "description": "Activates the semantic group-meeting coverage contract without imposing a fixed slide sequence."
         }
       },
       "allOf": [
@@ -509,7 +514,7 @@
         "narrative_roles": {
           "type": "array",
           "items": {
-            "enum": ["background", "gap", "research_question", "objectives", "method", "feasibility", "preliminary_work", "innovation", "ethics", "schedule", "expected_output", "baseline_commitment", "progress_status", "interim_result", "deviation", "risk", "corrective_action", "next_plan", "conclusion"]
+            "enum": ["background", "gap", "why_read", "research_question", "objectives", "method", "evidence_generation", "key_finding", "validation", "credibility", "boundary", "presenter_judgment", "group_relevance", "discussion", "feasibility", "preliminary_work", "innovation", "ethics", "schedule", "expected_output", "baseline_commitment", "progress_status", "interim_result", "deviation", "risk", "corrective_action", "next_plan", "conclusion"]
           },
           "uniqueItems": true,
           "default": []

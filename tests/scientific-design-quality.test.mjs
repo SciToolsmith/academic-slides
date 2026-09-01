@@ -188,8 +188,11 @@ const cropOnlyResult = validateScientificDesign(cropOnly);
 assert(codes(cropOnlyResult).includes("scientific.visuals.unprocessed"), "crop/contain alone is not presentation treatment");
 assert.equal(cropOnlyResult.issues.find((item) => item.code === "scientific.visuals.unprocessed").severity, "warning");
 const cropOnlyStrict = validateScientificDesign(cropOnly, { strict: true });
-assert.equal(cropOnlyStrict.issues.find((item) => item.code === "scientific.visuals.unprocessed").severity, "error", "strict mode must promote scientific warnings");
-assert.equal(cropOnlyStrict.ok, false);
+assert.equal(cropOnlyStrict.issues.find((item) => item.code === "scientific.visuals.unprocessed").severity, "warning", "strict mode must keep non-result visual polish advisory under balanced_95");
+const cropOnlyCoreValidation = structuredClone(cropOnly);
+cropOnlyCoreValidation.slides[0].narrative_roles = ["validation"];
+const cropOnlyCoreStrict = validateScientificDesign(cropOnlyCoreValidation, { strict: true });
+assert.equal(cropOnlyCoreStrict.issues.find((item) => item.code === "scientific.visuals.unprocessed").severity, "error", "strict mode must still promote untreated core result or validation evidence");
 
 const treated = structuredClone(cropOnly);
 treated.slides[0].visuals[0].transformations.push("局部放大并标注 45 Hz 敏感峰");

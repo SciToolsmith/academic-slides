@@ -14,6 +14,8 @@ const REQUIRED_SCRIPTS = [
   "validate-project.mjs",
   "validate-deck-spec.mjs",
   "validate-scientific-design.mjs",
+  "validate-scientific-content.mjs",
+  "extract-paper-assets.mjs",
   "build-outline.mjs",
   "build-project.mjs",
   "create-layout-library.mjs",
@@ -28,14 +30,18 @@ const REQUIRED_SCRIPTS = [
   "speaker-notes.mjs",
   "build-speaker-script.mjs",
   "render-word-qa.mjs",
+  "render-formula.mjs",
   "create-project-builder.mjs",
   "stage-delivery.mjs",
 ];
 const RELEASE_ONLY_SCRIPTS = ["build.mjs"];
-const REQUIRED_SCHEMAS = ["project-config.schema.json", "deck-spec.schema.json", "figures-manifest.schema.json", "paper-index.schema.json", "evidence-index.schema.json", "milestone-analysis.schema.json"];
+const REQUIRED_SCHEMAS = ["project-config.schema.json", "deck-spec.schema.json", "figures-manifest.schema.json", "paper-assets.schema.json", "paper-index.schema.json", "evidence-index.schema.json", "milestone-analysis.schema.json"];
 const REQUIRED_EVALS = ["skill-evals.json"];
 const REQUIRED_TESTS = [
   "p0-security-and-evidence.test.mjs",
+  "mathjax-formula-render.test.mjs",
+  "paper-asset-extraction.test.mjs",
+  "scientific-content-contract.test.mjs",
   "logo-match-safety.test.mjs",
   "proposal-midterm-contract.test.mjs",
   "text-emphasis.test.mjs",
@@ -450,6 +456,17 @@ async function checkProfiles(skillDir, findings, release) {
   if (!(await requireRegisteredFile(registryPath, findings, release, "registry"))) return;
   const registry = await checkJson(registryPath, findings);
   if (!registry) return;
+  if (registry.schemaVersion !== "1.1") findings.push(issue("error", "profile.registry.version", registryPath, `profile-registry.json schemaVersion must be 1.1; received ${registry.schemaVersion ?? "missing"}.`));
+  if (!/^\d+\.\d+\.\d+$/.test(String(registry.skillVersion ?? ""))) findings.push(issue("error", "profile.registry.skill-version", registryPath, "profile-registry.json must declare a semantic skillVersion."));
+  if (!Array.isArray(registry.workflow?.phases) || registry.workflow.phases.length === 0 || !registry.workflow?.phaseReferences) findings.push(issue("error", "profile.registry.workflow", registryPath, "Profile registry must declare workflow phases and phase references."));
+  for (const [phase, references] of Object.entries(registry.workflow?.phaseReferences ?? {})) {
+    if (!Array.isArray(references) || references.length === 0) findings.push(issue("error", "profile.registry.phase-references", registryPath, `workflow.phaseReferences.${phase} must be a non-empty array.`));
+    for (const relative of references ?? []) {
+      const absolute = path.resolve(skillDir, relative);
+      if (absolute !== skillDir && !absolute.startsWith(`${skillDir}${path.sep}`)) findings.push(issue("error", "profile.registry.phase-reference-path", registryPath, `Phase reference escapes the Skill directory: ${relative}.`));
+      else if (!(await exists(absolute))) findings.push(issue("error", "profile.registry.phase-reference-missing", absolute, `Registered ${phase} phase reference is missing.`));
+    }
+  }
   if (!registry.profiles || typeof registry.profiles !== "object" || Array.isArray(registry.profiles) || Object.keys(registry.profiles).length === 0) {
     findings.push(issue("error", "profile.registry.shape", registryPath, "profile-registry.json must contain a non-empty profiles object."));
     return;
@@ -457,7 +474,17 @@ async function checkProfiles(skillDir, findings, release) {
   if (!registry.profiles[registry.defaultProfile]) findings.push(issue("error", "profile.registry.default", registryPath, `defaultProfile=${registry.defaultProfile ?? "missing"} is not registered.`));
   const fallback = registry.backwardCompatibility?.missingDeckProfile;
   if (fallback && !registry.profiles[fallback]) findings.push(issue("error", "profile.registry.fallback", registryPath, `backwardCompatibility.missingDeckProfile=${fallback} is not registered.`));
-  for (const [profileId, profile] of Object.entries(registry.profiles)) await checkRegisteredProfile(skillDir, profileId, profile, findings, release);
+  for (const [profileId, profile] of Object.entries(registry.profiles)) {
+    const policy = profile?.assetPolicy;
+    if (!policy?.inventoryKind || !policy?.defaultMaterialization || !policy?.formulaMaterialization) findings.push(issue("error", "profile.registry.asset-policy", registryPath, `${profileId}: assetPolicy is incomplete.`));
+    for (const field of ["extractor", "schema"]) {
+      if (!policy?.[field]) continue;
+      const absolute = path.resolve(skillDir, policy[field]);
+      if (absolute !== skillDir && !absolute.startsWith(`${skillDir}${path.sep}`)) findings.push(issue("error", "profile.registry.asset-policy-path", registryPath, `${profileId}: assetPolicy.${field} escapes the Skill directory.`));
+      else if (!(await exists(absolute))) findings.push(issue("error", "profile.registry.asset-policy-missing", absolute, `${profileId}: registered assetPolicy.${field} is missing.`));
+    }
+    await checkRegisteredProfile(skillDir, profileId, profile, findings, release);
+  }
 }
 
 export async function validateSkillAssets(skillPath, options = {}) {
