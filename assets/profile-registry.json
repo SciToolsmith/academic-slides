@@ -1,15 +1,15 @@
 {
   "schemaVersion": "1.1",
-  "skillVersion": "0.5.0",
-  "defaultProfile": "final_defense",
+  "skillVersion": "1.0.0",
+  "defaultProfile": "group_meeting_literature",
   "backwardCompatibility": {
-    "missingDeckProfile": "final_defense"
+    "missingDeckProfile": "group_meeting_literature"
   },
   "workflow": {
     "phases": ["intake", "source", "assets", "outline", "build", "qa", "delivery"],
     "phaseReferences": {
       "intake": ["references/intake.md"],
-      "source": ["references/workflow.md", "references/evidence-and-notes.md"],
+      "source": ["references/workflow.md", "references/group-meeting-literature.md", "references/evidence-and-notes.md"],
       "assets": ["references/asset-preparation.md"],
       "outline": ["references/layout-selection.md"],
       "build": ["references/workflow.md"],
@@ -44,70 +44,17 @@
     }
   },
   "profiles": {
-    "final_defense": {
-      "id": "final_defense",
-      "detect": ["毕业答辩", "学位论文答辩", "thesis defense", "dissertation defense"],
-      "reference": "references/final-defense.md",
-      "assetPolicy": {
-        "inventoryKind": "figures_manifest",
-        "defaultMaterialization": "original_once",
-        "formulaMaterialization": "selected_core_only"
-      },
-      "assetDirectory": "assets/final-defense-universal",
-      "modes": [],
-      "layoutLibrary": "layout-library.pptx",
-      "layoutRegistry": "layout-registry.json",
-      "templateMap": "template-map.json",
-      "designTokens": "design-tokens.json",
-      "themePresets": "theme-presets.json",
-      "librarySpec": "sample-deck-spec.json",
-      "preview": "preview.png",
-      "requiredFiles": [
-        "layout-library.pptx",
-        "layout-registry.json",
-        "template-map.json",
-        "sample-deck-spec.json",
-        "design-tokens.json",
-        "theme-presets.json",
-        "preview.png"
-      ],
-      "expectedLayoutCount": 36
-    },
-    "proposal_midterm": {
-      "id": "proposal_midterm",
-      "detect": ["开题答辩", "研究计划答辩", "中期答辩", "中期检查", "proposal defense", "midterm review"],
-      "reference": "references/proposal-midterm.md",
-      "assetPolicy": {
-        "inventoryKind": "selected_evidence",
-        "defaultMaterialization": "selected_only",
-        "formulaMaterialization": "selected_core_only"
-      },
-      "assetDirectory": "assets/proposal-midterm-universal",
-      "modes": [
-        "proposal",
-        "midterm"
-      ],
-      "layoutLibrary": "layout-library.pptx",
-      "layoutRegistry": "layout-registry.json",
-      "templateMap": "template-map.json",
-      "designTokens": "design-tokens.json",
-      "themePresets": "theme-presets.json",
-      "librarySpec": "sample-deck-spec.json",
-      "preview": "preview.png",
-      "requiredFiles": [
-        "layout-library.pptx",
-        "layout-registry.json",
-        "template-map.json",
-        "sample-deck-spec.json",
-        "design-tokens.json",
-        "theme-presets.json",
-        "preview.png"
-      ],
-      "expectedLayoutCount": 32
-    },
     "group_meeting_literature": {
       "id": "group_meeting_literature",
-      "detect": ["组会文献汇报", "单篇文献精读", "多篇文献精读", "journal club", "paper presentation"],
+      "detect": [
+        "组会汇报PPT",
+        "文献组会",
+        "论文组会",
+        "单篇论文精读",
+        "多篇论文对比",
+        "journal club",
+        "paper presentation"
+      ],
       "reference": "references/group-meeting-literature.md",
       "assetPolicy": {
         "inventoryKind": "paper_assets",
@@ -137,10 +84,7 @@
         "generatorLabels": false
       },
       "assetDirectory": "assets/group-meeting-literature-universal",
-      "modes": [
-        "single_paper",
-        "multi_paper"
-      ],
+      "modes": ["single_paper", "multi_paper"],
       "layoutLibrary": "layout-library.pptx",
       "layoutRegistry": "layout-registry.json",
       "templateMap": "template-map.json",

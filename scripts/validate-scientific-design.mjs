@@ -19,55 +19,31 @@ const RESULT_VALIDATION_PATTERN = /result|validation|verify|verification|finding
 const CONCLUSION_KEY_PATTERN = /(?:^|_)(?:conclusion|takeaway|summary)(?:$|_)/i;
 const COMPLEX_TRANSFORM_PATTERN = /complex|复杂|multi[-_ ]?panel|多面板/i;
 const PROFILE_SHELL_LAYOUTS = Object.freeze({
-  final_defense: Object.freeze({
-    title: new Set(["cover"]), agenda: new Set(["agenda"]), section: new Set(["section-divider"]), closing: new Set(["closing"]),
-  }),
   group_meeting_literature: Object.freeze({
     title: new Set(["group-cover"]), agenda: new Set(["paper-agenda"]), section: new Set(["paper-divider"]), closing: new Set(["group-closing"]),
-  }),
-  proposal_midterm: Object.freeze({
-    title: new Set(["cover-short-title", "cover-long-title"]), agenda: new Set(["agenda-adaptive"]), section: new Set(["section-divider"]), closing: new Set(["closing-feedback"]),
   }),
 });
 const SHELL_KIND_BY_LAYOUT = new Map(Object.values(PROFILE_SHELL_LAYOUTS).flatMap((byKind) => Object.entries(byKind)
   .flatMap(([kind, layoutIds]) => [...layoutIds].map((layoutId) => [layoutId, kind]))));
 const VISUAL_RENDERER_SLOT_CAPACITY = new Map([
   ["paper-profile", 1],
-  ["claim-evidence", 1],
-  ["image-left-text-right", 1],
-  ["text-left-image-right", 1],
-  ["image-compare", 2],
-  ["case-compare", 2],
-  ["multi-image-evidence", 4],
-  ["chart-insight", 3],
-  ["formula-visual", 1],
-  ["two-image-results", 2],
-  ["figure-conclusion", 1],
   ["single-result-evidence", 1],
   ["result-compare", 2],
   ["multi-result-evidence", 4],
   ["table-chart-result", 3],
   ["mechanism-explanation", 1],
-  ["leading-result-single", 1],
-  ["leading-results-multipanel", 4],
   ["free-evidence", 2],
 ]);
-const FORMULA_RENDERER_LAYOUTS = new Set(["formula-visual", "model-formula"]);
+const FORMULA_RENDERER_LAYOUTS = new Set();
 const SEMANTIC_ITEM_LAYOUT_KEYS = new Map([
-  ["claim-evidence", ["items", "evidence"]],
-  ["three-column-overview", ["items", "columns", "evidence_items", "evidenceItems"]],
-  ["three-level-analysis", ["items", "levels", "branches", "categories"]],
-  ["four-point-list", ["items", "points"]],
-  ["three-row-content", ["items", "rows", "modules"]],
-  ["four-objectives", ["items", "objectives"]],
-  ["radial-methods", ["items", "methods"]],
-  ["four-step-ribbon", ["items", "steps"]],
-  ["innovation-brackets", ["items", "innovations", "contributions"]],
-  ["four-results-cycle", ["items", "results"]],
-  ["conclusion-list", ["items", "conclusions", "outcomes"]],
-  ["three-outlook-columns", ["items", "outlook", "directions"]],
-  ["evaluation-focus", ["criteria", "focus_items", "focusItems", "checks", "items"]],
-  ["objectives-workpackages", ["work_packages", "workPackages", "workpackages", "items"]],
+  ["selection-rationale", ["criteria", "items"]],
+  ["sample-data-profile", ["data_layers", "layers", "items"]],
+  ["claim-evidence-boundary", ["evidence", "items"]],
+  ["reproducibility-check", ["checks", "items"]],
+  ["evidence-quality-map", ["criteria", "items"]],
+  ["discussion-questions", ["questions", "items"]],
+  ["decision-request", ["options", "items"]],
+  ["next-reading-actions", ["actions", "items"]],
 ]);
 const INTERNAL_PLACEHOLDER_TEXT = [
   /^\s*要点\s*\d{1,2}\s*$/u,
@@ -259,7 +235,7 @@ function isProcessShell(slide) {
   // semantic family. A method_design family can legitimately select a radial
   // or other non-process renderer, so treating the family itself as a linear
   // process would reject a topology the chosen renderer actually supports.
-  return ["process", "method-sequence", "four-step-ribbon"].includes(effectiveLayoutId(slide));
+  return ["study-design", "method-sequence"].includes(effectiveLayoutId(slide));
 }
 
 function effectiveLayoutId(slide) {
@@ -268,26 +244,25 @@ function effectiveLayoutId(slide) {
   if (family === "free_canvas" && variant.startsWith("custom:")) return "free-evidence";
   if (variant) return variant;
   const fallback = {
-    title: "cover",
-    agenda: "agenda",
-    section: "section-divider",
-    hero_figure: "image-left-text-right",
-    comparison: "image-compare",
-    chart_insight: "chart-insight",
-    figure_formula: "formula-visual",
-    process_flow: "process",
-    system_architecture: "framework",
-    evidence_chain: "claim-evidence",
-    quote_analysis: "quote-analysis",
-    case_matrix: "case-compare",
-    method_design: "process",
-    validation_matrix: "validation-matrix",
-    contribution_limits: "contribution",
+    title: "group-cover",
+    agenda: "paper-agenda",
+    section: "paper-divider",
+    hero_figure: "single-result-evidence",
+    comparison: "result-compare",
+    chart_insight: "table-chart-result",
+    process_flow: "method-sequence",
+    system_architecture: "concept-framework",
+    evidence_chain: "claim-evidence-boundary",
+    quote_analysis: "critical-appraisal",
+    case_matrix: "cross-paper-matrix",
+    method_design: "study-design",
+    validation_matrix: "method-comparison",
+    contribution_limits: "critical-appraisal",
     paper_profile: "paper-profile",
     literature_synthesis: "cross-paper-matrix",
     discussion: "discussion-questions",
-    summary: "contribution",
-    closing: "closing",
+    summary: "paper-conclusion",
+    closing: "group-closing",
     free_canvas: "free-evidence",
   };
   return fallback[family] ?? family.replaceAll("_", "-");
@@ -347,21 +322,6 @@ function slideTakeawayValue(slide) {
   return clean(firstDeclared(slide?.takeaway, slide?.claim, slide?.copy?.takeaway, slide?.content?.takeaway));
 }
 
-function hasDeclaredImageRequest(slide) {
-  const visual = slide?.visual && typeof slide.visual === "object" ? slide.visual : {};
-  const collections = [
-    firstDeclared(slide?.images, slide?.media, slide?.asset_refs, slide?.assetRefs),
-    firstDeclared(visual.images, visual.assets, visual.asset_refs, visual.assetRefs),
-    slide?.visuals,
-    firstDeclared(slide?.render_data?.image_refs, slide?.render_data?.asset_refs),
-  ];
-  if (collections.some((value) => list(value).some((entry) => Boolean(
-    typeof entry === "string" ? clean(entry) : clean(firstDeclared(entry?.asset_ref, entry?.assetRef, entry?.path, entry?.file, entry?.src, entry?.uri)),
-  )))) return true;
-  return [slide?.image, slide?.left_image, slide?.right_image, visual.image, visual.left_image, visual.right_image]
-    .some((value) => Boolean(value));
-}
-
 function itemPayloadProblem(layoutId, item, index) {
   if (!semanticItemTitle(item)) {
     return `layout="${layoutId}" item ${index + 1} needs an explicit title/label; renderer-generated point labels are forbidden.`;
@@ -402,41 +362,19 @@ export function productionPayloadProblems(slide, requestedLayoutId = null) {
   ));
   const panelItems = semanticItemSource(slide, ["panels", "items"]);
   const panelTitleAt = (index) => semanticItemTitle(panelItems[index]);
-  if (layoutId === "claim-evidence") {
-    requireValue("claim/takeaway", slideTakeawayValue(slide));
-    requireValue("conclusion boundary", data.boundary, slide?.content?.callout);
-    if (!hasDeclaredImageRequest(slide) && list(firstDeclared(slide?.metrics, slide?.key_numbers, slide?.content?.metrics)).length === 0) {
-      requireValue("evidence synthesis", data.synthesis);
-    }
-  } else if (["chart-insight", "table-chart-result"].includes(layoutId)) {
+  if (layoutId === "table-chart-result") {
     requireValue("chart interpretation/takeaway", slideTakeawayValue(slide));
-  } else if (layoutId === "formula-visual") {
-    requireValue("plain-language formula meaning", slide?.formula?.plain_meaning, slide?.formula?.plainMeaning, slide?.plain_meaning, slideTakeawayValue(slide));
-    requireValue("formula variable explanations", slide?.formula?.variables_to_explain, slide?.formula?.variablesToExplain, slide?.formula?.variables);
-  } else if (layoutId === "three-column-overview") {
-    requireValue("overview banner/conclusion", data.banner, data.conclusion, slideTakeawayValue(slide));
-  } else if (layoutId === "four-objectives") {
-    requireValue("overall research goal", data.overall_goal);
-  } else if (layoutId === "radial-methods") {
-    requireValue("central research question", data.center, data.center_label, slideTakeawayValue(slide));
-  } else if (["image-compare", "case-compare", "result-compare"].includes(layoutId)) {
+  } else if (layoutId === "result-compare") {
     requireValue("left comparison label", data.left_label, slide?.left_label, slide?.leftLabel, slide?.left_case?.title, visualCaptionAt(0));
     requireValue("right comparison label", data.right_label, slide?.right_label, slide?.rightLabel, slide?.right_case?.title, visualCaptionAt(1));
-  } else if (layoutId === "two-image-results") {
-    requireValue("left result label", data.left_label, panelTitleAt(0), visualCaptionAt(0));
-    requireValue("right result label", data.right_label, panelTitleAt(1), visualCaptionAt(1));
-    requireValue("comparison takeaway", slideTakeawayValue(slide));
-  } else if (["multi-image-evidence", "multi-result-evidence", "leading-results-multipanel"].includes(layoutId)) {
+  } else if (layoutId === "multi-result-evidence") {
     const captions = list(firstDeclared(data.captions, data.labels));
     const requiredCaptions = Math.max(2, Math.min(4, rendererVisualConsumption(slide, layoutId).consumed.length || 2));
     for (let index = 0; index < requiredCaptions; index += 1) {
       requireValue(`caption for rendered visual ${index + 1}`, captions[index], panelTitleAt(index), visualCaptionAt(index));
     }
-  } else if (["figure-conclusion", "single-result-evidence", "leading-result-single"].includes(layoutId)) {
+  } else if (layoutId === "single-result-evidence") {
     requireValue("figure conclusion", data.conclusion, slideTakeawayValue(slide));
-  } else if (layoutId === "quote-analysis") {
-    requireValue("source quotation", data.quote, slide?.quote, slide?.content?.quote?.text);
-    requireValue("quotation analysis", data.analysis, slide?.analysis, slide?.content?.quote?.analysis, slideTakeawayValue(slide));
   } else if (layoutId === "discussion-questions") {
     requireValue("discussion questions", data.questions, data.items, slide?.bullets, slide?.content?.body);
   } else if (layoutId === "paper-conclusion") {
@@ -444,19 +382,6 @@ export function productionPayloadProblems(slide, requestedLayoutId = null) {
     requireValue("supporting evidence", data.support, data.evidence);
     requireValue("unproven claim/boundary", data.not_proven, data.boundary);
     requireValue("one-line synthesis", data.one_line);
-  } else if (layoutId === "contribution") {
-    const contributions = list(firstDeclared(data.contributions, slide?.contributions, slide?.bullets, slide?.content?.bullets));
-    requireValue("contribution claims", contributions);
-    contributions.forEach((item, index) => {
-      if (!semanticItemTitle(item) || !semanticItemBody(item)) {
-        problems.push(`layout="${layoutId}" contribution ${index + 1} needs both a claim and linked evidence/boundary.`);
-      }
-    });
-  } else if (layoutId === "limitations") {
-    requireValue("current limitations", data.limitations, slide?.limitations, slide?.bullets, slide?.content?.bullets);
-    requireValue("next validation steps", data.next_steps, slide?.next_steps, slide?.nextSteps);
-  } else if (layoutId === "thesis-framework") {
-    requireValue("thesis-specific framework nodes", slide?.diagram?.nodes, slide?.nodes);
   } else if (layoutId === "free-evidence" && !usesCustomCanvasRenderer(slide, layoutId)) {
     requireValue("free-canvas evidence claim", slideTakeawayValue(slide));
   }
@@ -627,7 +552,7 @@ export function validateScientificDesign(deck, options = {}) {
   const evidenceIds = declaredEvidenceIds(deck);
   const availableAssetIds = options.availableAssetIds instanceof Set ? options.availableAssetIds : null;
   const readyAssetIds = readyDerivedAssetIds(deck, availableAssetIds);
-  const profile = clean(deck.profile).toLowerCase() || "final_defense";
+  const profile = clean(deck.profile).toLowerCase() || "group_meeting_literature";
   const allowedLayouts = PROFILE_LAYOUT_IDS[profile];
 
   const slides = list(deck.slides).map((slide, index) => ({ slide, index }))
@@ -675,7 +600,7 @@ export function validateScientificDesign(deck, options = {}) {
           "error",
           "scientific.content.renderer_placeholder",
           pointer,
-          "Production slide contains default renderer placeholder copy; replace it with thesis-specific evidence before building.",
+          "Production slide contains default renderer placeholder copy; replace it with paper-specific evidence before building.",
           optionsForSlide,
         ));
       }
@@ -920,7 +845,7 @@ export function validateScientificDesign(deck, options = {}) {
     start = end;
   }
 
-  if (!gallery && profile === "final_defense") {
+  if (!gallery && profile === "group_meeting_literature") {
     const appendixSections = appendixSectionIds(deck);
     const mainContentSlides = slides.map((item) => item.slide).filter((slide) => isProductionSubstantiveKind(slide)
       && clean(slide?.priority).toLowerCase() !== "appendix"
@@ -931,7 +856,7 @@ export function validateScientificDesign(deck, options = {}) {
         "error",
         "scientific.deck.core_absent",
         "$/slides",
-        "A production final-defense deck cannot mark every main content slide as supporting; declare the thesis-bearing evidence pages as priority=core.",
+        "A production Paper Club PPT cannot mark every main content slide as supporting; declare the paper's key evidence pages as priority=core.",
       ));
     }
     const emphasizedSlides = coreTechnicalSlides.filter((slide) => list(slide?.text_emphasis).some((directive) => clean(directive?.role).toLowerCase() !== "strong")).length;
@@ -941,7 +866,7 @@ export function validateScientificDesign(deck, options = {}) {
         "error",
         "scientific.deck.emphasis_absent",
         "$/slides",
-        `Production final-defense deck emphasizes ${emphasizedSlides} core slide(s); at least ${recommendedMinimum} evidence-bearing focal slide(s) are needed for this deck size. Emphasize short decisive values or judgments, not every page.`,
+        `Paper Club PPT emphasizes ${emphasizedSlides} core slide(s); at least ${recommendedMinimum} evidence-bearing focal slide(s) are needed for this deck size. Emphasize short decisive values or judgments, not every page.`,
       ));
     }
 
@@ -950,7 +875,7 @@ export function validateScientificDesign(deck, options = {}) {
         "error",
         "scientific.deck.paper_specific_canvas_absent",
         "$/slides",
-        "A final-defense deck with six or more core slides needs at least one thesis-specific editable evidence canvas. Quantitative evidence may use figures, formulas, or metrics; argument-driven work may use source-bound quotations, cases, or text evidence with visible interpretation.",
+        "A Paper Club PPT with six or more core slides needs at least one paper-specific editable evidence canvas. Quantitative evidence may use figures, formulas, or metrics; argument-driven work may use source-bound quotations, cases, or text evidence with visible interpretation.",
       ));
     }
 
@@ -963,14 +888,14 @@ export function validateScientificDesign(deck, options = {}) {
         "warning",
         "scientific.deck.layout_dominance",
         "$/slides",
-        `Generic layout variant "${dominant[0]}" is used on ${dominant[1]} of ${coreTechnicalSlides.length} core slides. Recompose the thesis-specific evidence pages instead of repeating one shell.`,
+        `Generic layout variant "${dominant[0]}" is used on ${dominant[1]} of ${coreTechnicalSlides.length} core slides. Recompose the paper-specific evidence pages instead of repeating one shell.`,
         { strictExempt: true },
       ));
     }
 
     const genericShells = new Set([
-      "claim-evidence", "image-compare", "two-image-results", "process", "four-step-ribbon",
-      "three-column-overview", "three-row-content", "four-point-list", "four-objectives", "multi-image-evidence",
+      "selection-rationale", "known-gap-question", "study-design", "method-sequence",
+      "single-result-evidence", "result-compare", "multi-result-evidence", "table-chart-result",
     ]);
     const genericShellCount = variants.filter((variant) => genericShells.has(variant)).length;
     if (coreTechnicalSlides.length >= 8 && genericShellCount / coreTechnicalSlides.length > 0.6) {
@@ -978,7 +903,7 @@ export function validateScientificDesign(deck, options = {}) {
         "warning",
         "scientific.deck.generic_shell_dominance",
         "$/slides",
-        `${genericShellCount} of ${coreTechnicalSlides.length} core slides use generic card/process/dual-image shells. Recompose more thesis-specific evidence canvases instead of alternating a small set of templates.`,
+        `${genericShellCount} of ${coreTechnicalSlides.length} core slides use generic card/process/dual-image shells. Recompose more paper-specific evidence canvases instead of alternating a small set of templates.`,
         { strictExempt: true },
       ));
     }

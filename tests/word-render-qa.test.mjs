@@ -17,7 +17,7 @@ import {
 const execFileAsync = promisify(execFile);
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(TEST_DIR, "..");
-const SAMPLE_SPEC = path.join(SKILL_DIR, "assets", "final-defense-universal", "sample-deck-spec.json");
+const SAMPLE_SPEC = path.join(SKILL_DIR, "assets", "group-meeting-literature-universal", "sample-deck-spec.json");
 
 function decodeXml(value) {
   return value
@@ -51,17 +51,17 @@ async function main() {
     "an executable that cannot load render_docx.py dependencies must be rejected with a stable unavailable-runtime error",
   );
 
-  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-word-render-"));
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-word-render-"));
   try {
     const spec = JSON.parse(await fs.readFile(SAMPLE_SPEC, "utf8"));
     spec.slides = spec.slides.slice(0, 27).map((slide, index) => ({ ...slide, order: index + 1 }));
-    const output = path.join(temporary, "示例研究_硕士答辩_发言稿.docx");
+    const output = path.join(temporary, "示例研究_组会汇报_发言稿.docx");
     await buildSpeakerScriptFromSpec(spec, output);
 
     const documentXml = await archiveText(output, "word/document.xml");
     const docParagraphs = paragraphs(documentXml);
     assert.equal(docParagraphs.length, 28);
-    assert.equal(docParagraphs[0].text, "示例研究 硕士答辩发言稿");
+    assert.equal(docParagraphs[0].text, "示例研究 组会汇报发言稿");
     assert.equal(docParagraphs.slice(1).filter((item) => /^第\d+页：/.test(item.text)).length, 27);
     assert.doesNotMatch(documentXml, /\[\/?Sources\]|过渡：|PPT 备注/);
     assert.ok((documentXml.match(/[\u3400-\u9FFF]/g) ?? []).length > 500, "DOCX should retain substantial editable CJK text");
@@ -79,7 +79,7 @@ async function main() {
     }
     assert.equal(rendered.cjkStatus, "visible", rendered.warnings.join(" "));
     assert.ok(rendered.renderedCjkFonts.length > 0);
-    assert.ok(rendered.pageCount >= 1 && rendered.pageCount <= 2, `27-page sample should remain within the two-page soft target; rendered ${rendered.pageCount}`);
+    assert.ok(rendered.pageCount >= 1 && rendered.pageCount <= 3, `27-slide group-meeting sample should remain within the three-page soft target; rendered ${rendered.pageCount}`);
     for (const page of rendered.pages) assert.ok((await fs.stat(page)).size > 100_000, `${path.basename(page)} should contain substantive visible text`);
     if (process.platform === "darwin") {
       assert.ok(rendered.nativePreview, "Darwin QA should also produce a native QuickLook thumbnail");

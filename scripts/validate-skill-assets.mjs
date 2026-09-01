@@ -18,11 +18,7 @@ const REQUIRED_SCRIPTS = [
   "extract-paper-assets.mjs",
   "build-outline.mjs",
   "build-project.mjs",
-  "create-layout-library.mjs",
   "create-group-meeting-layout-library.mjs",
-  "create-proposal-midterm-layout-library.mjs",
-  "index-university-logos.mjs",
-  "find-university-logo.mjs",
   "validate-skill-assets.mjs",
   "preflight.mjs",
   "package-skill.mjs",
@@ -35,15 +31,13 @@ const REQUIRED_SCRIPTS = [
   "stage-delivery.mjs",
 ];
 const RELEASE_ONLY_SCRIPTS = ["build.mjs"];
-const REQUIRED_SCHEMAS = ["project-config.schema.json", "deck-spec.schema.json", "figures-manifest.schema.json", "paper-assets.schema.json", "paper-index.schema.json", "evidence-index.schema.json", "milestone-analysis.schema.json"];
+const REQUIRED_SCHEMAS = ["project-config.schema.json", "deck-spec.schema.json", "paper-assets.schema.json", "paper-index.schema.json", "evidence-index.schema.json"];
 const REQUIRED_EVALS = ["skill-evals.json"];
 const REQUIRED_TESTS = [
   "p0-security-and-evidence.test.mjs",
   "mathjax-formula-render.test.mjs",
   "paper-asset-extraction.test.mjs",
   "scientific-content-contract.test.mjs",
-  "logo-match-safety.test.mjs",
-  "proposal-midterm-contract.test.mjs",
   "text-emphasis.test.mjs",
   "delivery-contract.test.mjs",
   "intake-controls.test.mjs",
@@ -53,7 +47,6 @@ const REQUIRED_TESTS = [
   "scientific-design-quality.test.mjs",
   "scientific-canvas-render.test.mjs",
   "build-project-cache.test.mjs",
-  "final-defense-structure.test.mjs",
   "group-meeting-shell-contract.test.mjs",
 ];
 const PROFILE_REGISTRY_PATH = path.join("assets", "profile-registry.json");
@@ -275,44 +268,7 @@ async function checkReferences(skillDir, findings, release) {
   }
 }
 
-async function checkLogoCatalog(skillDir, findings, release) {
-  const logoDir = path.join(skillDir, "assets", "branding", "university-logos");
-  if (!(await isDirectory(logoDir))) return;
-  const files = await walk(logoDir);
-  const logoFiles = files.filter((file) => [".svg", ".png", ".jpg", ".jpeg", ".webp", ".pdf"].includes(path.extname(file).toLowerCase()));
-  const catalogPath = path.join(logoDir, "catalog.json");
-  if (logoFiles.length === 0) {
-    if (await exists(catalogPath)) findings.push(issue(release ? "error" : "warning", "logos.catalog.orphaned", catalogPath, "Logo catalog exists without bundled logo assets."));
-    return;
-  }
-  if (!(await exists(catalogPath))) {
-    findings.push(issue(release ? "error" : "warning", "logos.catalog.missing", catalogPath, "Logo files exist but catalog.json has not been generated."));
-    return;
-  }
-  if (!(await requireFile(catalogPath, findings, "logos.catalog.missing"))) return;
-  const catalog = await checkJson(catalogPath, findings);
-  if (!catalog) return;
-  if (!Array.isArray(catalog.logos)) findings.push(issue("error", "logos.catalog.shape", catalogPath, "Catalog must contain a logos array."));
-  else {
-    const catalogFiles = new Set(catalog.logos.map((entry) => entry?.file).filter(Boolean));
-    for (const logoFile of logoFiles) {
-      const relative = path.relative(logoDir, logoFile).split(path.sep).join("/");
-      if (!catalogFiles.has(relative)) findings.push(issue("error", "logos.catalog.unindexed", logoFile, "Logo file is missing from catalog.json."));
-    }
-    for (const entry of catalog.logos) {
-      if (!entry?.file) continue;
-      const absolute = path.resolve(logoDir, entry.file);
-      if (!(await exists(absolute))) findings.push(issue("error", "logos.catalog.dangling", absolute, "Catalog entry points to a missing logo file."));
-      const sourceUrl = entry?.source?.url ?? entry?.source_url;
-      const verificationStatus = String(entry?.source?.verification_status ?? entry?.verification_status ?? "").toLowerCase();
-      if (!sourceUrl || !["verified", "official", "current-official"].includes(verificationStatus)) {
-        findings.push(issue(release ? "error" : "warning", "logos.catalog.provenance", absolute, "Bundled logo assets require an official source URL and verified status."));
-      }
-    }
-  }
-}
-
-function resolveRegisteredPath(skillDir, relativePath, findings, profileId, field, baseDir = skillDir) {
+ function resolveRegisteredPath(skillDir, relativePath, findings, profileId, field, baseDir = skillDir) {
   if (typeof relativePath !== "string" || !relativePath.trim()) {
     findings.push(issue("error", "profile.path.missing", path.join(skillDir, PROFILE_REGISTRY_PATH), `${profileId}.${field} must be a non-empty path relative to the skill root.`));
     return null;
@@ -500,7 +456,7 @@ export async function validateSkillAssets(skillPath, options = {}) {
     const frontmatter = parseFrontmatter(markdown);
     if (!frontmatter) findings.push(issue("error", "skill.frontmatter", skillMd, "SKILL.md needs YAML frontmatter."));
     else {
-      if (frontmatter.name !== "academic-slides") findings.push(issue("error", "skill.name", skillMd, `Expected name: academic-slides; received: ${frontmatter.name ?? "missing"}.`));
+      if (frontmatter.name !== "paper-club-ppt") findings.push(issue("error", "skill.name", skillMd, `Expected name: paper-club-ppt; received: ${frontmatter.name ?? "missing"}.`));
       if (!frontmatter.description || frontmatter.description.length < 30) findings.push(issue("error", "skill.description", skillMd, "Description is missing or too short to trigger reliably."));
     }
     if (/\[TODO|TODO:|PLACEHOLDER/i.test(markdown)) findings.push(issue(release ? "error" : "warning", "skill.todo", skillMd, "SKILL.md still contains TODO or placeholder text."));
@@ -513,7 +469,6 @@ export async function validateSkillAssets(skillPath, options = {}) {
   await checkEvals(skillDir, findings, release);
   await checkReferences(skillDir, findings, release);
   await checkProfiles(skillDir, findings, release);
-  await checkLogoCatalog(skillDir, findings, release);
   if (release) await checkReleaseGates(skillDir, findings);
 
   for (const file of await walk(skillDir)) {

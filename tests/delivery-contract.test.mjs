@@ -17,8 +17,8 @@ import { validateDeckSpec, validateDeckSpecFile } from "../scripts/validate-deck
 const execFileAsync = promisify(execFile);
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(TEST_DIR, "..");
-const SAMPLE_SPEC = path.join(SKILL_DIR, "assets", "final-defense-universal", "sample-deck-spec.json");
-const STEM = "客机侧开式登机门优化设计_硕士答辩";
+const SAMPLE_SPEC = path.join(SKILL_DIR, "assets", "group-meeting-literature-universal", "sample-deck-spec.json");
+const STEM = "客机侧开式登机门优化设计_组会汇报";
 
 function threeSlideSpec(sample) {
   const sections = [
@@ -28,16 +28,14 @@ function threeSlideSpec(sample) {
   ];
   const cover = structuredClone(sample.slides.find((slide) => slide.kind === "title"));
   const agenda = structuredClone(sample.slides.find((slide) => slide.kind === "agenda"));
-  const bodyIds = ["sample-claim-evidence", "sample-four-point-list", "sample-conclusion-list"];
+  const bodyIds = ["sample-claim-evidence-boundary", "sample-critical-appraisal", "sample-paper-conclusion"];
   const bodies = bodyIds.map((id, index) => {
     const slide = structuredClone(sample.slides.find((item) => item.id === id));
     slide.id = `delivery-body-${index + 1}`;
     slide.section_id = sections[index].id;
     slide.priority = index === 0 ? "core" : "supporting";
-    if (index === 0) {
-      slide.relationship_topology = "none";
-      slide.text_emphasis = [{ text: "说明证据来自哪里", role: "key" }];
-    }
+    if (index === 0) slide.relationship_topology = "none";
+    slide.evidence_refs = slide.speaker_notes.sources.map((source) => source.source_id);
     return slide;
   });
   const closing = structuredClone(sample.slides.find((slide) => slide.kind === "closing"));
@@ -108,7 +106,7 @@ function wordParagraphs(documentXml) {
 function embeddedArtifactBuilder(stem, spec, pptxBytes, docxBytes) {
   const contract = {
     contract_version: 2,
-    generator: "academic-slides/create-project-builder",
+    generator: "paper-club-ppt/create-project-builder",
     stem,
     pptx: `${stem}.pptx`,
     docx: `${stem}_发言稿.docx`,
@@ -118,7 +116,7 @@ function embeddedArtifactBuilder(stem, spec, pptxBytes, docxBytes) {
   };
   return [
     "#!/usr/bin/env node",
-    `// academic-slides-delivery: ${JSON.stringify(contract)}`,
+    `// paper-club-ppt-delivery: ${JSON.stringify(contract)}`,
     'import fs from "node:fs";',
     'import path from "node:path";',
     `const deckSpec = ${JSON.stringify(spec, null, 2)};`,
@@ -131,29 +129,29 @@ function embeddedArtifactBuilder(stem, spec, pptxBytes, docxBytes) {
 
 async function main() {
   assert.equal(validateDeliveryStem(STEM), STEM);
-  for (const valid of ["IPv6网络测量方法_硕士答辩", "V2X协同感知方法_硕士答辩", "HIV1感染机制_博士答辩", "V1视觉皮层机制_博士答辩"]) {
+  for (const valid of ["IPv6网络测量方法_组会汇报", "V2X协同感知方法_组会汇报", "HIV1感染机制_组会汇报", "V1视觉皮层机制_组会汇报"]) {
     assert.equal(validateDeliveryStem(valid), valid);
   }
   for (const invalid of [
     `${STEM}_叶梯`,
-    "客机侧开式登机门优化设计_2026-08-16_硕士答辩",
-    "客机侧开式登机门优化设计_2026_硕士答辩",
-    "2026客机侧开式登机门优化设计_硕士答辩",
-    "客机侧开式登机门优化设计20260816_硕士答辩",
-    "客机侧开式登机门优化设计v1_硕士答辩",
-    "客机侧开式登机门优化设计_版本2_硕士答辩",
-    "客机侧开式登机门优化设计_rev2_硕士答辩",
-    "客机侧开式登机门优化设计_定稿_硕士答辩",
-    "客机侧开式登机门优化设计_latest_硕士答辩",
-    "客机侧开式登机门优化设计_终版_硕士答辩",
-    "客机侧开式登机门优化设计_修订版_硕士答辩",
-    "客机侧开式登机门优化设计_v 2_硕士答辩",
-    "客机侧开式登机门优化设计v1版_硕士答辩",
-    "客机侧开式登机门优化设计v1修改_硕士答辩",
+    "客机侧开式登机门优化设计_2026-08-16_组会汇报",
+    "客机侧开式登机门优化设计_2026_组会汇报",
+    "2026客机侧开式登机门优化设计_组会汇报",
+    "客机侧开式登机门优化设计20260816_组会汇报",
+    "客机侧开式登机门优化设计v1_组会汇报",
+    "客机侧开式登机门优化设计_版本2_组会汇报",
+    "客机侧开式登机门优化设计_rev2_组会汇报",
+    "客机侧开式登机门优化设计_定稿_组会汇报",
+    "客机侧开式登机门优化设计_latest_组会汇报",
+    "客机侧开式登机门优化设计_终版_组会汇报",
+    "客机侧开式登机门优化设计_修订版_组会汇报",
+    "客机侧开式登机门优化设计_v 2_组会汇报",
+    "客机侧开式登机门优化设计v1版_组会汇报",
+    "客机侧开式登机门优化设计v1修改_组会汇报",
     "客机侧开式登机门优化设计_final",
     ` ${STEM}`,
   ]) assert.throws(() => validateDeliveryStem(invalid));
-  assert.throws(() => validateDeliveryStem("叶梯项目_硕士答辩", ["叶梯"]));
+  assert.throws(() => validateDeliveryStem("叶梯项目_组会汇报", ["叶梯"]));
 
   const note = serializeSpeakerNotes({
     speaker_notes: {
@@ -167,7 +165,7 @@ async function main() {
   assert.doesNotMatch(note, /internal-id/);
   assert.equal((note.match(/\[Sources\]/g) ?? []).length, 1);
 
-  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-delivery-"));
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-delivery-"));
   try {
     const sample = JSON.parse(await fs.readFile(SAMPLE_SPEC, "utf8"));
     const specPath = path.join(temporary, "deck-spec.json");
@@ -224,7 +222,7 @@ async function main() {
     const generated = await fs.readFile(mjsPath, "utf8");
     assert.doesNotMatch(generated, /\/(?:Users|Volumes|home|private\/var|var\/folders)\//);
     assert.doesNotMatch(generated, /readFile\([^\n]*deck-spec\.json/);
-    assert.match(generated, /^\/\/ academic-slides-delivery:/m);
+    assert.match(generated, /^\/\/ paper-club-ppt-delivery:/m);
     assert.match(generated, /"artifact_purpose":"production"/);
     assert.match(generated, /validate-scientific-design\.mjs/);
     assert.match(generated, /validateScientificDesign\(deckSpec, \{ strict: true \}\)/);
@@ -243,24 +241,24 @@ async function main() {
     await fs.writeFile(gallerySpecPath, `${JSON.stringify(gallerySpec, null, 2)}\n`, "utf8");
     await assert.rejects(() => createProjectBuilder({
       spec: gallerySpecPath,
-      output: path.join(temporary, "画廊_硕士答辩.mjs"),
-      pptxName: "画廊_硕士答辩.pptx",
-      docxName: "画廊_硕士答辩_发言稿.docx",
+      output: path.join(temporary, "画廊_组会汇报.mjs"),
+      pptxName: "画廊_组会汇报.pptx",
+      docxName: "画廊_组会汇报_发言稿.docx",
     }), /layout_gallery/);
-    const galleryMjs = path.join(temporary, "画廊_硕士答辩.mjs");
-    await fs.writeFile(galleryMjs, `#!/usr/bin/env node\n// academic-slides-delivery: ${JSON.stringify({
-      stem: "画廊_硕士答辩",
-      pptx: "画廊_硕士答辩.pptx",
-      docx: "画廊_硕士答辩_发言稿.docx",
+    const galleryMjs = path.join(temporary, "画廊_组会汇报.mjs");
+    await fs.writeFile(galleryMjs, `#!/usr/bin/env node\n// paper-club-ppt-delivery: ${JSON.stringify({
+      stem: "画廊_组会汇报",
+      pptx: "画廊_组会汇报.pptx",
+      docx: "画廊_组会汇报_发言稿.docx",
       artifact_purpose: "layout_gallery",
     })}\n`, "utf8");
     await assert.rejects(() => stageDelivery({
-      output: path.join(temporary, "画廊_硕士答辩"),
+      output: path.join(temporary, "画廊_组会汇报"),
       mjs: galleryMjs,
     }), /artifact_purpose=production|generated embedded deck specification/);
 
     const unsafePaths = [
-      ".." + "/../source/thesis.pdf",
+      ".." + "/../source/paper.pdf",
       ".." + "/assets/figure.png",
       "/" + "tmp/secret.png",
       "D:" + "\\secret\\x.png",
@@ -288,7 +286,7 @@ async function main() {
       pptxName: `${STEM}.pptx`,
       docxName: `${STEM}_发言稿.docx`,
     }));
-    for (const unsafeRelative of ["附件/论文.pdf", "source/论文.pdf", "资料/thesis.pdf", "内部引用：附件/论文.pdf"]) {
+    for (const unsafeRelative of ["附件/论文.pdf", "source/论文.pdf", "资料/paper.pdf", "内部引用：附件/论文.pdf"]) {
       const localizedUnsafeSpec = threeSlideSpec(sample);
       localizedUnsafeSpec.slides[0].speaker_notes.script = unsafeRelative;
       const localizedUnsafeSpecPath = path.join(temporary, "localized-unsafe-deck-spec.json");
@@ -312,7 +310,7 @@ async function main() {
         docxName: `${STEM}_发言稿.docx`,
       }));
     }
-    const validAssetStem = "有效素材_硕士答辩";
+    const validAssetStem = "有效素材_组会汇报";
     const validAssetSpec = threeSlideSpec(sample);
     validAssetSpec.assets = [{ id: "valid-asset", path: "assets/figures/original/图1.1 示例图.png", type: "figure", alt_text: "示例" }];
     const validAssetSpecPath = path.join(temporary, "valid-asset-deck-spec.json");
@@ -327,7 +325,7 @@ async function main() {
     doiSpec.slides[0].speaker_notes.script = "DOI 10.1016/j.jmb.2024.168012；接口路径 /api/v1、/api/v1/users.json 与 /api/v1.0/predict 仅为研究对象标识。";
     const doiSpecPath = path.join(temporary, "doi-deck-spec.json");
     await fs.writeFile(doiSpecPath, `${JSON.stringify(doiSpec, null, 2)}\n`, "utf8");
-    const doiStem = "DOI示例_硕士答辩";
+    const doiStem = "DOI示例_组会汇报";
     await createProjectBuilder({
       spec: doiSpecPath,
       output: path.join(temporary, `${doiStem}.mjs`),
@@ -380,7 +378,7 @@ async function main() {
 
     const mismatchedSpec = threeSlideSpec(sample);
     mismatchedSpec.slides[0].speaker_notes.script += " 这段文字只存在被篡改的 Word 中。";
-    const mismatchedStem = "逐页同源门禁_硕士答辩";
+    const mismatchedStem = "逐页同源门禁_组会汇报";
     const mismatchedDocx = path.join(temporary, `${mismatchedStem}_发言稿.docx`);
     await buildSpeakerScriptFromSpec(mismatchedSpec, mismatchedDocx);
     const mismatchedMjs = path.join(temporary, `${mismatchedStem}.mjs`);
@@ -401,7 +399,7 @@ async function main() {
 
     const shortSpec = threeSlideSpec(sample);
     shortSpec.slides = shortSpec.slides.slice(0, -1);
-    const shortStem = "页数同源门禁_硕士答辩";
+    const shortStem = "页数同源门禁_组会汇报";
     const shortDocx = path.join(temporary, `${shortStem}_发言稿.docx`);
     await buildSpeakerScriptFromSpec(shortSpec, shortDocx);
     const shortMjs = path.join(temporary, `${shortStem}.mjs`);
@@ -435,7 +433,7 @@ async function main() {
 
     const environment = {
       ...process.env,
-      ACADEMIC_SLIDES_SKILL_DIR: SKILL_DIR,
+      PAPER_CLUB_PPT_SKILL_DIR: SKILL_DIR,
       RUNTIME_NODE_MODULES: process.env.RUNTIME_NODE_MODULES,
     };
     await execFileAsync(process.execPath, [path.join(delivery, `${STEM}.mjs`), "--all"], {

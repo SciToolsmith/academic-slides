@@ -12,8 +12,8 @@ import { validateProject } from "./validate-project.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
-const STATE_FILENAME = ".academic-slides-build-state.json";
-const PREVIEW_DIRNAME = ".academic-slides-preview";
+const STATE_FILENAME = ".paper-club-ppt-build-state.json";
+const PREVIEW_DIRNAME = ".paper-club-ppt-preview";
 const THEMES = new Set(["blue", "red", "purple", "cyan"]);
 const LOCK_OWNER_FILENAME = "owner.json";
 const LOCK_POLL_MS = 50;
@@ -43,8 +43,7 @@ const RELEVANT_SOURCE_FILES = [
   "assets/profile-registry.json",
 ];
 const RENDERER_SOURCE_ASSET_TYPES = new Set([
-  "brand_asset", "thesis_figure", "thesis_table", "thesis_formula", "paper_text",
-  "paper_figure", "paper_table", "paper_formula", "paper_supplement",
+  "paper_text", "paper_figure", "paper_table", "paper_formula", "paper_supplement",
   "bibliographic_metadata", "venue_metric", "user_material", "other",
 ]);
 const CORE_RUNTIME_DEPENDENCIES = [
@@ -147,7 +146,7 @@ async function referencedLocalFiles(spec, specDir) {
 async function profileConfigurationFiles(spec) {
   const registryPath = path.join(SKILL_DIR, "assets", "profile-registry.json");
   const registry = JSON.parse(await fs.readFile(registryPath, "utf8"));
-  const profileId = String(spec?.profile || registry.defaultProfile || "final_defense");
+  const profileId = String(spec?.profile || registry.defaultProfile || "group_meeting_literature");
   const profile = registry.profiles?.[profileId];
   if (!profile?.assetDirectory) return [];
   const templateDir = path.resolve(SKILL_DIR, profile.assetDirectory);
@@ -282,10 +281,10 @@ export async function computeProjectSignature(options) {
   const specBytes = await fs.readFile(specPath);
   const spec = JSON.parse(specBytes.toString("utf8"));
   const hash = crypto.createHash("sha256");
-  hash.update("academic-slides-project-build:v3\0");
+  hash.update("paper-club-ppt-project-build:v3\0");
   hash.update(`stem=${options.stem}\0theme=${options.theme ?? ""}\0`);
   hash.update(`node=${process.version}\0exec=${process.execPath}\0platform=${process.platform}\0arch=${process.arch}\0`);
-  hash.update(`runtime=${process.env.RUNTIME_NODE_MODULES ?? ""}\0cjk-font=${process.env.ACADEMIC_SLIDES_CJK_FONT ?? ""}\0`);
+  hash.update(`runtime=${process.env.RUNTIME_NODE_MODULES ?? ""}\0cjk-font=${process.env.PAPER_CLUB_PPT_CJK_FONT ?? ""}\0`);
   hash.update("spec\0");
   hash.update(specBytes);
 
@@ -363,7 +362,7 @@ async function pathExists(filePath) {
 
 export function projectLockPath(outputDir, stem) {
   const key = crypto.createHash("sha256").update(String(stem)).digest("hex").slice(0, 16);
-  return path.join(path.resolve(outputDir), `.academic-slides-build-lock-${key}`);
+  return path.join(path.resolve(outputDir), `.paper-club-ppt-build-lock-${key}`);
 }
 
 function processIsAlive(pid) {
@@ -595,7 +594,7 @@ export async function buildProject(options, injectedBuilders = null) {
   }
 
   const builders = injectedBuilders ?? defaultBuilders();
-  const workDir = path.join(outputDir, `.academic-slides-build-${process.pid}-${crypto.randomBytes(5).toString("hex")}`);
+  const workDir = path.join(outputDir, `.paper-club-ppt-build-${process.pid}-${crypto.randomBytes(5).toString("hex")}`);
   const workOutputs = outputPaths(workDir, stem);
   const workPreviewDir = path.join(workDir, PREVIEW_DIRNAME);
   await fs.mkdir(workDir, { recursive: true });

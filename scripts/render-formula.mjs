@@ -265,7 +265,7 @@ function makePortableSvg(serialized, expression, color, svgFontSize) {
 async function optionalSharp() {
   const resolvers = [require];
   if (process.env.RUNTIME_NODE_MODULES) {
-    resolvers.push(createRequire(path.join(path.resolve(process.env.RUNTIME_NODE_MODULES), "__academic_slides_runtime__.cjs")));
+    resolvers.push(createRequire(path.join(path.resolve(process.env.RUNTIME_NODE_MODULES), "__paper_club_ppt_runtime__.cjs")));
   }
   for (const resolver of resolvers) {
     try {

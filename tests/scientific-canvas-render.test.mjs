@@ -39,7 +39,7 @@ function makeOneSlideDeck(sample, layout, renderData, extra = {}) {
   };
 }
 
-const sample = await readJson("assets/final-defense-universal/sample-deck-spec.json");
+const sample = await readJson("assets/group-meeting-literature-universal/sample-deck-spec.json");
 const agendaSlide = structuredClone(sample.slides.find((item) => item.kind === "agenda"));
 agendaSlide.id = "agenda-empty-fallback-test";
 agendaSlide.order = 1;
@@ -58,7 +58,7 @@ const agendaDeck = {
   claim_evidence_map: [],
 };
 const builtAgenda = await createPresentationFromSpec(agendaDeck, { allowPlaceholder: true });
-const agendaTemporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-agenda-fallback-"));
+const agendaTemporary = await fs.mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-agenda-fallback-"));
 try {
   const output = path.join(agendaTemporary, "agenda-fallback.pptx");
   await exportPresentation(builtAgenda.presentation, output);
@@ -96,7 +96,7 @@ const scientificDeck = makeOneSlideDeck(sample, {
 });
 
 const built = await createPresentationFromSpec(scientificDeck, { allowPlaceholder: true });
-const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-scientific-canvas-"));
+const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-scientific-canvas-"));
 try {
   const output = path.join(temporary, "scientific-canvas.pptx");
   await exportPresentation(built.presentation, output);
@@ -115,7 +115,7 @@ try {
 
 const wrongRibbon = makeOneSlideDeck(sample, {
   family: "process_flow",
-  variant: "four-step-ribbon",
+  variant: "method-sequence",
   rationale: "Negative test",
   reading_order: ["model", "branch A", "branch B", "validation"],
 }, {
@@ -129,13 +129,13 @@ const wrongRibbon = makeOneSlideDeck(sample, {
 
 await assert.rejects(
   () => createPresentationFromSpec(wrongRibbon, { allowPlaceholder: true }),
-  /cannot use four-step-ribbon/,
-  "a branch/converge relationship must not be rendered as a linear four-step ribbon",
+  /cannot use the linear method-sequence renderer/,
+  "a branch/converge relationship must not be rendered as a linear method sequence",
 );
 
 const wrongProcess = makeOneSlideDeck(sample, {
   family: "process_flow",
-  variant: "process",
+  variant: "research-evolution",
   rationale: "Negative test",
   reading_order: ["model", "parallel scenes", "validation"],
 }, {}, {
@@ -154,13 +154,13 @@ const wrongProcess = makeOneSlideDeck(sample, {
 
 await assert.rejects(
   () => createPresentationFromSpec(wrongProcess, { allowPlaceholder: true }),
-  /cannot use the linear process renderer/,
-  "the generic process renderer must reject branch/converge topology too",
+  /cannot use the linear research-evolution renderer/,
+  "the research-evolution renderer must reject branch/converge topology too",
 );
 
 const emptyProduction = makeOneSlideDeck(sample, {
-  family: "summary",
-  variant: "four-point-list",
+  family: "selection",
+  variant: "selection-rationale",
 }, {}, {
   content: { title: "不得生成占位要点", body: [], bullets: [] },
   artifact_purpose: undefined,
@@ -183,20 +183,21 @@ await assert.rejects(
 );
 
 const partialClaimProduction = structuredClone(emptyProduction);
-partialClaimProduction.slides[0].layout = { family: "evidence_chain", variant: "claim-evidence" };
+partialClaimProduction.slides[0].layout = { family: "evidence_chain", variant: "claim-evidence-boundary" };
 partialClaimProduction.slides[0].render_data = {
-  items: [{ title: "唯一证据", body: "" }],
+  evidence: [{ title: "唯一证据", body: "" }],
   boundary: "结论只适用于已验证工况",
-  synthesis: "多源证据共同支持本页结论",
+  verdict: "证据仍不足",
 };
 await assert.rejects(
   () => createPresentationFromSpec(partialClaimProduction, { allowPlaceholder: true }),
   /incomplete payload.*item 1 needs explicit evidence\/detail text/,
-  "claim-evidence must fail before a partial item can inject renderer fallback prose",
+  "claim-evidence-boundary must fail before a partial item can inject renderer fallback prose",
 );
 
 const surplusVisualProduction = structuredClone(partialClaimProduction);
-surplusVisualProduction.slides[0].render_data.items[0].body = "原始曲线展示临界频段变化";
+surplusVisualProduction.slides[0].layout = { family: "hero_figure", variant: "single-result-evidence" };
+surplusVisualProduction.slides[0].render_data = { conclusion: "原始曲线展示临界频段变化" };
 surplusVisualProduction.slides[0].visuals = [
   { type: "chart", include: true, asset_ref: "raw-first" },
   { type: "chart", include: true, asset_ref: "ready-second" },
@@ -208,7 +209,7 @@ surplusVisualProduction.assets = [
 await assert.rejects(
   () => createPresentationFromSpec(surplusVisualProduction, { allowPlaceholder: true }),
   /declares 2 scientific visual\(s\).*consumes only 1/,
-  "claim-evidence must reject a second declared visual that its renderer never consumes",
+  "single-result-evidence must reject a second declared visual that its renderer never consumes",
 );
 
 const wrongAgendaRenderer = structuredClone(emptyProduction);
@@ -217,17 +218,16 @@ wrongAgendaRenderer.slides[0].priority = undefined;
 wrongAgendaRenderer.slides[0].render_data = { items: [{ title: "伪目录" }] };
 await assert.rejects(
   () => createPresentationFromSpec(wrongAgendaRenderer, { allowPlaceholder: true }),
-  /kind=agenda.*four-point-list.*expected one of: agenda/,
+  /kind=agenda.*selection-rationale.*expected one of: paper-agenda/,
   "production kind and effective shell renderer must remain consistent",
 );
 
 const crossProfileRenderer = structuredClone(emptyProduction);
-crossProfileRenderer.slides[0].layout = { family: "discussion", variant: "discussion-questions" };
-crossProfileRenderer.slides[0].render_data = { questions: ["问题一"] };
+crossProfileRenderer.slides[0].layout = { family: "title", variant: "cover" };
 await assert.rejects(
   () => createPresentationFromSpec(crossProfileRenderer, { allowPlaceholder: true }),
-  /not registered for profile=final_defense/,
-  "a final-defense renderer must not silently use another profile's layout",
+  /Unknown layout variant "cover"/,
+  "a removed workflow renderer must not be silently accepted",
 );
 
 const ignoredVisualRenderer = structuredClone(emptyProduction);

@@ -808,7 +808,7 @@
       ],
       "requiredSlots": [
         "title",
-        "milestones",
+        "researchStages",
         "change",
         "currentFrontier"
       ],

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.skills/academic-slides/project-config.schema.json",
-  "title": "Academic Slides Project Configuration",
-  "description": "Configuration inferred from the user's request and source documents before slide planning begins.",
+  "$id": "https://local.skills/paper-club-ppt/project-config.schema.json",
+  "title": "Paper Club PPT Project Configuration",
+  "description": "Configuration inferred from the user's request and focal papers before group-meeting slide planning begins.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -48,9 +48,6 @@
           "items": {"type": "string", "minLength": 1},
           "uniqueItems": true,
           "default": []
-        },
-        "logo_library_directory": {
-          "type": ["string", "null"]
         }
       }
     },
@@ -66,7 +63,7 @@
       ],
       "properties": {
         "type": {
-          "enum": ["final_defense", "proposal_midterm", "group_meeting_literature"]
+          "const": "group_meeting_literature"
         },
         "duration_minutes": {
           "type": "number",
@@ -97,11 +94,8 @@
     "academic_profile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["degree_level", "evidence_grammar"],
+      "required": ["evidence_grammar"],
       "properties": {
-        "degree_level": {
-          "enum": ["bachelor", "master", "doctor", "professional", "unknown"]
-        },
         "evidence_grammar": {
           "enum": ["argument_driven", "empirical", "experimental", "design_driven", "mixed", "unknown"]
         },
@@ -118,9 +112,6 @@
     "literature_profile": {
       "$ref": "#/$defs/literatureProfile"
     },
-    "milestone_profile": {
-      "$ref": "#/$defs/milestoneProfile"
-    },
     "paths": {
       "$ref": "#/$defs/projectPaths"
     },
@@ -136,24 +127,9 @@
         "author": {"type": ["string", "null"]},
         "presenter": {"type": ["string", "null"]},
         "research_group": {"type": ["string", "null"]},
-        "student_id": {"type": ["string", "null"]},
-        "supervisor": {"type": ["string", "null"]},
-        "co_supervisors": {
-          "type": "array",
-          "items": {"type": "string", "minLength": 1},
-          "default": []
-        },
-        "defense_date": {
-          "type": ["string", "null"],
-          "description": "Use ISO 8601 when an exact date is known."
-        },
         "meeting_date": {
           "type": ["string", "null"],
           "description": "Group-meeting date; use ISO 8601 when an exact date is known."
-        },
-        "review_date": {
-          "type": ["string", "null"],
-          "description": "Proposal or midterm review date; use ISO 8601 when an exact date is known."
         },
         "confidence": {"$ref": "#/$defs/confidence"}
       }
@@ -295,22 +271,6 @@
       "then": {
         "required": ["literature_profile"]
       }
-    },
-    {
-      "if": {
-        "properties": {
-          "presentation": {
-            "properties": {
-              "type": {"const": "proposal_midterm"}
-            },
-            "required": ["type"]
-          }
-        },
-        "required": ["presentation"]
-      },
-      "then": {
-        "required": ["milestone_profile"]
-      }
     }
   ],
   "$defs": {
@@ -330,9 +290,6 @@
         "source": {"type": "string", "minLength": 1},
         "source_dir": {"type": "string", "minLength": 1},
         "source_manifest": {"type": "string", "minLength": 1},
-        "thesis_analysis": {"type": "string", "minLength": 1},
-        "milestone_analysis": {"type": "string", "minLength": 1},
-        "figures_manifest": {"type": "string", "minLength": 1},
         "evidence_index": {"type": "string", "minLength": 1},
         "paper_index": {"type": "string", "minLength": 1},
         "outline": {"type": "string", "minLength": 1},
@@ -351,7 +308,7 @@
         "id": {"$ref": "#/$defs/stableId"},
         "path": {"type": "string", "minLength": 1},
         "role": {
-          "enum": ["main_thesis", "research_proposal", "approved_plan", "midterm_report", "progress_evidence", "study_protocol", "focal_paper", "background_paper", "supporting_paper", "supplementary_material", "institution_requirements", "official_template", "reference_deck", "asset_source", "other"]
+          "enum": ["focal_paper", "background_paper", "supporting_paper", "supplementary_material", "study_protocol", "official_template", "reference_deck", "asset_source", "other"]
         },
         "format": {
           "enum": ["pdf", "docx", "pptx", "md", "txt", "image", "directory", "other"]
@@ -359,7 +316,7 @@
         "title": {"type": ["string", "null"]},
         "parent_document_id": {
           "type": ["string", "null"],
-          "description": "Stable document ID of the focal paper, plan, report, or other primary source that owns a supplement or related asset."
+          "description": "Stable document ID of the focal paper that owns a supplement or related asset."
         },
         "sha256": {
           "type": ["string", "null"],
@@ -434,66 +391,6 @@
           "then": {
             "properties": {
               "focal_document_ids": {"minItems": 2}
-            }
-          }
-        }
-      ]
-    },
-    "milestoneProfile": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["mode", "plan_document_ids", "progress_document_ids", "emphasis"],
-      "properties": {
-        "mode": {
-          "enum": ["proposal", "midterm"]
-        },
-        "plan_document_ids": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/stableId"},
-          "uniqueItems": true,
-          "default": []
-        },
-        "progress_document_ids": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/stableId"},
-          "uniqueItems": true,
-          "default": []
-        },
-        "as_of_date": {
-          "type": ["string", "null"],
-          "format": "date",
-          "description": "Evidence cutoff date; required for midterm mode."
-        },
-        "emphasis": {
-          "enum": ["balanced", "feasibility", "methods", "progress", "risk_recovery", "completion"],
-          "default": "balanced"
-        },
-        "review_question": {
-          "type": ["string", "null"]
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {"mode": {"const": "proposal"}},
-            "required": ["mode"]
-          },
-          "then": {
-            "properties": {
-              "plan_document_ids": {"minItems": 1}
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {"mode": {"const": "midterm"}},
-            "required": ["mode"]
-          },
-          "then": {
-            "required": ["as_of_date"],
-            "properties": {
-              "progress_document_ids": {"minItems": 1},
-              "as_of_date": {"type": "string", "format": "date"}
             }
           }
         }

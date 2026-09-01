@@ -16,7 +16,7 @@ import { validateScientificDesign } from "./validate-scientific-design.mjs";
 const execFileAsync = promisify(execFile);
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
-const DELIVERY_TYPES = ["本科答辩", "硕士答辩", "博士答辩", "开题答辩", "中期汇报", "组会汇报"];
+const DELIVERY_TYPES = ["组会汇报"];
 const DATE_NAME_PATTERN = /(?:19|20)\d{2}(?:(?:[-_.\/年])\d{1,2}(?:(?:[-_.\/月])\d{1,2}日?)?|\d{4})?/;
 const REVISION_NAME_PATTERN = /(?:最终|终版|终稿|定稿|最新版|修订版|final|latest|version|版本\s*\d*|rev(?:ision)?\s*\d+|v\s*\d+(?:\.\d+)*(?=$|[_\-\s]|版|修改|修订|更新|稿))/i;
 const LOCAL_PATH_PATTERN = /(?:^|[\s"'=(:])(?:\/(?:Users|Volumes|home|tmp|private(?:\/var|\/tmp)?|var\/folders|root|mnt|media|workspace|etc|opt|usr|Applications|Library)\/|~[\\/]|\$HOME[\\/]|[A-Za-z]:[\\/]|\\\\[^\\\s]+\\[^\\\s]+|(?:file|smb):\/{2,3})/im;
@@ -25,7 +25,7 @@ const NETWORK_PATH_PATTERN = /(?:^|[\s"'=(:;,])(?:\/\/[^\/\s"'<>]+\/[^\s"'<>]+|\
 const SAFE_PUBLIC_URL_PATTERN = /\b(?:https?|mailto):[^\s"'<>]+/gi;
 const SAFE_API_ROUTE_PATTERN = /\/api\/v\d+(?:\.\d+)?(?:\/[A-Za-z0-9._~{}:-]+)*/gi;
 const PATH_TRAVERSAL_PATTERN = /(?:^|[\\/])\.\.(?:[\\/]|$)/;
-const INTERNAL_FILE_PATTERN = /(?:project-config|deck-spec|evidence-index|source-manifest|thesis-analysis|milestone-analysis|paper-index|build-report|qa-report|inspect)\.(?:json|md|txt)/i;
+const INTERNAL_FILE_PATTERN = /(?:project-config|deck-spec|evidence-index|source-manifest|paper-index|build-report|qa-report|inspect)\.(?:json|md|txt)/i;
 const SECRET_PATTERNS = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
   /\bAKIA[0-9A-Z]{16}\b/,
@@ -189,7 +189,7 @@ function scanText(value, location, options = {}) {
 }
 
 function validateOfficeMetadata(value, location) {
-  const allowed = new Set(["", "Academic Slides", "Walnut Exporter", "Artifact Tool", "PptxGenJS"]);
+  const allowed = new Set(["", "Paper Club PPT", "Walnut Exporter", "Artifact Tool", "PptxGenJS"]);
   for (const tag of ["dc:creator", "cp:lastModifiedBy"]) {
     const match = value.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"));
     const content = match?.[1]?.replace(/<[^>]+>/g, "").trim() ?? "";
@@ -439,8 +439,8 @@ function canonicalSpecHash(spec) {
 
 export async function readBuilderPayload(filePath) {
   const source = await fs.readFile(filePath, "utf8");
-  const line = source.match(/^\/\/ academic-slides-delivery:\s*(\{[^\r\n]+\})\s*$/m)?.[1];
-  if (!line) throw new Error("Project MJS does not contain an academic-slides delivery contract header.");
+  const line = source.match(/^\/\/ paper-club-ppt-delivery:\s*(\{[^\r\n]+\})\s*$/m)?.[1];
+  if (!line) throw new Error("Project MJS does not contain an paper-club-ppt delivery contract header.");
   let contract;
   try { contract = JSON.parse(line); } catch { throw new Error("Project MJS delivery contract header is invalid JSON."); }
   const specText = source.match(/\nconst deckSpec = (\{[\s\S]*?\});\nconst themePreset =/)?.[1];
@@ -462,8 +462,8 @@ function assertBuilderContract(contract, stem, spec = null) {
   if (contract.artifact_purpose !== "production") {
     throw new Error("Only artifact_purpose=production project builders may be staged as customer deliveries; layout galleries and legacy builders without an explicit production contract are rejected.");
   }
-  if (contract.contract_version !== 2 || contract.generator !== "academic-slides/create-project-builder") {
-    throw new Error("Project MJS is not a current academic-slides generated customer builder.");
+  if (contract.contract_version !== 2 || contract.generator !== "paper-club-ppt/create-project-builder") {
+    throw new Error("Project MJS is not a current paper-club-ppt generated customer builder.");
   }
   if (!spec || (spec.artifact_purpose ?? "production") !== "production") {
     throw new Error("Project MJS embedded specification must use artifact_purpose=production.");
@@ -494,12 +494,12 @@ async function assertRootContract(directory, stem) {
 async function runProjectBuilder(mjsPath, directory) {
   const inheritedKeys = [
     "PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "LC_CTYPE",
-    "RUNTIME_NODE_MODULES", "ACADEMIC_SLIDES_CJK_FONT", "FONTCONFIG_FILE", "SYSTEMROOT", "WINDIR",
+    "RUNTIME_NODE_MODULES", "PAPER_CLUB_PPT_CJK_FONT", "FONTCONFIG_FILE", "SYSTEMROOT", "WINDIR",
   ];
   const environment = Object.fromEntries(inheritedKeys
     .filter((key) => process.env[key] !== undefined)
     .map((key) => [key, process.env[key]]));
-  environment.ACADEMIC_SLIDES_SKILL_DIR = SKILL_DIR;
+  environment.PAPER_CLUB_PPT_SKILL_DIR = SKILL_DIR;
   await execFileAsync(process.execPath, [mjsPath, "--all"], {
     cwd: directory,
     env: environment,
@@ -529,7 +529,7 @@ async function createAndVerifyCanonicalBuilder(inputMjs, payload, directory, ste
     fs.readFile(canonicalMjs),
   ]);
   if (!inputSource.equals(canonicalSource)) {
-    throw new Error("Project MJS is not the canonical source generated by this installed academic-slides Skill. Regenerate the project MJS before staging.");
+    throw new Error("Project MJS is not the canonical source generated by this installed paper-club-ppt Skill. Regenerate the project MJS before staging.");
   }
   return canonicalMjs;
 }

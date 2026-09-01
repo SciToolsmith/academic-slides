@@ -54,7 +54,7 @@ function text(value, fallback = "") {
 }
 
 function resolveDocumentFonts() {
-  const explicit = text(process.env.ACADEMIC_SLIDES_CJK_FONT);
+  const explicit = text(process.env.PAPER_CLUB_PPT_CJK_FONT);
   let cjk = explicit;
   if (!cjk && process.platform === "win32") cjk = "Microsoft YaHei";
   if (!cjk && process.platform === "darwin") cjk = "Hiragino Sans GB";
@@ -71,10 +71,7 @@ function resolveDocumentFonts() {
 function scriptDocumentTitle(spec, outputPath) {
   const outputStem = path.basename(outputPath, path.extname(outputPath)).replace(/_发言稿$/u, "");
   if (outputStem && outputStem !== "发言稿") return `${outputStem.replace(/_+/g, " ")}发言稿`;
-  const reportType = spec.profile === "proposal_midterm"
-    ? (spec.milestone?.mode === "proposal" ? "开题答辩" : spec.milestone?.mode === "midterm" ? "中期汇报" : "开题·中期汇报")
-    : spec.profile === "group_meeting_literature" ? "组会汇报" : "毕业答辩";
-  return `${text(spec.title, "学术汇报")} ${reportType}发言稿`;
+  return `${text(spec.title, "文献组会")} 组会汇报发言稿`;
 }
 
 function compactSpeakerText(notes) {
@@ -118,8 +115,8 @@ export async function buildSpeakerScriptFromSpec(spec, outputPath) {
   }
 
   const document = new Document({
-    creator: "Academic Slides",
-    lastModifiedBy: "Academic Slides",
+    creator: "Paper Club PPT",
+    lastModifiedBy: "Paper Club PPT",
     title: documentTitle,
     description: "与演示文稿逐页讲稿同源生成的紧凑发言稿。",
     styles: {

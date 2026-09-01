@@ -55,7 +55,7 @@ function fixture() {
         kind: "content",
         priority: "core",
         narrative_roles: ["why_read", "evidence_generation", "key_finding", "boundary", "presenter_judgment"],
-        layout: { family: "hero_figure", variant: "image-left-text-right" },
+        layout: { family: "hero_figure", variant: "single-result-evidence" },
         content: { title: "The intervention changes the response", bullets: ["The controlled comparison supports the core claim."] },
         visuals: [{
           include: true,
@@ -86,7 +86,7 @@ assert(missingErrors.includes("scientific-content.core-finding.missing"), "missi
 assert(missingErrors.includes("scientific-content.presenter-judgment.missing"), "missing presenter judgment must fail");
 
 const declaredButNotRendered = fixture();
-declaredButNotRendered.deck.slides[0].layout = { family: "summary", variant: "four-point-list" };
+declaredButNotRendered.deck.slides[0].layout = { family: "contribution_limits", variant: "critical-appraisal" };
 const notRenderedResult = validateScientificContent(declaredButNotRendered);
 assert.equal(notRenderedResult.ok, false, "declaring a source visual must not satisfy the contract when its renderer does not consume it");
 assert(codes(notRenderedResult, "error").includes("scientific-content.core-finding.visible-evidence-missing"));
