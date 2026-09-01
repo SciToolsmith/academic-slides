@@ -989,21 +989,18 @@
       "id": "group-closing",
       "family": "closing",
       "useWhen": [
-        "汇报结束，需要回扣总体判断、保留一个关键开放问题并进入讨论",
+        "汇报结束，倒数第二页已经完成总结、评价或讨论，需要用学生身份自然收束",
         "可与封面形成视觉呼应"
       ],
       "avoidWhen": [
-        "只有通用感谢语而没有学术收束",
-        "在结束页首次加入新证据"
+        "在结束页首次加入新证据、总结、讨论问题或下一步计划",
+        "把 QA、复现审计、生成说明或交付信息放在结束页之后"
       ],
       "requiredSlots": [
-        "title",
-        "synthesis"
+        "title"
       ],
       "optionalSlots": [
-        "openQuestion",
-        "discussionPrompt",
-        "nextAction",
+        "subtitle",
         "presenter",
         "institution",
         "logo"
@@ -1014,7 +1011,7 @@
         "sourceSlides": [
           25
         ],
-        "adaptation": "保留蓝白横带收束与讨论邀请，增加总体判断和开放问题，避免只显示感谢语。"
+        "adaptation": "保留蓝白横带作为学生汇报的固定结束壳；学术总结、开放问题和下一步行动移到前一页，确保结束页是最后一张可见页。"
       }
     }
   ]

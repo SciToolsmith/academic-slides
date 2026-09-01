@@ -45,7 +45,7 @@
           "enum": ["definition", "objective", "constraint", "method_core", "result_explanation", "derivation", "none"]
         },
         "evidence_role": {
-          "enum": ["background", "gap", "hypothesis", "plan_commitment", "feasibility", "preliminary_result", "progress_update", "completed_result", "deviation", "risk", "corrective_action", "expected_output", "other"]
+          "enum": ["background", "gap", "hypothesis", "mechanism", "objective", "training", "comparison", "independent_validation", "robustness", "limitation", "plan_commitment", "feasibility", "preliminary_result", "progress_update", "completed_result", "deviation", "risk", "corrective_action", "expected_output", "other"]
         },
         "document_id": {
           "type": ["string", "null"],

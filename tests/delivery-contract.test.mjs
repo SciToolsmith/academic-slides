@@ -228,6 +228,8 @@ async function main() {
     assert.match(generated, /"artifact_purpose":"production"/);
     assert.match(generated, /validate-scientific-design\.mjs/);
     assert.match(generated, /validateScientificDesign\(deckSpec, \{ strict: true \}\)/);
+    assert.doesNotMatch(generated, /"qa"\s*:/, "internal QA records must not be embedded in the customer MJS");
+    assert.doesNotMatch(generated, /not_checked/, "stale not_checked QA placeholders must not leak into the customer MJS");
     await assert.rejects(() => createProjectBuilder({
       spec: specPath,
       output: path.join(temporary, `${STEM}.mjs`),

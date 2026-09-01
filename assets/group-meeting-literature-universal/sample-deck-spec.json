@@ -10,7 +10,8 @@
       "paper-b",
       "paper-c"
     ],
-    "synthesis_question": "哪些证据真正改变了我们对共同问题的判断？"
+    "synthesis_question": "哪些证据真正改变了我们对共同问题的判断？",
+    "scientific_contract": "group_meeting_v2"
   },
   "title": "组会文献汇报·学术通用｜布局库",
   "language": "zh-CN",
@@ -156,12 +157,12 @@
       "section_id": "identity",
       "purpose": "示范 group-cover 的通用语义、布局边界与视觉层级。",
       "audience_question": "什么内容关系适合使用 group-cover？",
-      "takeaway": "封面只交代共同问题、汇报身份与阅读范围。",
+      "takeaway": "封面只交代论文、汇报身份与日期。",
       "priority": "supporting",
       "content": {
         "kicker": null,
         "title": "组会文献汇报·学术通用｜布局库",
-        "subtitle": "GROUP MEETING · LITERATURE REVIEW",
+        "subtitle": "单篇精读与多篇综合的通用视觉语言",
         "body": [],
         "bullets": [],
         "metrics": [],
@@ -214,7 +215,7 @@
         "asset_ref": null
       },
       "speaker_notes": {
-        "script": "本页示范“组会文献汇报·学术通用｜布局库”。封面只交代共同问题、汇报身份与阅读范围。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "script": "本页示范“组会文献汇报·学术通用｜布局库”。封面只交代论文、汇报身份与日期。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
         "transition": "下一页进入“文献地图”。",
         "estimated_seconds": 8,
         "sources": [
@@ -236,7 +237,6 @@
         ]
       },
       "render_data": {
-        "kicker": "GROUP MEETING · LITERATURE REVIEW",
         "subtitle": "单篇精读与多篇综合的通用视觉语言",
         "presenter": "示范姓名",
         "research_group": "示范课题组",
@@ -3621,7 +3621,7 @@
       },
       "speaker_notes": {
         "script": "本页示范“本次汇报精选来源”。只列真正进入论证链的论文、数据和方法来源。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
-        "transition": "下一页进入“讨论与下一步”。",
+        "transition": "下一页进入“谢谢老师，请批评指正”。",
         "estimated_seconds": 12,
         "sources": [
           {
@@ -3667,11 +3667,11 @@
       "section_id": "discussion-closing",
       "purpose": "示范 group-closing 的通用语义、布局边界与视觉层级。",
       "audience_question": "什么内容关系适合使用 group-closing？",
-      "takeaway": "把阅读结论转成可检验假设和明确行动。",
+      "takeaway": "学术总结与讨论已在前一页完成；最后一页只保留学生汇报的结束壳。",
       "priority": "supporting",
       "content": {
         "kicker": null,
-        "title": "讨论与下一步",
+        "title": "谢谢老师，请批评指正",
         "subtitle": null,
         "body": [],
         "bullets": [],
@@ -3725,8 +3725,8 @@
         "asset_ref": null
       },
       "speaker_notes": {
-        "script": "本页示范“讨论与下一步”。把阅读结论转成可检验假设和明确行动。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
-        "transition": "下一页进入“讨论与下一步”。",
+        "script": "本页示范“谢谢老师，请批评指正”。学术总结与讨论已在前一页完成；最后一页只保留学生汇报的结束壳。 正式使用时先判断内容关系，再决定是否采用这个注册布局；不自然匹配时直接使用受设计令牌约束的自由画布。",
+        "transition": "下一页进入“谢谢老师，请批评指正”。",
         "estimated_seconds": 8,
         "sources": [
           {
@@ -3747,13 +3747,7 @@
         ]
       },
       "render_data": {
-        "synthesis": "这组论文支持一条可检验的机制方向，但外部适用性仍是当前最大不确定性。",
-        "prompts": [
-          "接受哪项结论？",
-          "还缺哪项证据？",
-          "下一步由谁完成？"
-        ],
-        "presenter": "示范课题组 · 文献汇报"
+        "presenter": "示范姓名"
       },
       "qa": {
         "status": "not_checked",

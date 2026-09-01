@@ -55,9 +55,9 @@ node scripts/extract-paper-assets.mjs \
   <project/assets/papers/paper-id>
 ```
 
-输出 `paper-assets.json`、由其派生的 `论文图表资产说明.md` 和 `assets/*.png`。JSON 是机器事实源；Markdown 只是供后续选材的简短阅读层，禁止两份手工分叉维护。一次分析可根据图注与相邻正文把每项 `brief_description` 补成 1–2 句“看到什么/在论文中起什么作用”；只对入选项再补 claim 映射、PPT 用途和呈现处理。
+输出 `paper-assets.json`、由其派生的 `论文图表资产说明.md` 和按需生成的 `assets/*.png`。JSON 是机器事实源；Markdown 只是供后续选材的简短阅读层，禁止两份手工分叉维护。全量索引在 MD 中只占一张 ID/图号/页码/短标题/状态表；只有入选或已物化项才展开图片与简要说明，并补 claim 映射、PPT 用途和呈现处理。
 
-默认 `auto` 模式在可检出图表数不超过脚本阈值时物化全部 caption-free 裁图；超过阈值时建立完整 caption 轻索引，再由叙事和证据逻辑自动选出核心 ID，使用 `--select <id,id> --force` 定向物化。用户明确要求完整图集时可用 `--materialize all`，不增加人工审批门。
+默认 `auto` 模式只在可检出图表数不超过脚本阈值 12 时物化全部 caption-free 裁图；超过阈值时建立完整 caption 轻索引，再由主张、方法、比较、稳健性与局限自动选出通常 6–8 个候选 ID，使用 `--select <id,id> --force` 定向物化。模型只深读候选，主稿通常使用其中 3–6 个父图。用户明确要求完整图集时可用 `--materialize all`，不增加人工审批门。
 
 该提取器的承诺边界是“出生即数字且有文本层的常规论文 PDF”：
 
@@ -82,7 +82,7 @@ node scripts/extract-paper-assets.mjs \
 
 ## 图片说明文档
 
-文献组会的 `论文图表资产说明.md` 由 `paper-assets.json` 直接生成；学位论文 legacy 流的 `论文图片说明.md` 由 `figures.manifest.json` 生成。对全量资产只保留简短内容/作用说明，选中后才扩展为 claim、PPT 用途和呈现处理；避免为未入选图表填完整富语义模板。
+文献组会的 `论文图表资产说明.md` 由 `paper-assets.json` 直接生成；学位论文 legacy 流的 `论文图片说明.md` 由 `figures.manifest.json` 生成。未入选资产只保留紧凑索引行，选中后才扩展为内容/作用、claim、PPT 用途和呈现处理；避免为未入选图表填完整富语义模板。
 
 ```markdown
 ## 图3.19 锁滚轮运动轨迹

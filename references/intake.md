@@ -120,7 +120,8 @@
 - 逐页 `[Sources]`：生成；
 - 目录与章节页：按叙事需要保留，不机械固定；
 - 公式：只保留理解核心模型、约束或结果所必需的公式；
-- 附录：保存重要但不适合主叙事的证据；
+- 执行预算：普通、有文本层的单篇文献组会使用 `lean_single_paper`；其他任务使用 `balanced_95`；
+- 附录：文献组会默认关闭，学生结束页必须是最后一张可见页；答辩、开题/中期按实际防守需要决定；
 - 文献组会侧重点：`balanced`；论文快照信息按可用字段自适应，不生成虚构占位值；
 - 处理模式：用户未说“先看大纲”时为 `auto`，否则为 `outline_first`。
 
@@ -140,6 +141,7 @@
 - 所有用户限制已进入 `constraints`；
 - 推断内容与用户明示内容冲突时，以用户明示内容为准并记录差异；
 - `presentation.type=group_meeting_literature` 时存在 `literature_profile`，且 `single_paper` 恰有一个焦点文档、`multi_paper` 至少有两个；
+- 普通 `single_paper` 已设置 `quality_budget=lean_single_paper`、`preferences.include_appendix=false`；用户明确的复杂度或高保真要求才升级预算；
 - `presentation.type=proposal_midterm` 时存在 `milestone_profile`：`proposal` 至少有一个计划文档；`midterm` 至少有一个进展文档且具有 `as_of_date`；
 - 中期缺少原计划时，已记录用户确认或低风险假设，并明确禁止虚构计划基线；
 - 焦点文档 ID 能映射到 `input.documents`，补充材料能指向其所属论文；

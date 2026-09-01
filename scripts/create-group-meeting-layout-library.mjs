@@ -15,7 +15,7 @@ const SOURCE_IDS = ["layout-registry", "design-tokens", "template-heritage"];
 const SECTION_FOR_ORDER = (order) => order <= 6 ? "identity" : order <= 16 ? "method-evidence" : order <= 24 ? "judgment-synthesis" : "discussion-closing";
 
 const LAYOUTS = [
-  { id: "group-cover", family: "title", kind: "title", title: "组会文献汇报·学术通用｜布局库", takeaway: "封面只交代共同问题、汇报身份与阅读范围。", render: { kicker: "GROUP MEETING · LITERATURE REVIEW", subtitle: "单篇精读与多篇综合的通用视觉语言", presenter: "示范姓名", research_group: "示范课题组", date: "20XX 年 X 月" } },
+  { id: "group-cover", family: "title", kind: "title", title: "组会文献汇报·学术通用｜布局库", takeaway: "封面只交代论文、汇报身份与日期。", render: { subtitle: "单篇精读与多篇综合的通用视觉语言", presenter: "示范姓名", research_group: "示范课题组", date: "20XX 年 X 月" } },
   { id: "paper-agenda", family: "agenda", kind: "agenda", title: "文献地图", takeaway: "论文数量和顺序由共同问题决定，不由模板固定。", render: { papers: [
     { number: "01", title: "论文 A｜机制证据", detail: "回答“是否存在”" },
     { number: "02", title: "论文 B｜方法证据", detail: "回答“如何测量”" },
@@ -79,7 +79,7 @@ const LAYOUTS = [
   { id: "selected-sources", family: "summary", title: "本次汇报精选来源", takeaway: "只列真正进入论证链的论文、数据和方法来源。", render: { group_labels: ["焦点论文", "方法与背景来源"], references: [
     "[1] 焦点论文 A：完整作者. 完整题名. 期刊/会议, 年份. DOI.", "[2] 焦点论文 B：完整作者. 完整题名. 期刊/会议, 年份. DOI.", "[3] 焦点论文 C：完整作者. 完整题名. 期刊/会议, 年份. DOI.", "[4] 关键方法来源：作者. 题名. 来源, 年份.", "[5] 数据或标准来源：机构. 名称. 版本/年份.", "[6] 补充材料或代码仓库：名称与稳定链接.",
   ] } },
-  { id: "group-closing", family: "closing", kind: "closing", title: "讨论与下一步", takeaway: "把阅读结论转成可检验假设和明确行动。", render: { synthesis: "这组论文支持一条可检验的机制方向，但外部适用性仍是当前最大不确定性。", prompts: ["接受哪项结论？", "还缺哪项证据？", "下一步由谁完成？"], presenter: "示范课题组 · 文献汇报" } },
+  { id: "group-closing", family: "closing", kind: "closing", title: "谢谢老师，请批评指正", takeaway: "学术总结与讨论已在前一页完成；最后一页只保留学生汇报的结束壳。", render: { presenter: "示范姓名" } },
 ];
 
 function falseFormula() {
@@ -107,7 +107,7 @@ function contentFor(entry) {
   return {
     kicker: entry.kind === "section" ? "PAPER / TOPIC TRANSITION" : null,
     title: entry.title,
-    subtitle: entry.kind === "title" ? "GROUP MEETING · LITERATURE REVIEW" : null,
+    subtitle: entry.kind === "title" ? "单篇精读与多篇综合的通用视觉语言" : null,
     body: [],
     bullets: (entry.bullets ?? []).map((text) => ({ text, level: 0, emphasis: "none", evidence_refs: ["template-heritage"] })),
     metrics: (entry.metrics ?? []).map(([label, value, unit]) => ({ label, value, unit, comparison: null, evidence_ref: "template-heritage" })),
@@ -120,7 +120,7 @@ function contentFor(entry) {
 
 function makeSlide(entry, index) {
   const order = index + 1;
-  const nextTitle = LAYOUTS[index + 1]?.title ?? "讨论与下一步";
+  const nextTitle = LAYOUTS[index + 1]?.title ?? "谢谢老师，请批评指正";
   const estimated = entry.kind === "title" || entry.kind === "section" || entry.kind === "closing" ? 8 : 12;
   return {
     id: `sample-${entry.id}`,
@@ -169,7 +169,7 @@ function createSpec() {
     schema_version: "1.1",
     project_id: "group-meeting-literature-layout-library",
     profile: "group_meeting_literature",
-    literature: { mode: "multi_paper", focal_paper_ids: ["paper-a", "paper-b", "paper-c"], synthesis_question: "哪些证据真正改变了我们对共同问题的判断？" },
+    literature: { mode: "multi_paper", focal_paper_ids: ["paper-a", "paper-b", "paper-c"], synthesis_question: "哪些证据真正改变了我们对共同问题的判断？", scientific_contract: "group_meeting_v2" },
     title: "组会文献汇报·学术通用｜布局库",
     language: "zh-CN",
     slide_size: { ratio: "16:9", width_inches: 13.333, height_inches: 7.5 },

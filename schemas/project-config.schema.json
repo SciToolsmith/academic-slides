@@ -80,9 +80,9 @@
           "default": "auto"
         },
         "quality_budget": {
-          "enum": ["balanced_95", "strict_release"],
+          "enum": ["lean_single_paper", "balanced_95", "strict_release"],
           "default": "balanced_95",
-          "description": "Execution policy, not a numeric quality score. balanced_95 keeps all scientific hard gates and stops after one full QA pass plus targeted repair."
+          "description": "Execution policy, not a numeric quality score. lean_single_paper is the default for ordinary single-paper group meetings; all policies keep scientific hard gates and stop optional polish after the declared QA budget."
         },
         "aspect_ratio": {
           "const": "16:9",
@@ -205,7 +205,7 @@
         "speaker_notes": {"const": true, "default": true},
         "sources_in_notes": {"const": true, "default": true},
         "editable_output": {"type": "boolean", "default": true},
-        "include_appendix": {"type": "boolean", "default": true},
+        "include_appendix": {"type": "boolean", "default": false},
         "agenda_policy": {
           "enum": ["auto", "include", "omit"],
           "default": "auto",

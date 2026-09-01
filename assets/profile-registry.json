@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "skillVersion": "0.4.0",
+  "skillVersion": "0.5.0",
   "defaultProfile": "final_defense",
   "backwardCompatibility": {
     "missingDeckProfile": "final_defense"
@@ -21,6 +21,19 @@
       "balanced_95": {
         "fullDeckQaPasses": 1,
         "targetedRepairPasses": 1,
+        "promoteAdvisoryWarnings": false
+      },
+      "lean_single_paper": {
+        "appliesTo": "group_meeting_literature.single_paper",
+        "targetVisibleSlides": [10, 14],
+        "softVisibleSlideLimit": 16,
+        "maxDeepReadParentVisuals": 8,
+        "typicalRenderedParentVisuals": [3, 6],
+        "fullDeckQaPasses": 1,
+        "targetedRepairPasses": 1,
+        "diagnosticMinutes": 18,
+        "stopOptionalPolishMinutes": 25,
+        "activeContextTargetTokens": [20000, 30000],
         "promoteAdvisoryWarnings": false
       },
       "strict_release": {
@@ -100,10 +113,29 @@
         "inventoryKind": "paper_assets",
         "extractor": "scripts/extract-paper-assets.mjs",
         "schema": "schemas/paper-assets.schema.json",
-        "defaultMaterialization": "auto",
+        "defaultMaterialization": "index_then_selected",
         "formulaMaterialization": "selected_core_only"
       },
-      "scientificContract": "group_meeting_v1",
+      "scientificContract": "group_meeting_v2",
+      "modeDefaults": {
+        "single_paper": {
+          "qualityBudget": "lean_single_paper",
+          "appendixPolicy": "none",
+          "agendaPolicy": "omit_unless_needed",
+          "sectionTransitionPolicy": "none_unless_needed"
+        },
+        "multi_paper": {
+          "qualityBudget": "balanced_95",
+          "appendixPolicy": "none"
+        }
+      },
+      "shellPolicy": {
+        "coverLayoutId": "group-cover",
+        "closingLayoutId": "group-closing",
+        "closingMustBeLast": true,
+        "defaultAppendixPolicy": "none",
+        "generatorLabels": false
+      },
       "assetDirectory": "assets/group-meeting-literature-universal",
       "modes": [
         "single_paper",

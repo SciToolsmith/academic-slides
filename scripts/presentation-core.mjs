@@ -41,12 +41,10 @@ async function loadSharp() {
     ...[
       process.env.RUNTIME_NODE_MODULES,
       path.resolve(path.dirname(process.execPath), "..", "node_modules"),
-    ].filter(Boolean).map((modulesDir) => () => import(pathToFileURL(path.join(
-      modulesDir,
-      "sharp",
-      "lib",
-      "index.js",
-    )).href)),
+    ].filter(Boolean).flatMap((modulesDir) => [
+      () => import(pathToFileURL(path.join(modulesDir, "sharp", "dist", "index.mjs")).href),
+      () => import(pathToFileURL(path.join(modulesDir, "sharp", "lib", "index.js")).href),
+    ]),
   ];
   for (const attempt of attempts) {
     try {
@@ -1194,6 +1192,10 @@ function setNotes(slide, slideSpec) {
   slide.speakerNotes.setVisible(true);
 }
 
+function groupMeetingContract(spec) {
+  return spec?.literature?.scientific_contract ?? "group_meeting_v1";
+}
+
 async function addGroupContentChrome(slide, slideSpec, context, slideNumber) {
   const { colors, tokens } = context;
   slide.background.fill = tokens.neutral.canvas;
@@ -1224,7 +1226,10 @@ async function addGroupContentChrome(slide, slideSpec, context, slideNumber) {
     fontSize: 12,
   });
   addRule(slide, 56, 78, 1168, tokens.neutral.line, 1, "group-title-rule");
-  const footerLabel = cleanText(first(data.footer_label, context.spec?.literature?.mode === "multi_paper" ? "MULTI-PAPER REVIEW" : "PAPER REVIEW", ""));
+  const legacyFooter = groupMeetingContract(context.spec) === "group_meeting_v2"
+    ? ""
+    : context.spec?.literature?.mode === "multi_paper" ? "MULTI-PAPER REVIEW" : "PAPER REVIEW";
+  const footerLabel = cleanText(first(data.footer_label, legacyFooter, ""));
   if (footerLabel) addText(slide, footerLabel, { left: 56, top: 678, width: 260, height: 22 }, {
     fontSize: 11,
     fontFamily: tokens.fonts.en,
@@ -1467,10 +1472,12 @@ async function renderGroupCover(slide, spec, slideSpec, context) {
   slide.background.fill = context.tokens.neutral.canvas;
   addGroupCornerMotif(slide, 36, 28, context.colors.primary, false);
   addGroupCornerMotif(slide, 1128, 600, context.colors.primary, true);
-  addText(slide, cleanText(first(data.kicker, "GROUP MEETING · LITERATURE REVIEW")), {
+  const defaultKicker = groupMeetingContract(spec) === "group_meeting_v2" ? "" : "GROUP MEETING · LITERATURE REVIEW";
+  const kicker = cleanText(first(data.kicker, defaultKicker, ""));
+  if (kicker) addText(slide, kicker, {
     left: 74, top: 74, width: 700, height: 34,
   }, {
-    fontSize: 13, fontFamily: context.tokens.fonts.en, bold: true,
+    fontSize: 13, fontFamily: fontFor(kicker, context.tokens), bold: true,
     color: context.colors.primary, verticalAlignment: "middle",
   }, "group-cover-kicker");
   addShape(slide, "rect", { left: 0, top: 200, width: 1280, height: 274 }, {
@@ -1478,8 +1485,10 @@ async function renderGroupCover(slide, spec, slideSpec, context) {
     line: { style: "solid", fill: context.colors.primary, width: 0 },
   });
   const title = slideTitle(slideSpec) || cleanText(first(spec.title, "组会文献汇报"));
-  addText(slide, title, { left: 110, top: 246, width: 1060, height: 104 }, {
-    fontSize: 50, fontFamily: fontFor(title, context.tokens), bold: true,
+  const titleLength = [...title].length;
+  const titleFontSize = titleLength > 28 ? 38 : titleLength > 14 ? 44 : 50;
+  addText(slide, title, { left: 110, top: 238, width: 1060, height: 120 }, {
+    fontSize: titleFontSize, fontFamily: fontFor(title, context.tokens), bold: true,
     color: context.tokens.neutral.white, alignment: "center",
   }, "group-cover-title");
   const subtitle = cleanText(first(data.subtitle, slideSpec.content?.subtitle, spec.subtitle, ""));
@@ -2184,21 +2193,36 @@ async function renderGroupClosing(slide, spec, slideSpec, context) {
     name: "group-closing-band", fill: context.colors.primary,
     line: { style: "solid", fill: context.colors.primary, width: 0 },
   });
-  const title = slideTitle(slideSpec) || "讨论与下一步";
-  addText(slide, title, { left: 110, top: 216, width: 1060, height: 74 }, {
-    fontSize: 46, fontFamily: fontFor(title, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
+  if (groupMeetingContract(spec) !== "group_meeting_v2") {
+    const title = slideTitle(slideSpec) || "讨论与下一步";
+    addText(slide, title, { left: 110, top: 216, width: 1060, height: 74 }, {
+      fontSize: 46, fontFamily: fontFor(title, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
+    }, "group-closing-title");
+    const synthesis = cleanText(first(data.synthesis, slideTakeaway(slideSpec), "用一句话带走本次阅读最重要的判断。"));
+    addText(slide, synthesis, { left: 160, top: 310, width: 960, height: 104 }, {
+      fontSize: 24, fontFamily: fontFor(synthesis, context.tokens), color: "#F4F6FB", alignment: "center",
+    }, "group-closing-synthesis");
+    const prompts = list(first(data.prompts, slideSpec.content?.bullets, [])).map(cleanText).filter(Boolean).slice(0, 3);
+    const values = prompts.length ? prompts : ["我们接受哪项结论？", "还缺哪项关键证据？", "下一步由谁完成什么？"];
+    const width = 330;
+    const totalWidth = values.length * width + (values.length - 1) * 24;
+    values.forEach((prompt, index) => addPill(slide, prompt, {
+      left: (1280 - totalWidth) / 2 + index * (width + 24), top: 540, width, height: 54,
+    }, context.colors, context.tokens, { name: `group-closing-prompt-${index + 1}`, fill: context.colors.primaryLight, color: context.colors.primaryDark, fontSize: 15 }));
+    const presenter = cleanText(first(data.presenter, spec.presenter, spec.author, ""));
+    if (presenter) addText(slide, presenter, { left: 260, top: 636, width: 760, height: 30 }, {
+      fontSize: 14, fontFamily: fontFor(presenter, context.tokens), color: context.tokens.neutral.muted, alignment: "center",
+    }, "group-closing-presenter");
+    return;
+  }
+  const title = slideTitle(slideSpec) || "谢谢老师，请批评指正";
+  addText(slide, title, { left: 110, top: 244, width: 1060, height: 86 }, {
+    fontSize: 48, fontFamily: fontFor(title, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
   }, "group-closing-title");
-  const synthesis = cleanText(first(data.synthesis, slideTakeaway(slideSpec), "用一句话带走本次阅读最重要的判断。"));
-  addText(slide, synthesis, { left: 160, top: 310, width: 960, height: 104 }, {
-    fontSize: 24, fontFamily: fontFor(synthesis, context.tokens), color: "#F4F6FB", alignment: "center",
-  }, "group-closing-synthesis");
-  const prompts = list(first(data.prompts, slideSpec.content?.bullets, [])).map(cleanText).filter(Boolean).slice(0, 3);
-  const values = prompts.length ? prompts : ["我们接受哪项结论？", "还缺哪项关键证据？", "下一步由谁完成什么？"];
-  const width = 330;
-  const totalWidth = values.length * width + (values.length - 1) * 24;
-  values.forEach((prompt, index) => addPill(slide, prompt, {
-    left: (1280 - totalWidth) / 2 + index * (width + 24), top: 540, width, height: 54,
-  }, context.colors, context.tokens, { name: `group-closing-prompt-${index + 1}`, fill: context.colors.primaryLight, color: context.colors.primaryDark, fontSize: 15 }));
+  const subtitle = cleanText(first(data.subtitle, slideSpec.content?.subtitle, ""));
+  if (subtitle) addText(slide, subtitle, { left: 160, top: 342, width: 960, height: 58 }, {
+    fontSize: 21, fontFamily: fontFor(subtitle, context.tokens), color: "#F4F6FB", alignment: "center",
+  }, "group-closing-subtitle");
   const presenter = cleanText(first(data.presenter, spec.presenter, spec.author, ""));
   if (presenter) addText(slide, presenter, { left: 260, top: 636, width: 760, height: 30 }, {
     fontSize: 14, fontFamily: fontFor(presenter, context.tokens), color: context.tokens.neutral.muted, alignment: "center",

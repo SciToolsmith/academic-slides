@@ -74,7 +74,7 @@
     {
       "id": "group-scientific-contract",
       "files": ["SKILL.md", "references/group-meeting-literature.md", "scripts/validate-scientific-content.mjs"],
-      "termsAny": ["group_meeting_v1", "核心发现"]
+      "termsAny": ["group_meeting_v2", "evidence-bound presenter"]
     },
     {
       "id": "cross-file-build-gate",
@@ -85,6 +85,11 @@
       "id": "balanced-95-budget",
       "files": ["SKILL.md", "references/workflow.md", "assets/profile-registry.json"],
       "termsAny": ["balanced_95", "one full QA pass plus one targeted repair pass"]
+    },
+    {
+      "id": "lean-single-paper-budget",
+      "files": ["SKILL.md", "references/workflow.md", "references/group-meeting-literature.md", "assets/profile-registry.json"],
+      "termsAny": ["lean_single_paper", "maxDeepReadParentVisuals"]
     },
     {
       "id": "profile-phase-routing",

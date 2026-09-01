@@ -54,6 +54,7 @@ const REQUIRED_TESTS = [
   "scientific-canvas-render.test.mjs",
   "build-project-cache.test.mjs",
   "final-defense-structure.test.mjs",
+  "group-meeting-shell-contract.test.mjs",
 ];
 const PROFILE_REGISTRY_PATH = path.join("assets", "profile-registry.json");
 const PROFILE_ASSET_FIELDS = ["layoutLibrary", "layoutRegistry", "templateMap", "designTokens", "themePresets", "librarySpec", "preview"];
