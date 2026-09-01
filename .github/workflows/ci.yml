@@ -28,6 +28,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Install Poppler runtime
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
       - name: Validate skill scaffold
         run: node scripts/validate-skill-assets.mjs . --profile scaffold --strict
 
