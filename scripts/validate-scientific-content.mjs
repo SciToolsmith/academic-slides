@@ -46,6 +46,38 @@ function slideById(deck) {
   return new Map(list(deck?.slides).map((slide) => [clean(slide?.id), slide]).filter(([id]) => id));
 }
 
+const PRESENTER_VISIBLE_RENDER_KEYS = new Set([
+  "boundary", "caveat", "claim", "conclusion", "decision", "evidence", "finding", "implication", "items",
+  "left_text", "limitations", "next_action", "not_proven", "one_line", "options", "paper_finding", "question",
+  "questions", "right_text", "risks", "strengths", "subtitle", "support", "synthesis", "transfer_logic", "verdict",
+]);
+
+function collectTextValues(value, output = []) {
+  if (typeof value === "string" && value.trim()) output.push(value.trim());
+  else if (Array.isArray(value)) value.forEach((item) => collectTextValues(item, output));
+  else if (value && typeof value === "object") Object.values(value).forEach((item) => collectTextValues(item, output));
+  return output;
+}
+
+function normalizedVisibleText(value) {
+  return clean(value).normalize("NFKC").toLowerCase().replace(/[\p{P}\p{S}\s]+/gu, "");
+}
+
+function presenterClaimVisibleOnSlide(claim, slide) {
+  const expected = normalizedVisibleText(claim?.claim);
+  if (!expected) return false;
+  const visibleRenderData = Object.fromEntries(Object.entries(slide?.render_data ?? {})
+    .filter(([key]) => PRESENTER_VISIBLE_RENDER_KEYS.has(key)));
+  const visible = normalizedVisibleText(collectTextValues([
+    slide?.takeaway,
+    slide?.content,
+    visibleRenderData,
+    (slide?.diagram?.nodes ?? []).map((node) => [node?.label, node?.detail]),
+    (slide?.visuals ?? []).map((visual) => [visual?.caption, visual?.highlight]),
+  ]).join(" "));
+  return visible.includes(expected);
+}
+
 function customElements(slide) {
   return list(slide?.render_data?.custom_elements ?? slide?.render_data?.customElements ?? slide?.render_data?.elements);
 }
@@ -170,7 +202,9 @@ export function validateScientificContent(input, options = {}) {
   const findings = [];
   if (clean(deck?.profile).toLowerCase() !== GROUP_PROFILE) return finalize(findings, options.strict === true);
 
-  const contractEnabled = deck?.literature?.scientific_contract === "group_meeting_v1"
+  const contractVersion = clean(deck?.literature?.scientific_contract).toLowerCase();
+  const v2Enabled = contractVersion === "group_meeting_v2";
+  const contractEnabled = ["group_meeting_v1", "group_meeting_v2"].includes(contractVersion)
     || paperIndex?.schema_version === "1.1"
     || config?.schema_version === "1.2";
   const contractIssue = (code, pointer, message) => issue(contractEnabled ? "error" : "warning", code, pointer, message, { strictExempt: !contractEnabled });
@@ -183,13 +217,34 @@ export function validateScientificContent(input, options = {}) {
 
   const roleGroups = [
     [["why_read", "gap", "research_question"], "framing", "Show why the paper matters and what question or gap it addresses."],
-    [["method", "evidence_generation"], "evidence-generation", "Show how the authors generated the evidence, not only the method name."],
+    ...(v2Enabled
+      ? [
+        [["method"], "method-reconstruction", "Show the student's own reconstruction of how the method works."],
+        [["evidence_generation"], "evidence-generation", "Show how the authors generated the evidence, not only the method name."],
+      ]
+      : [[["method", "evidence_generation"], "evidence-generation", "Show how the authors generated the evidence, not only the method name."]]),
     [["key_finding", "validation"], "finding", "Show at least one evidence-bearing key finding or validation page."],
     [["credibility", "boundary"], "credibility-boundary", "Show a credibility check, uncertainty, limitation, or boundary condition."],
     [["presenter_judgment", "group_relevance", "discussion"], "presenter-voice", "Show the presenter's own synthesis, critique, application, or discussion question."],
   ];
   for (const [alternatives, code, message] of roleGroups) {
     if (!alternatives.some((role) => roles.has(role))) findings.push(contractIssue(`scientific-content.roles.${code}.missing`, "$/slides", message));
+  }
+
+  if (v2Enabled) {
+    const visibleMainSlideIds = new Set(mainSlides(deck).map((slide) => clean(slide?.id)).filter(Boolean));
+    const presenterClaims = list(deck?.claim_evidence_map).filter((claim) => ["presenter_synthesis", "presenter_critique"].includes(clean(claim?.voice).toLowerCase()));
+    const evidenceBoundPresenterClaims = presenterClaims.filter((claim) => list(claim?.evidence_refs).length > 0
+      && list(claim?.slide_ids).some((slideId) => {
+        if (!visibleMainSlideIds.has(clean(slideId))) return false;
+        const slide = slides.get(clean(slideId));
+        const slideRoles = new Set(list(slide?.narrative_roles).map((role) => clean(role).toLowerCase()));
+        return (slideRoles.has("presenter_judgment") || slideRoles.has("group_relevance"))
+          && presenterClaimVisibleOnSlide(claim, slide);
+      }));
+    if (evidenceBoundPresenterClaims.length === 0) {
+      findings.push(issue("error", "scientific-content.presenter-voice.visible-evidence-missing", "$/claim_evidence_map", "group_meeting_v2 requires at least one evidence-bound presenter_synthesis or presenter_critique claim whose wording is visible on a presenter_judgment/group_relevance slide. A mapping or note alone is not enough."));
+    }
   }
 
   for (const [paperNumber, paper] of papers.entries()) {
@@ -211,6 +266,9 @@ export function validateScientificContent(input, options = {}) {
         findings.push(contractIssue("scientific-content.core-finding.claim-missing", "$/claim_evidence_map", `Core finding ${clean(finding?.id) || "<unknown>"} has no claim-evidence mapping (${claimId || "missing claim id"}).`));
         continue;
       }
+      if (v2Enabled && clean(claim?.voice).toLowerCase() !== "source_author_claim") {
+        findings.push(issue("error", "scientific-content.core-finding.voice", `$/claim_evidence_map/${claimId}/voice`, `Core paper finding ${claimId} must remain a source_author_claim; put the student's interpretation in a separate presenter_synthesis or presenter_critique claim.`));
+      }
       const findingRefs = new Set(list(finding?.evidence_refs));
       if (!list(claim?.evidence_refs).some((ref) => findingRefs.has(ref))) {
         findings.push(contractIssue("scientific-content.core-finding.evidence-mismatch", `$/claim_evidence_map/${claimId}`, `Claim ${claimId} does not cite any evidence declared for its core finding.`));
@@ -219,6 +277,14 @@ export function validateScientificContent(input, options = {}) {
       if (!mappedSlides.some((slide) => slideShowsFindingEvidence(slide, finding, evidenceById))) {
         findings.push(contractIssue("scientific-content.core-finding.visible-evidence-missing", `$/claim_evidence_map/${claimId}/slide_ids`, `Core finding ${clean(finding?.id) || claimId} is mapped to slides, but none renders its source visual (or its formula when the finding is formula-only).`));
       }
+      if (v2Enabled && /(?:优于|超过|更好|提升|outperform|better\s+than|improv(?:e|es|ed|ement))/i.test(clean(claim?.claim))) {
+        const declaredRoles = list(claim?.evidence_refs)
+          .map((ref) => clean(evidenceById.get(ref)?.evidence_role).toLowerCase())
+          .filter(Boolean);
+        if (!declaredRoles.some((role) => ["comparison", "independent_validation", "robustness"].includes(role))) {
+          findings.push(issue("error", "scientific-content.superiority.independent-evidence-missing", `$/claim_evidence_map/${claimId}/evidence_refs`, "A superiority claim needs comparison, independent_validation, or robustness evidence. Objective, training, background, or undeclared evidence roles are not sufficient; otherwise narrow the claim."));
+        }
+      }
     }
   }
 
@@ -226,10 +292,8 @@ export function validateScientificContent(input, options = {}) {
   const coverage = renderedVisualCoverage(deck, evidenceById, deckSources, eligible.byAssetId);
   const mode = clean(paperIndex?.mode ?? deck?.literature?.mode).toLowerCase();
   if (mode === "single_paper" && eligible.groups.size > 0) {
-    const hardFloor = Math.min(eligible.groups.size, 5, Math.max(2, Math.ceil(eligible.groups.size * 0.20)));
-    const recommended = Math.min(eligible.groups.size, 7, Math.max(hardFloor, Math.ceil(eligible.groups.size * 0.30)));
-    if (coverage.groups.size < hardFloor) findings.push(contractIssue("scientific-content.visual.floor", "$/slides", `The deck renders ${coverage.groups.size} distinct source figure/table group(s); this paper needs at least ${hardFloor} to avoid an evidence-sparse report.`));
-    else if (coverage.groups.size < recommended) findings.push(issue("warning", "scientific-content.visual.recommended", "$/slides", `The hard visual floor passes (${coverage.groups.size}/${hardFloor}); ${recommended} distinct source visual groups would be a useful target when they add explanatory value.`, { strictExempt: true }));
+    const usefulTarget = Math.min(eligible.groups.size, 3);
+    if (coverage.groups.size < usefulTarget) findings.push(issue("warning", "scientific-content.visual.recommended", "$/slides", `The deck renders ${coverage.groups.size} distinct source figure/table group(s). Consider up to ${usefulTarget} when they serve different claims or evidence roles, but do not add visuals merely to satisfy a percentage.`, { strictExempt: true }));
   }
   if (mode === "multi_paper") {
     for (const paperId of list(paperIndex?.focal_paper_ids)) {
@@ -246,7 +310,7 @@ export function validateScientificContent(input, options = {}) {
       || ["definition", "objective", "constraint", "method_core"].includes(record?.formula_role)).map((record) => clean(record?.id)).filter(Boolean));
     const renderedKeys = new Set(mainSlides(deck).flatMap((slide) => [...renderedFormulaKeys(slide, evidenceById)]));
     const renderedCount = list(deck?.slides).filter(renderedFormula).length;
-    const minimum = Math.min(3, Math.max(1, Math.ceil(coreFormulaKeys.size * 0.10)));
+    const minimum = 1;
     if (renderedCount < minimum) findings.push(contractIssue("scientific-content.formula.required", "$/slides", `Equation-centric method needs at least ${minimum} rendered core formula group(s); found ${renderedCount}.`));
     for (const record of formulaEvidence.filter((item) => item?.display_requirement === "main")) {
       const id = clean(record?.id);

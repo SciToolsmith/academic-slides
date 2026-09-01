@@ -65,7 +65,7 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 | 输出一份难以继续维护的静态文件 | 同时交付项目 `.mjs` 与实际使用的素材，后续可重新构建 |
 
 ```text
-PDF → 全量图表轻索引/条件物化 → 简短 MD 说明 → 证据与灵活大纲 → 核心资产 → PPTX + DOCX + MJS → 一次全稿 QA
+PDF → 全量 caption 轻索引 → 自动选择候选图表 → 精选深读/物化 → 学生学习大纲 → PPTX + DOCX + MJS → 一次全稿 QA
 ```
 
 - 章节数量和名称由材料决定，不默认五部分。
@@ -73,13 +73,15 @@ PDF → 全量图表轻索引/条件物化 → 简短 MD 说明 → 证据与灵
 - 内置学术蓝、典雅红、沉静紫和清朗青四套配色；未指定时一次询问，并推荐学术蓝。
 - 注册布局不适合内容关系时，直接使用可编辑科研画布重新构图；分支、汇合、反馈和复杂证据图不会被强行压成线性流程或双图卡片。
 
-## v0.4 自动化闭环
+## v0.5 单篇轻量路径
 
-- 对有文本层的常规论文 PDF，`extract-paper-assets.mjs` 建立全部可检出 Figure/Table caption 索引和派生 MD；小型单篇默认物化全部去图注 crop，大集合全量索引后只物化入选项。
-- 文献组会使用语义科学合同，不固定页序：必须讲清问题、证据如何产生、源证据支持的核心发现、可信边界和汇报者判断。只对 `equation_centric` 论文强制核心公式，不以全论文公式比例作为 KPI。
+- 普通、有文本层的单篇文献组会默认使用 `lean_single_paper`：通常 10–14 张可见页、16 张软上限、最多深读 8 个父图、一次全稿 QA 与一次集中修复；复杂任务自动升级到 `balanced_95`。
+- `extract-paper-assets.mjs` 建立全部可检出 Figure/Table caption/page/bbox 索引；自动阈值降为 12，较大集合先按主张、比较、稳健性与局限形成候选，只把候选交给视觉理解和深加工。完整图集仍可显式请求。
+- `group_meeting_v2` 不固定页序，但要求真正可见的学生学习产物：方法理解、作者证据逻辑、核心图解读、证据边界，以及证据绑定的学生综合/批判。只对 `equation_centric` 论文强制至少一项核心公式，不以全论文图片或公式比例作为 KPI。
+- 组会封面与结束页成为生产硬约束：封面第一、学生结束页最后、默认无可见附录；不再自动显示 `GROUP MEETING`、`PAPER REVIEW`、QA 或生成流程等后台语言。
 - `build-project.mjs --project-dir` 在昂贵渲染前检查 config、paper/evidence index、asset manifest、大纲和 deck 的跨文件闭环。
 - 没有本地 LaTeX 也可用内置 MathJax 生成自包含路径 SVG；只处理经核对的 ASCII TeX 子集，不证明原公式正确。
-- 默认 `balanced_95` 是工作预算而不是质量评分：硬门禁不降级，通常一次全稿 QA 加一次定向修复，最后的边缘间距和装饰性微调留给人。
+- `lean_single_paper` 与 `balanced_95` 都是工作预算而不是质量评分：硬门禁不降级，最后的边缘间距和装饰性微调留给人。
 
 ## 三套专业工作流
 

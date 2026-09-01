@@ -12,7 +12,7 @@ import { pathToFileURL } from "node:url";
 
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
-const DEFAULT_AUTO_LIMIT = 40;
+const DEFAULT_AUTO_LIMIT = 12;
 const DEFAULT_DPI = 180;
 const CAPTION_GAP_PT = 5;
 const MIN_CROP_HEIGHT_PT = 54;
@@ -24,7 +24,7 @@ function usage() {
     "Options:",
     "  --materialize <mode>  auto (default), all, selected, or none",
     "  --select <ids>         Comma-separated asset IDs to crop; may be repeated",
-    "  --auto-limit <n>       In auto mode, crop all when detected assets <= n (default: 40)",
+    "  --auto-limit <n>       In auto mode, crop all when detected assets <= n (default: 12)",
     "  --dpi <n>              Crop rasterization resolution (default: 180)",
     "  --force                Replace this script's manifest, guide, and matching crops",
     "  --json                 Print a machine-readable operation summary",
@@ -672,7 +672,17 @@ function markdownFor(manifest) {
   if (!manifest.assets.length) {
     lines.push("未从 PDF 文本层检出 Figure/Table caption。图像型 PDF 需要上游 OCR 或人工提供定位。", "");
   }
-  for (const asset of manifest.assets) {
+  if (manifest.assets.length) {
+    lines.push("## 全量轻索引", "", "| ID | 图表 | PDF 页 | 短标题 | 状态 |", "|---|---|---:|---|---|");
+    for (const asset of manifest.assets) {
+      const title = String(asset.title ?? "").replaceAll("|", "\\|").replaceAll(/\s+/g, " ").trim();
+      lines.push(`| ${asset.id} | ${asset.label} | ${asset.source.pdf_page} | ${title} | ${asset.crop.status} |`);
+    }
+    lines.push("");
+  }
+  const detailedAssets = manifest.assets.filter((asset) => asset.crop.file || asset.selection?.priority === "selected");
+  if (detailedAssets.length) lines.push("## 已物化候选资产", "");
+  for (const asset of detailedAssets) {
     lines.push(`## ${asset.label} — ${asset.title}`, "");
     if (asset.crop.file) lines.push(`![${asset.label} ${asset.title}](<${asset.crop.file}>)`, "");
     lines.push(
@@ -685,7 +695,7 @@ function markdownFor(manifest) {
     lines.push("");
   }
   if (manifest.policy.effective_materialization === "selected" && manifest.summary.indexed_only_count > 0) {
-    lines.push("> 该论文资产数超过自动阈值。请先选核心证据，再用 `--select <asset-id> --force` 仅物化所需图表。", "");
+    lines.push("> 该论文资产数超过自动阈值。上表已覆盖全部 caption；请按主张、比较、稳健性和局限选出核心 ID，再用 `--select <asset-id> --force` 只物化候选图表。不要让模型逐张深读全部索引项。", "");
   }
   return `${lines.join("\n").trim()}\n`;
 }

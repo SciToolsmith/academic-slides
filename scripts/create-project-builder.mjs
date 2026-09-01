@@ -89,23 +89,7 @@ function stripInternalFields(value, depth = 0) {
   if (!value || typeof value !== "object") return value;
   const output = {};
   for (const [key, item] of Object.entries(value)) {
-    if (key === "decision_log" || (key === "qa" && depth > 0)) continue;
-    if (key === "qa" && depth === 0 && item && typeof item === "object") {
-      output.qa = {
-        status: item.status ?? "not_checked",
-        issues: [],
-        checks: stripInternalFields(item.checks ?? {
-          schema: "not_checked",
-          evidence: "not_checked",
-          narrative: "not_checked",
-          visual: "not_checked",
-          technical: "not_checked",
-          notes_sources: "not_checked",
-        }, depth + 1),
-        checked_at: item.checked_at ?? null,
-      };
-      continue;
-    }
+    if (key === "decision_log" || key === "qa") continue;
     if (key === "path" && typeof item === "string" && typeof value.citation === "string") {
       output[key] = null;
       continue;

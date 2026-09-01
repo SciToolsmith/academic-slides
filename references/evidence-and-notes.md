@@ -8,7 +8,7 @@
 
 - 稳定 `evidence_id`；
 - 证据类型：论文文字、图片、表格、公式、数据、用户提供、外部来源或自行计算；
-- 用于汇报决策的简短字段：`modality`、`presentation_priority`、`display_requirement`；公式证据另记录 `formula_role`，以便只在方法确实依赖公式时启用硬覆盖门；
+- 用于汇报决策的简短字段：`modality`、`presentation_priority`、`display_requirement` 与 `evidence_role`；文献组会用 `objective`、`training`、`comparison`、`independent_validation`、`robustness`、`limitation` 等角色区分证据功能，公式证据另记录 `formula_role`；
 - 来源文档与定位：PDF 页、论文页码、章节、图号、表号、公式号、段落或 URL；
 - 可支持的主张和不能支持的延伸；
 - 数值、单位、口径和必要上下文；
@@ -25,6 +25,8 @@
 - 一个证据可以服务多个页面，但页面结论不得超出证据边界；
 - 因果主张需要因果设计或论文明确论证，相关性结果不得改写为因果；
 - “首次、最高、显著提升、验证有效”等强表述要有直接依据；
+- 文献组会把作者核心发现标为 `source_author_claim`，把学生判断单独标为 `presenter_synthesis` 或 `presenter_critique`；学生判断必须有证据并映射到主稿；
+- “优于基线”的主张不能只引用 `objective` / `training` 证据；需要比较、独立验证或稳健性证据，否则缩小结论；
 - 没有充分证据的内容改写为“提示、可能、在本研究范围内”或移除。
 
 若论文内部出现数字、单位或表述矛盾，登记所有版本及定位，标为 `conflicted`。未经用户或可靠上下文确认，不擅自选一个版本。

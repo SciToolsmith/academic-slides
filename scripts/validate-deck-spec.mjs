@@ -454,8 +454,133 @@ function finalDefenseStructureIssues(deck, slides) {
   return findings;
 }
 
+function groupMeetingContract(deck) {
+  return deck?.literature?.scientific_contract ?? "group_meeting_v1";
+}
+
+function groupMeetingStructureIssues(deck, slides) {
+  const findings = [];
+  if (deck.profile !== "group_meeting_literature") return findings;
+  if ((deck.artifact_purpose ?? "production") === "layout_gallery") return findings;
+  const contract = groupMeetingContract(deck);
+  const v2Enabled = contract === "group_meeting_v2";
+
+  const positioned = slides.map((slide, index) => ({ slide, index, position: slidePosition(slide, index) }));
+  const coverSlides = positioned.filter(({ slide }) => slide?.kind === "title");
+  const closingSlides = positioned.filter(({ slide }) => slide?.kind === "closing");
+  const appendixSectionIds = new Set((deck.sections ?? [])
+    .filter((section) => effectiveSectionAudienceRole(section) === "appendix")
+    .map((section) => section?.id)
+    .filter(isNonEmptyString));
+  const appendixSlides = positioned.filter(({ slide }) => (
+    slide?.kind === "appendix"
+    || slide?.priority === "appendix"
+    || appendixSectionIds.has(slide?.section_id)
+  ));
+
+  if (v2Enabled) {
+    if (coverSlides.length !== 1) {
+      findings.push(issue("error", "group-meeting.cover.count", "$/slides", `Production group-meeting decks need exactly one cover slide; found ${coverSlides.length}.`));
+    } else if (coverSlides[0].position !== 1) {
+      findings.push(issue("error", "group-meeting.cover.order", `$/slides/${coverSlides[0].index}`, "The group-meeting cover must be the first visible slide."));
+    }
+    if (closingSlides.length !== 1) {
+      findings.push(issue("error", "group-meeting.closing.count", "$/slides", `Production group-meeting decks need exactly one closing slide; found ${closingSlides.length}.`));
+    } else {
+      const finalPosition = Math.max(...positioned.map(({ position }) => position));
+      if (closingSlides[0].position !== finalPosition) {
+        findings.push(issue("error", "group-meeting.closing.order", `$/slides/${closingSlides[0].index}`, "The student-facing closing must be the final visible slide; discussion and next actions belong before it."));
+      }
+    }
+
+    const appendixPolicy = deck.structure?.appendix_policy ?? "none";
+    if (appendixPolicy !== "none") {
+      findings.push(issue("error", "group-meeting.appendix.policy", "$/structure/appendix_policy", "Production group-meeting decks default to appendix_policy=none. Keep audit/reproduction material in notes or internal Markdown instead of placing visible slides after the closing."));
+    }
+    if (appendixSlides.length > 0 || appendixSectionIds.size > 0) {
+      findings.push(issue("error", "group-meeting.appendix.visible", "$/slides", "Visible appendix/backup material is not allowed in a production group-meeting deck; the closing must remain the final slide."));
+    }
+
+    if (coverSlides.length === 1) {
+      const coverData = coverSlides[0].slide?.render_data ?? {};
+      if (!isNonEmptyString(coverData.presenter)) {
+        findings.push(issue("error", "group-meeting.cover.presenter", `$/slides/${coverSlides[0].index}/render_data/presenter`, "A student group-meeting cover must identify the presenter."));
+      }
+      if (!isNonEmptyString(coverData.date)) {
+        findings.push(issue("error", "group-meeting.cover.date", `$/slides/${coverSlides[0].index}/render_data/date`, "A student group-meeting cover must identify the meeting date."));
+      }
+    }
+    if (closingSlides.length === 1) {
+      const closing = closingSlides[0].slide;
+      const title = String(closing?.content?.title ?? "").trim();
+      const shellSource = closing?.render_data?.shell_source ?? "profile_default";
+      if (!["profile_default", "user_locked"].includes(shellSource)) {
+        findings.push(issue("error", "group-meeting.closing.shell-source", `$/slides/${closingSlides[0].index}/render_data/shell_source`, "render_data.shell_source must be profile_default or user_locked for a v2 group-meeting closing."));
+      }
+      if (shellSource !== "user_locked" && title !== "谢谢老师，请批评指正") {
+        findings.push(issue("error", "group-meeting.closing.student-shell", `$/slides/${closingSlides[0].index}/content/title`, "Use the fixed student closing “谢谢老师，请批评指正”, or mark a genuinely user-supplied shell with render_data.shell_source=user_locked."));
+      }
+      const analysisPayload = collectTextValues([
+        closing?.render_data?.synthesis,
+        closing?.render_data?.prompts,
+        closing?.content?.body,
+        closing?.content?.bullets,
+        closing?.content?.metrics,
+        closing?.content?.quote,
+        closing?.content?.callout,
+      ]);
+      if (analysisPayload.length > 0) {
+        findings.push(issue("error", "group-meeting.closing.analysis-payload", `$/slides/${closingSlides[0].index}`, "The final student closing is a shell only. Move synthesis, prompts, evidence, and next actions to the preceding slide."));
+      }
+    }
+  }
+
+  const singlePaperAuto = deck.literature?.mode === "single_paper" && deck.timing?.page_policy === "auto";
+  if (singlePaperAuto && slides.length > 16) {
+    findings.push(issue("warning", "group-meeting.single-paper.page-budget", "$/slides", `An automatic single-paper deck has ${slides.length} visible slides; 10–14 is the normal target and 16 is the soft ceiling. Keep extra pages only when distinct evidence requires them.`, { strictExempt: true }));
+  }
+  if (singlePaperAuto) {
+    const navigationFillers = positioned.filter(({ slide }) => ["agenda", "section"].includes(slide?.kind));
+    if (navigationFillers.length > 0) {
+      findings.push(issue("warning", "group-meeting.single-paper.navigation-budget", "$/slides", "A normal single-paper group meeting does not need agenda or section-divider filler pages. Keep them only when the evidence really forms several stable parts.", { strictExempt: true }));
+    }
+  }
+
+  return findings;
+}
+
 const RESERVED_SOURCES_MARKER = /\[\/?Sources\]/i;
 const NON_SUBSTANTIVE_SLIDE_KINDS = new Set(["title", "section", "agenda", "closing", "questions"]);
+const GROUP_PRODUCTION_LANGUAGE_PATTERNS = [
+  { code: "generator-label", pattern: /(?:GROUP\s+MEETING\s*[·|]\s*LITERATURE\s+REVIEW|MULTI[-\s]?PAPER\s+REVIEW|(?<![A-Z-])PAPER\s+REVIEW)/i },
+  { code: "internal-artifact", pattern: /(?:deck-spec|paper-assets|evidence-index|qa-report|\bMJS\b|交付包|项目构建器)/i },
+  { code: "qa-status", pattern: /(?:(?:QA|逐页渲染|完整性检查|证据链).{0,16}(?:已通过|通过|完成|已建立|闭环|pass(?:ed)?))/i },
+  { code: "audit-tone", pattern: /(?:机器可核|自动迁移建议|生成流程已完成)/i },
+];
+
+const GROUP_VISIBLE_RENDER_DATA_KEYS = new Set([
+  "actions", "boundary", "boundary_label", "boundaryLabel", "caption", "captions", "cards", "caveat", "checks",
+  "chrome_label", "chromeLabel", "citation", "claim", "claim_label", "claimLabel", "conclusion", "consensus",
+  "context", "criteria", "criterion", "custom_elements", "customElements", "data_layers", "date", "decision",
+  "divergence", "evidence", "evidence_label", "evidenceLabel", "events", "explanations", "finding", "footer_label",
+  "gap", "group_labels", "implication", "items", "kicker", "known", "label", "labels", "layers", "left_label",
+  "left_text", "limitations", "next_action", "not_proven", "one_line", "options", "paper", "paper_finding", "papers",
+  "points", "presenter", "prompts", "purpose", "question", "questions", "references", "reminder", "research_group",
+  "researchGroup", "right_label", "right_text", "risks", "sample_label", "strengths", "subtitle", "support", "synthesis",
+  "synthesis_question", "synthesisQuestion", "table", "chart", "transfer", "transfer_logic", "verdict",
+]);
+
+function groupAudienceTextValues(slide) {
+  const visibleRenderData = Object.fromEntries(Object.entries(slide?.render_data ?? {})
+    .filter(([key]) => GROUP_VISIBLE_RENDER_DATA_KEYS.has(key)));
+  return collectTextValues([
+    slide?.takeaway,
+    slide?.content,
+    visibleRenderData,
+    (slide?.diagram?.nodes ?? []).map((node) => [node?.label, node?.detail]),
+    (slide?.visuals ?? []).map((visual) => [visual?.caption, visual?.highlight]),
+  ]);
+}
 
 function slideEvidenceReferenceItems(slide, base) {
   const output = [];
@@ -600,6 +725,20 @@ function semanticDeckIssues(deck, strict = false) {
       slide.diagram?.nodes,
       slide.visuals,
     ]);
+    if (deck.profile === "group_meeting_literature"
+      && (deck.artifact_purpose ?? "production") === "production"
+      && groupMeetingContract(deck) === "group_meeting_v2") {
+      const audienceText = groupAudienceTextValues(slide).join("\n");
+      for (const entry of GROUP_PRODUCTION_LANGUAGE_PATTERNS) {
+        if (entry.pattern.test(audienceText)) {
+          findings.push(issue("error", `group-meeting.production-language.${entry.code}`, `${base}/content`, "Visible group-meeting slides must contain academic content for the audience, not generator, QA, audit, or delivery-process language."));
+        }
+      }
+      const aiAttribution = /(?:(?:本(?:PPT|演示|汇报)|this\s+(?:deck|presentation)).{0,16}(?:由\s*(?:ChatGPT|Codex|AI|大模型)\s*(?:生成|制作)|generated\s+by\s+(?:ChatGPT|Codex|AI))|由\s*(?:ChatGPT|Codex)\s*(?:生成|制作))/i;
+      if (aiAttribution.test(audienceText) && slide?.render_data?.ai_disclosure !== "institution_required") {
+        findings.push(issue("error", "group-meeting.production-language.ai-attribution", `${base}/content`, "Do not add an automatic AI-production label to the audience deck. If institutional policy requires disclosure, set render_data.ai_disclosure=institution_required and follow that policy explicitly."));
+      }
+    }
     const seenEmphasis = new Set();
     for (const [emphasisIndex, directive] of emphasis.entries()) {
       const pointer = directive?._pointer ?? `${base}/text_emphasis/${emphasisIndex}`;
@@ -716,6 +855,7 @@ function semanticDeckIssues(deck, strict = false) {
   }
 
   findings.push(...finalDefenseStructureIssues(deck, slides));
+  findings.push(...groupMeetingStructureIssues(deck, slides));
 
   if (deck.profile === "proposal_midterm") {
     const narrativeRoles = new Set(slides.flatMap((slide) => Array.isArray(slide?.narrative_roles) ? slide.narrative_roles : []));

@@ -46,6 +46,7 @@ function fixture() {
       sources: [{ id: "evidence-figure-1", paper_id: "paper-1", asset_id: "figure-1" }],
       claim_evidence_map: [{
         claim_id: "claim-1",
+        claim: "The intervention changes the response.",
         evidence_refs: ["evidence-figure-1"],
         slide_ids: ["finding-slide"],
       }],
@@ -106,6 +107,61 @@ nonEquation.paperIndex.papers[0].analysis.method_formality = "non_equation";
 const nonEquationResult = validateScientificContent(nonEquation);
 assert.equal(nonEquationResult.ok, true, "a non-equation paper may legitimately render zero formulas");
 assert(!codes(nonEquationResult).includes("scientific-content.formula.required"));
+
+const v2Complete = fixture();
+v2Complete.deck.literature.scientific_contract = "group_meeting_v2";
+v2Complete.deck.claim_evidence_map[0].voice = "source_author_claim";
+v2Complete.deck.slides[0].narrative_roles.push("method");
+v2Complete.deck.claim_evidence_map.push({
+  claim_id: "presenter-judgment-1",
+  claim: "I think the in-distribution evidence is useful, but external validity remains unresolved.",
+  voice: "presenter_critique",
+  evidence_refs: ["evidence-figure-1"],
+  slide_ids: ["finding-slide"],
+});
+v2Complete.deck.slides[0].content.bullets.push("I think the in-distribution evidence is useful, but external validity remains unresolved.");
+const v2CompleteResult = validateScientificContent(v2Complete, { strict: true });
+assert.equal(v2CompleteResult.ok, true, `group_meeting_v2 should pass with a visible evidence-bound presenter judgment: ${JSON.stringify(v2CompleteResult.issues)}`);
+
+const v2MissingMethod = structuredClone(v2Complete);
+v2MissingMethod.deck.slides[0].narrative_roles = v2MissingMethod.deck.slides[0].narrative_roles.filter((role) => role !== "method");
+assert(codes(validateScientificContent(v2MissingMethod), "error").includes("scientific-content.roles.method-reconstruction.missing"), "v2 requires a method reconstruction separately from evidence generation");
+
+const v2MissingEvidenceGeneration = structuredClone(v2Complete);
+v2MissingEvidenceGeneration.deck.slides[0].narrative_roles = v2MissingEvidenceGeneration.deck.slides[0].narrative_roles.filter((role) => role !== "evidence_generation");
+assert(codes(validateScientificContent(v2MissingEvidenceGeneration), "error").includes("scientific-content.roles.evidence-generation.missing"), "v2 requires evidence generation separately from the method reconstruction");
+
+const v2MappedButInvisible = structuredClone(v2Complete);
+v2MappedButInvisible.deck.slides[0].content.bullets.pop();
+const v2MappedButInvisibleResult = validateScientificContent(v2MappedButInvisible);
+assert(codes(v2MappedButInvisibleResult, "error").includes("scientific-content.presenter-voice.visible-evidence-missing"), "mapping a presenter claim to a slide is insufficient when its wording is not visible");
+
+const v2HiddenPresenter = fixture();
+v2HiddenPresenter.deck.literature.scientific_contract = "group_meeting_v2";
+v2HiddenPresenter.deck.claim_evidence_map[0].voice = "source_author_claim";
+const v2HiddenPresenterResult = validateScientificContent(v2HiddenPresenter);
+assert.equal(v2HiddenPresenterResult.ok, false, "a presenter observation stored only in paper-index must not satisfy group_meeting_v2");
+assert(codes(v2HiddenPresenterResult, "error").includes("scientific-content.presenter-voice.visible-evidence-missing"));
+
+const v2MixedVoice = structuredClone(v2Complete);
+v2MixedVoice.deck.claim_evidence_map[0].voice = "presenter_synthesis";
+const v2MixedVoiceResult = validateScientificContent(v2MixedVoice);
+assert(codes(v2MixedVoiceResult, "error").includes("scientific-content.core-finding.voice"), "a paper's core finding must not be rewritten as the student's own claim");
+
+const selfProvingSuperiority = structuredClone(v2Complete);
+selfProvingSuperiority.deck.claim_evidence_map[0].claim = "The proposed method outperforms the baseline.";
+selfProvingSuperiority.evidenceIndex.evidence[0].evidence_role = "objective";
+const superiorityResult = validateScientificContent(selfProvingSuperiority);
+assert(codes(superiorityResult, "error").includes("scientific-content.superiority.independent-evidence-missing"), "superiority cannot be proved only by objective/training evidence");
+
+const backgroundOnlySuperiority = structuredClone(v2Complete);
+backgroundOnlySuperiority.deck.claim_evidence_map[0].claim = "The proposed method outperforms the baseline.";
+backgroundOnlySuperiority.evidenceIndex.evidence[0].evidence_role = "background";
+assert(codes(validateScientificContent(backgroundOnlySuperiority), "error").includes("scientific-content.superiority.independent-evidence-missing"), "background or missing evidence roles must not prove superiority");
+
+const independentlyCompared = structuredClone(backgroundOnlySuperiority);
+independentlyCompared.evidenceIndex.evidence[0].evidence_role = "comparison";
+assert(!codes(validateScientificContent(independentlyCompared), "error").includes("scientific-content.superiority.independent-evidence-missing"), "comparison evidence may support a bounded superiority claim");
 
 const legacy = fixture();
 legacy.deck.literature.scientific_contract = "legacy";

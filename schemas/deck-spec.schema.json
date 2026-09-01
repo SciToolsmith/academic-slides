@@ -17,8 +17,7 @@
     "sections",
     "sources",
     "slides",
-    "claim_evidence_map",
-    "qa"
+    "claim_evidence_map"
   ],
   "properties": {
     "schema_version": {"enum": ["1.0", "1.1", "1.2"]},
@@ -245,9 +244,9 @@
           "type": ["string", "null"]
         },
         "scientific_contract": {
-          "enum": ["legacy", "group_meeting_v1"],
-          "default": "group_meeting_v1",
-          "description": "Activates the semantic group-meeting coverage contract without imposing a fixed slide sequence."
+          "enum": ["legacy", "group_meeting_v1", "group_meeting_v2"],
+          "default": "group_meeting_v2",
+          "description": "Activates the semantic group-meeting coverage contract without imposing a fixed slide sequence. v2 requires an evidence-bound presenter judgment in the visible main deck."
         }
       },
       "allOf": [
@@ -678,7 +677,7 @@
     "layout": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["family", "rationale", "reading_order"],
+      "required": ["family"],
       "properties": {
         "family": {
           "enum": ["title", "agenda", "section", "hero_figure", "comparison", "chart_insight", "figure_formula", "process_flow", "system_architecture", "evidence_chain", "quote_analysis", "case_matrix", "method_design", "validation_matrix", "contribution_limits", "summary", "closing", "free_canvas"]
@@ -878,7 +877,7 @@
     "speakerNotes": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["script", "transition", "estimated_seconds", "sources"],
+      "required": ["script", "estimated_seconds", "sources"],
       "properties": {
         "script": {"type": "string", "minLength": 1},
         "transition": {"type": "string"},
