@@ -33,45 +33,45 @@ const [fixture, projectSchema, deckSchema, sampleDeck] = await Promise.all([
   readJson("evals/skill-evals.json"),
   readJson("schemas/project-config.schema.json"),
   readJson("schemas/deck-spec.schema.json"),
-  readJson("assets/final-defense-universal/sample-deck-spec.json"),
+  readJson("assets/group-meeting-literature-universal/sample-deck-spec.json"),
 ]);
 
 const baseline = await runSkillEvals({ skillDir: SKILL_DIR });
 assert.equal(baseline.ok, true, JSON.stringify(baseline.findings, null, 2));
 assert.equal(baseline.coverage.intake_controls, 4, "all four missing/provided intake combinations must be covered");
 
-const tempDir = await mkdtemp(path.join(os.tmpdir(), "academic-slides-intake-test-"));
+const tempDir = await mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-intake-test-"));
 try {
   const incompleteThemeList = await runFixtureMutation(tempDir, fixture, (candidate) => {
-    const testCase = candidate.cases.find((item) => item.id === "intake-page-and-theme-missing");
+    const testCase = candidate.cases.find((item) => item.id === "ask-page-and-theme-once");
     testCase.expected.availableThemePresets = ["blue", "red", "cyan"];
   });
   assert.equal(incompleteThemeList.ok, false, "omitting a built-in theme must fail the contract eval");
   assert(incompleteThemeList.findings.some((item) => item.code === "case.theme-presets"));
 
   const repeatedQuestion = await runFixtureMutation(tempDir, fixture, (candidate) => {
-    const testCase = candidate.cases.find((item) => item.id === "intake-only-page-missing");
+    const testCase = candidate.cases.find((item) => item.id === "ask-page-only");
     testCase.expected.askControls.push("theme_policy");
   });
   assert.equal(repeatedQuestion.ok, false, "asking a supplied control again must fail the contract eval");
   assert(repeatedQuestion.findings.some((item) => item.code === "case.intake-ask-exact"));
 
   const durationQuestion = await runFixtureMutation(tempDir, fixture, (candidate) => {
-    const testCase = candidate.cases.find((item) => item.id === "intake-page-and-theme-missing");
+    const testCase = candidate.cases.find((item) => item.id === "ask-page-and-theme-once");
     testCase.expected.mustNotAsk = [];
   });
   assert.equal(durationQuestion.ok, false, "duration must remain outside the intake question");
   assert(durationQuestion.findings.some((item) => item.code === "case.duration-reprompt"));
 
   const requiredDuration = await runFixtureMutation(tempDir, fixture, (candidate) => {
-    const testCase = candidate.cases.find((item) => item.id === "time-and-page-adaptation");
-    testCase.variants.find((item) => item.id === "auto-without-duration").durationMinutes = 12;
+    const testCase = candidate.cases.find((item) => item.id === "page-policy-controls-depth");
+    testCase.variants.find((item) => item.pagePolicy === "auto" && !("durationMinutes" in item)).durationMinutes = 12;
   });
   assert.equal(requiredDuration.ok, false, "auto page planning must retain a no-duration variant");
   assert(requiredDuration.findings.some((item) => item.code === "case.duration-optional"));
 
   const legacyAdaptation = await runFixtureMutation(tempDir, fixture, (candidate) => {
-    const testCase = candidate.cases.find((item) => item.id === "time-and-page-adaptation");
+    const testCase = candidate.cases.find((item) => item.id === "page-policy-controls-depth");
     testCase.variants = [
       { id: "short-auto", durationMinutes: 8, pagePolicy: "auto" },
       { id: "long-auto", durationMinutes: 20, pagePolicy: "auto" },
@@ -88,19 +88,20 @@ try {
   const noDurationConfig = {
     schema_version: "1.1",
     project: { id: "intake-no-duration", name: "No-duration intake", language: "zh-CN" },
-    input: { documents: [{ id: "thesis", path: "thesis.pdf", role: "main_thesis", format: "pdf" }] },
+    input: { documents: [{ id: "paper-main", path: "paper.pdf", role: "focal_paper", format: "pdf" }] },
     presentation: {
-      type: "final_defense",
+      type: "group_meeting_literature",
       page_policy: { mode: "auto" },
       theme: { mode: "preset", preset: "blue", institution_branding: true },
       workflow_mode: "auto",
       aspect_ratio: "16:9",
     },
-    academic_profile: { degree_level: "master", evidence_grammar: "mixed" },
+    academic_profile: { evidence_grammar: "mixed" },
     identity: { institution: "Example University", author: "Example Student" },
     constraints: { required_sections: [], required_content: [], excluded_content: [], confidential_content: [] },
     preferences: { speaker_notes: true, sources_in_notes: true, editable_output: true, include_appendix: false },
-    output: { project_directory: ".", filename_stem: "example_硕士答辩", keep_intermediates: true, deploy_skill: false },
+    literature_profile: { mode: "single_paper", focal_document_ids: ["paper-main"], emphasis: "balanced" },
+    output: { project_directory: ".", filename_stem: "example_组会汇报", keep_intermediates: true, deploy_skill: false },
     assumptions: [],
   };
   assert.deepEqual(schemaErrors(noDurationConfig, projectSchema), [], "auto-page project config must validate without duration");

@@ -4,12 +4,14 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { createLayoutLibrary } from "./create-layout-library.mjs";
+import { buildDeck } from "./build.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
 const ASSET_DIR = path.join(SKILL_DIR, "assets", "group-meeting-literature-universal");
 const SPEC_PATH = path.join(ASSET_DIR, "sample-deck-spec.json");
+const LIBRARY_PATH = path.join(ASSET_DIR, "layout-library.pptx");
+const PREVIEW_PATH = path.join(ASSET_DIR, "preview.png");
 
 const SOURCE_IDS = ["layout-registry", "design-tokens", "template-heritage"];
 const SECTION_FOR_ORDER = (order) => order <= 6 ? "identity" : order <= 16 ? "method-evidence" : order <= 24 ? "judgment-synthesis" : "discussion-closing";
@@ -186,9 +188,9 @@ function createSpec() {
       { id: "discussion-closing", order: 4, title: "讨论与收束", short_title: "讨论与收束", role: "discussion", purpose: "把阅读转化为讨论、决策和下一步。" },
     ],
     sources: [
-      { id: "layout-registry", type: "user_material", title: "组会文献汇报通用版式注册表", citation: "academic-slides/assets/group-meeting-literature-universal/layout-registry.json", document_id: null, paper_id: null, path: "layout-registry.json", url: null, creator: "academic-slides", published_at: null, accessed_at: null, source_nature: "author_original", verification_status: "verified", notes: "定义布局语义和使用边界。" },
-      { id: "design-tokens", type: "user_material", title: "组会文献汇报设计令牌", citation: "academic-slides/assets/group-meeting-literature-universal/design-tokens.json", document_id: null, paper_id: null, path: "design-tokens.json", url: null, creator: "academic-slides", published_at: null, accessed_at: null, source_nature: "author_original", verification_status: "verified", notes: "定义字体、色彩、间距和投影安全尺度。" },
-      { id: "template-heritage", type: "user_material", title: "K105 参考模板迁移映射", citation: "academic-slides/assets/group-meeting-literature-universal/template-map.json", document_id: null, paper_id: null, path: "template-map.json", url: null, creator: "academic-slides", published_at: null, accessed_at: null, source_nature: "author_original", verification_status: "verified", notes: "只记录视觉 heritage；新库为 clean-generated，不复制示例论文事实或对象 ID。" },
+      { id: "layout-registry", type: "user_material", title: "组会文献汇报通用版式注册表", citation: "paper-club-ppt/assets/group-meeting-literature-universal/layout-registry.json", document_id: null, paper_id: null, path: "layout-registry.json", url: null, creator: "paper-club-ppt", published_at: null, accessed_at: null, source_nature: "author_original", verification_status: "verified", notes: "定义布局语义和使用边界。" },
+      { id: "design-tokens", type: "user_material", title: "组会文献汇报设计令牌", citation: "paper-club-ppt/assets/group-meeting-literature-universal/design-tokens.json", document_id: null, paper_id: null, path: "design-tokens.json", url: null, creator: "paper-club-ppt", published_at: null, accessed_at: null, source_nature: "author_original", verification_status: "verified", notes: "定义字体、色彩、间距和投影安全尺度。" },
+      { id: "template-heritage", type: "user_material", title: "K105 参考模板迁移映射", citation: "paper-club-ppt/assets/group-meeting-literature-universal/template-map.json", document_id: null, paper_id: null, path: "template-map.json", url: null, creator: "paper-club-ppt", published_at: null, accessed_at: null, source_nature: "author_original", verification_status: "verified", notes: "只记录视觉 heritage；新库为 clean-generated，不复制示例论文事实或对象 ID。" },
     ],
     slides,
     claim_evidence_map: [],
@@ -199,7 +201,21 @@ function createSpec() {
 export async function createGroupMeetingLayoutLibrary() {
   await fs.mkdir(ASSET_DIR, { recursive: true });
   await fs.writeFile(SPEC_PATH, `${JSON.stringify(createSpec(), null, 2)}\n`, "utf8");
-  return createLayoutLibrary("group_meeting_literature");
+  const previewDir = path.join(ASSET_DIR, "previews");
+  const report = path.join(ASSET_DIR, "layout-library.build.json");
+  await fs.mkdir(previewDir, { recursive: true });
+  const result = await buildDeck({
+    spec: SPEC_PATH,
+    output: LIBRARY_PATH,
+    previewDir,
+    report,
+    theme: "blue",
+    allowPlaceholders: true,
+  });
+  if (result.montagePng && path.resolve(result.montagePng) !== path.resolve(PREVIEW_PATH)) {
+    await fs.copyFile(result.montagePng, PREVIEW_PATH);
+  }
+  return { profile: "group_meeting_literature", ...result };
 }
 
 async function main() {

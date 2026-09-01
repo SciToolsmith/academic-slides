@@ -17,10 +17,10 @@ async function main() {
     body: "PingFang SC",
     latin: "Arial",
     math: "Latin Modern Math",
-  }, PROFILE_FONTS, "final_defense"));
+  }, PROFILE_FONTS, "group_meeting_literature"));
 
   assert.throws(
-    () => internal.validateThemeFontOverrides({ heading: "PingFang SC", body: "Source Han Sans SC" }, PROFILE_FONTS, "final_defense"),
+    () => internal.validateThemeFontOverrides({ heading: "PingFang SC", body: "Source Han Sans SC" }, PROFILE_FONTS, "group_meeting_literature"),
     /uses one CJK typeface/,
     "different heading/body CJK fonts must not be silently collapsed",
   );
@@ -32,7 +32,7 @@ async function main() {
     ["math", "Cambria Math"],
   ]) {
     assert.throws(
-      () => internal.validateThemeFontOverrides({ [role]: font }, PROFILE_FONTS, "final_defense"),
+      () => internal.validateThemeFontOverrides({ [role]: font }, PROFILE_FONTS, "group_meeting_literature"),
       (error) => error instanceof Error
         && error.message.includes(`theme.fonts.${role}`)
         && error.message.includes(font)
@@ -42,7 +42,7 @@ async function main() {
   }
 
   const invalidDeck = {
-    profile: "final_defense",
+    profile: "group_meeting_literature",
     theme: {
       fonts: {
         heading: "Microsoft YaHei",

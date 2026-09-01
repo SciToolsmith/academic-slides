@@ -1,4 +1,4 @@
-name: Portable validation
+name: Paper Club PPT validation
 
 on:
   push:
@@ -45,7 +45,10 @@ jobs:
         run: node tests/paper-asset-extraction.test.mjs
 
       - name: Test group-meeting scientific content contract
-        run: node tests/scientific-content-contract.test.mjs
+        run: |
+          node tests/group-meeting-shell-contract.test.mjs
+          node tests/intake-controls.test.mjs
+          node tests/scientific-content-contract.test.mjs
 
       - name: Test evidence closure and scientific design
         run: |

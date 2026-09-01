@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.skills/academic-slides/deck-spec.schema.json",
-  "title": "Academic Slides Deck Specification",
-  "description": "Single source of truth for planning, building, narrating, sourcing, and validating an academic presentation.",
+  "$id": "https://local.skills/paper-club-ppt/deck-spec.schema.json",
+  "title": "Paper Club PPT Deck Specification",
+  "description": "Single source of truth for planning, building, narrating, sourcing, and validating a literature group-meeting presentation.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -22,8 +22,8 @@
   "properties": {
     "schema_version": {"enum": ["1.0", "1.1", "1.2"]},
     "profile": {
-      "enum": ["final_defense", "proposal_midterm", "group_meeting_literature"],
-      "description": "Explicit presentation profile used to resolve narrative rules and template assets."
+      "const": "group_meeting_literature",
+      "description": "The only supported presentation profile."
     },
     "artifact_purpose": {
       "enum": ["production", "layout_gallery"],
@@ -35,9 +35,6 @@
     },
     "literature": {
       "$ref": "#/$defs/literatureContext"
-    },
-    "milestone": {
-      "$ref": "#/$defs/milestoneContext"
     },
     "project_id": {"$ref": "#/$defs/stableId"},
     "title": {"type": "string", "minLength": 1},
@@ -153,17 +150,6 @@
       "then": {
         "required": ["literature"]
       }
-    },
-    {
-      "if": {
-        "properties": {
-          "profile": {"const": "proposal_midterm"}
-        },
-        "required": ["profile"]
-      },
-      "then": {
-        "required": ["milestone"]
-      }
     }
   ],
   "$defs": {
@@ -186,7 +172,7 @@
         },
         "section_transition_reason": {
           "type": ["string", "null"],
-          "description": "Required when a production final defense does not use full section dividers; records the user request or compact-structure rationale."
+          "description": "Optional rationale for a non-default section transition choice."
         },
         "appendix_policy": {
           "enum": ["after_closing_unlisted", "none"],
@@ -274,86 +260,6 @@
         }
       ]
     },
-    "milestoneContext": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["mode", "plan_document_ids", "progress_document_ids", "work_packages"],
-      "properties": {
-        "mode": {
-          "enum": ["proposal", "midterm"]
-        },
-        "as_of_date": {
-          "type": ["string", "null"],
-          "format": "date"
-        },
-        "plan_document_ids": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/stableId"},
-          "uniqueItems": true
-        },
-        "progress_document_ids": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/stableId"},
-          "uniqueItems": true
-        },
-        "work_packages": {
-          "type": "array",
-          "minItems": 1,
-          "items": {"$ref": "#/$defs/workPackage"}
-        },
-        "review_question": {
-          "type": ["string", "null"]
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {"mode": {"const": "proposal"}},
-            "required": ["mode"]
-          },
-          "then": {
-            "properties": {
-              "plan_document_ids": {"minItems": 1}
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {"mode": {"const": "midterm"}},
-            "required": ["mode"]
-          },
-          "then": {
-            "required": ["as_of_date"],
-            "properties": {
-              "progress_document_ids": {"minItems": 1},
-              "as_of_date": {"type": "string", "format": "date"}
-            }
-          }
-        }
-      ]
-    },
-    "workPackage": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["id", "title", "status", "planned_output", "evidence_refs"],
-      "properties": {
-        "id": {"$ref": "#/$defs/stableId"},
-        "title": {"type": "string", "minLength": 1},
-        "status": {
-          "enum": ["planned", "not_started", "in_progress", "completed", "delayed", "changed", "blocked"]
-        },
-        "planned_output": {"type": "string", "minLength": 1},
-        "planned_due": {"type": ["string", "null"], "format": "date"},
-        "actual_output": {"type": ["string", "null"]},
-        "evidence_refs": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/stableId"},
-          "uniqueItems": true
-        },
-        "deviation_reason": {"type": ["string", "null"]},
-        "next_action": {"type": ["string", "null"]}
-      }
-    },
     "theme": {
       "type": "object",
       "additionalProperties": false,
@@ -439,7 +345,7 @@
       "properties": {
         "id": {"$ref": "#/$defs/stableId"},
         "type": {
-          "enum": ["thesis_text", "thesis_figure", "thesis_table", "thesis_formula", "proposal_text", "approved_plan", "study_protocol", "midterm_report", "progress_record", "progress_figure", "progress_table", "paper_text", "paper_figure", "paper_table", "paper_formula", "paper_supplement", "bibliographic_metadata", "venue_metric", "dataset", "user_material", "external_publication", "official_web", "standard", "derived_calculation", "brand_asset", "other"]
+          "enum": ["paper_text", "paper_figure", "paper_table", "paper_formula", "paper_supplement", "bibliographic_metadata", "venue_metric", "dataset", "user_material", "external_publication", "official_web", "standard", "derived_calculation", "other"]
         },
         "title": {"type": "string", "minLength": 1},
         "citation": {"type": "string", "minLength": 1},
@@ -453,7 +359,7 @@
         "creator": {"type": ["string", "null"]},
         "published_at": {"type": ["string", "null"]},
         "accessed_at": {"type": ["string", "null"]},
-        "source_nature": {"enum": ["author_original", "cited_by_thesis", "external_supplement", "user_supplied", "project_record", "derived", "unknown"]},
+        "source_nature": {"enum": ["author_original", "cited_external", "external_supplement", "user_supplied", "derived", "unknown"]},
         "verification_status": {"enum": ["verified", "needs_review", "conflicted", "unverified"]},
         "notes": {"type": ["string", "null"]}
       }

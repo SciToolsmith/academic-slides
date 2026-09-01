@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.skills/academic-slides/paper-assets.schema.json",
-  "title": "Academic Slides Paper Assets",
+  "$id": "https://local.skills/paper-club-ppt/paper-assets.schema.json",
+  "title": "Paper Club PPT Paper Assets",
   "description": "A lightweight, traceable inventory of figure and table captions plus optional caption-free source crops. The JSON manifest is the machine source of truth; Markdown is a derived reading aid.",
   "type": "object",
   "additionalProperties": false,

@@ -85,7 +85,7 @@ assert.equal(captionDetections[0].title, "Autocorrelation spectrum", "prose refe
 assert.equal(captionDetections[1].title, "FAULT CHARACTER FREQUENCY", "Roman-numbered table headings must retain the title line");
 assert.equal(captionDetections[2].title, "Measured vibration signal.", "a split same-line caption title must be joined across text blocks");
 
-const fixtureDir = await mkdtemp(path.join(os.tmpdir(), "academic-slides-paper-assets-test-"));
+const fixtureDir = await mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-paper-assets-test-"));
 try {
   const pdfPath = path.join(fixtureDir, "synthetic-paper.pdf");
   await writeFile(pdfPath, buildSyntheticPdf());

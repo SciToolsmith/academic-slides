@@ -420,7 +420,7 @@ function planCrop(detection, detectionsOnPage) {
 async function loadSharp() {
   const resolvers = [require];
   if (process.env.RUNTIME_NODE_MODULES) {
-    resolvers.push(createRequire(path.join(path.resolve(process.env.RUNTIME_NODE_MODULES), "__academic_slides_runtime__.cjs")));
+    resolvers.push(createRequire(path.join(path.resolve(process.env.RUNTIME_NODE_MODULES), "__paper_club_ppt_runtime__.cjs")));
   }
   for (const resolver of resolvers) {
     try {
@@ -555,7 +555,7 @@ async function materializeCrops(pdfPath, outputDir, detections, dpi) {
   const assetDir = path.join(outputDir, "assets");
   await mkdir(assetDir, { recursive: true });
   const sharp = await loadSharp();
-  const temporary = await mkdtemp(path.join(os.tmpdir(), "academic-slides-paper-assets-"));
+  const temporary = await mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-paper-assets-"));
   try {
     const pages = new Map();
     for (const detection of selected) {

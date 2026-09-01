@@ -120,7 +120,7 @@ async function packageVersion(entryPath, packageName) {
 async function packageCheck(id, packageName, required = false) {
   const resolvers = [require];
   if (process.env.RUNTIME_NODE_MODULES) {
-    resolvers.push(createRequire(path.join(path.resolve(process.env.RUNTIME_NODE_MODULES), "__academic_slides_runtime__.cjs")));
+    resolvers.push(createRequire(path.join(path.resolve(process.env.RUNTIME_NODE_MODULES), "__paper_club_ppt_runtime__.cjs")));
   }
   for (const resolver of resolvers) {
     try {
@@ -335,7 +335,7 @@ export async function runPreflight(options = {}) {
 }
 
 function printHuman(result) {
-  console.log(`${result.ok ? "PASS" : "FAIL"}: academic-slides preflight`);
+  console.log(`${result.ok ? "PASS" : "FAIL"}: paper-club-ppt preflight`);
   for (const item of result.checks) console.log(`- ${item.available ? "OK" : "MISSING"} ${item.id}${item.version ? `: ${item.version}` : ""}${item.path ? ` (${item.path})` : ""}`);
   console.log(`- FORMULA primary=${result.formula.primary.available ? "available" : "unavailable"}; unicode-cjk=${result.formula.unicodeCjk.available ? "available" : "unavailable"}; existing-fallback=${result.formula.existingFormulaFallback.reliable ? "reliable" : "unavailable"}; new-fallback=${result.formula.newFormulaFallback.reliable ? "reliable" : "unavailable"}`);
   for (const profile of result.fonts.profiles) {

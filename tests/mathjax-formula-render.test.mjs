@@ -58,7 +58,7 @@ assert.equal(integrity.available, true, `Bundled MathJax integrity failed: ${JSO
 assert.deepEqual(integrity.missing, []);
 assert.deepEqual(integrity.mismatched, []);
 
-const cliDir = await mkdtemp(path.join(os.tmpdir(), "academic-slides-mathjax-cli-"));
+const cliDir = await mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-mathjax-cli-"));
 try {
   const { stdout } = await execFileAsync(process.execPath, [
     path.join(SKILL_DIR, "scripts", "render-formula.mjs"),

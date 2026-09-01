@@ -1,249 +1,191 @@
 <div align="center">
 
-<h1>Academic Slides</h1>
+<h1>Paper Club PPT</h1>
 
-<p><strong>把论文与研究材料，变成可答辩、可编辑、可追溯的学术演示。</strong></p>
+<p><strong>把研究论文，变成真正讲得清、看得懂、可追溯的组会汇报 PPT。</strong></p>
 
-<p>面向 Codex 的证据优先学术演示 Skill<br/>毕业答辩 · 开题 / 中期 · 文献组会</p>
+<p>面向 Codex 的文献组会 PPT Skill<br/>单篇精读 · 多篇对比 · 核心图解读 · 批判性评价</p>
 
 <p>
-  <a href="https://github.com/SciToolsmith/academic-slides/actions/workflows/ci.yml"><img src="https://github.com/SciToolsmith/academic-slides/actions/workflows/ci.yml/badge.svg" alt="Portable validation"/></a>
-  <a href="https://github.com/SciToolsmith/academic-slides/releases/latest"><img src="https://img.shields.io/github/v/release/SciToolsmith/academic-slides?style=flat-square" alt="Latest release"/></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/SciToolsmith/academic-slides?style=flat-square" alt="MIT License"/></a>
+  <a href="https://github.com/SciToolsmith/paper-club-ppt/actions/workflows/ci.yml"><img src="https://github.com/SciToolsmith/paper-club-ppt/actions/workflows/ci.yml/badge.svg" alt="Portable validation"/></a>
+  <a href="https://github.com/SciToolsmith/paper-club-ppt/releases/latest"><img src="https://img.shields.io/github/v/release/SciToolsmith/paper-club-ppt?style=flat-square" alt="Latest release"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/SciToolsmith/paper-club-ppt?style=flat-square" alt="MIT License"/></a>
   <a href="SKILL.md"><img src="https://img.shields.io/badge/Codex-Skill-17213A?style=flat-square" alt="Codex Skill"/></a>
 </p>
 
-<p><a href="#快速开始">快速开始</a> · <a href="#三套专业工作流">选择任务类型</a> · <a href="#你会得到什么">查看交付内容</a> · <a href="#为什么是证据优先">核心原则</a></p>
+<p><a href="#快速开始">快速开始</a> · <a href="#它解决什么问题">核心能力</a> · <a href="#单篇与多篇">使用模式</a> · <a href="#交付内容">交付内容</a></p>
 
 </div>
 
+## 它解决什么问题
+
+Paper Club PPT 不是论文目录复述器，也不是 PDF 转 PPT 工具。它先建立论文主张、证据与来源定位，再决定组会叙事、页面结构和视觉布局。
+
+| 常见做法 | Paper Club PPT |
+|---|---|
+| 按论文目录逐章复述 | 围绕研究问题、证据逻辑、可信度和本组启示组织 |
+| 把整页 PDF 或整张复合图塞进幻灯片 | 索引全部图表，只精选并处理真正承担论证的核心证据 |
+| 混淆作者结论和汇报者判断 | 明确区分作者主张、图表直接显示与汇报者综合/批判 |
+| PPT、讲稿和来源分别维护 | PPT 备注、Word 讲稿和来源从同一页面规格生成 |
+| 交付一份难以继续修改的静态文件 | 同时交付可编辑 PPTX、同步 Word 讲稿和可重建 MJS |
+
+    论文 PDF
+      ↓
+    caption / 页码 / bbox 全量轻索引
+      ↓
+    主张与证据闭环
+      ↓
+    核心图表精选与深读
+      ↓
+    组会叙事与可编辑页面
+      ↓
+    PPTX + DOCX + MJS + 使用素材
+
 ## 快速开始
 
-### 1. 安装
+### 安装
 
-在 Codex 中调用 `$skill-installer`：
+在 Codex 中调用 <code>$skill-installer</code>：
 
-```text
-使用 $skill-installer，从 https://github.com/SciToolsmith/academic-slides 安装 academic-slides。
-```
+    使用 $skill-installer，从 https://github.com/SciToolsmith/paper-club-ppt 安装 paper-club-ppt。
 
-<details>
-<summary>手动安装</summary>
+仓库根目录必须保留 <code>SKILL.md</code>。安装完成后可以通过 <code>$paper-club-ppt</code> 显式调用，也可以让 Codex 在匹配的文献组会任务中自动选择。
 
-按照 [OpenAI Skills 文档](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)，也可以克隆到用户级技能目录：
+### 单篇论文示例
 
-```bash
-mkdir -p "$HOME/.agents/skills"
-git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/skills/academic-slides"
-```
+    使用 $paper-club-ppt，根据我上传的论文制作组会汇报PPT。
+    重点讲清研究问题、作者如何生成证据、核心图、可信度与局限，
+    最后给出对我们课题的启发。页数自动推理，使用学术蓝。
 
-仓库根目录必须保留 `SKILL.md`。若 Codex 没有立即发现新技能，请重启 Codex。
+### 多篇论文示例
 
-</details>
+    使用 $paper-club-ppt，对我上传的三篇论文制作组会汇报PPT。
+    不要逐篇重复摘要；围绕共同问题比较样本、方法、结果、
+    证据强弱与适用边界，最后总结共识、分歧和下一步验证。
 
-### 2. 发出第一条请求
+## 单篇与多篇
 
-上传论文或研究材料并说明汇报类型。可主动提供大致时长作为软约束，未提供时不会被追问。页数或配色未指定时，Skill 会将缺失项一次问完；已经给出的信息不会被重复询问。
+### 单篇精读
 
-```text
-使用 $academic-slides，根据我上传的硕士论文制作约 15 分钟的毕业答辩。
+普通、有文本层的单篇论文默认使用轻量路径：
 
-重点讲清研究问题、方法、主要结果、创新与局限；页数自动推理，配色使用学术蓝。
-交付可编辑 PPTX、逐页 Word 发言稿和可重建项目 MJS。
-```
+- 通常 10–14 张可见页，16 张软上限；
+- 建立全部可检出 Figure/Table 的 caption、页码和 bbox 索引；
+- 最多深读 8 个父图，主稿通常使用 3–6 个核心父图；
+- 一次完整渲染检查和一次集中修复；
+- 主线覆盖问题、方法、证据、核心发现、可信度、批判与本组启示。
 
-> [!NOTE]
-> Academic Slides 不是模板填充器，也不是逐页 PDF 转 PPT。它先从源材料建立证据关系，再决定叙事、页面和布局。
+这些是工作预算，不是固定模板。证据少时继续合并，复杂论文可以有理由地扩展。
 
-## 为什么是证据优先
+### 多篇对比
 
-| 常见做法 | Academic Slides |
-|---|---|
-| 先选模板，再把内容塞进固定框架 | 先识别研究问题、主张、证据和关系拓扑，再选择或重绘布局 |
-| 把整页 PDF 当作幻灯片 | 避免整页截图；正文以及重新构建的表格、图表和简单示意图尽量保留为原生对象 |
-| PPT、讲稿和来源分别维护 | 页面、逐页讲稿与 `[Sources]` 从同一规格生成 |
-| 输出一份难以继续维护的静态文件 | 同时交付项目 `.mjs` 与实际使用的素材，后续可重新构建 |
+多篇模式先建立共同问题与比较轴，再决定是否需要逐篇介绍：
 
-```text
-PDF → 全量 caption 轻索引 → 自动选择候选图表 → 精选深读/物化 → 学生学习大纲 → PPTX + DOCX + MJS → 一次全稿 QA
-```
+- 统一研究对象、样本、方法、指标、证据等级和适用范围；
+- 只比较真正可比的维度，不制造虚假横向比较；
+- 用跨论文矩阵呈现共识、分歧与差异来源；
+- 每篇焦点论文至少在主稿中保留一项真实源视觉证据；
+- 综合判断必须同时引用参与比较的论文。
 
-- 章节数量和名称由材料决定，不默认五部分。
-- 用户主动提供的汇报时长用于近似控制信息量与讲稿长度，未提供时不追问，也不虚构默认时长。
-- 内置学术蓝、典雅红、沉静紫和清朗青四套配色；未指定时一次询问，并推荐学术蓝。
-- 注册布局不适合内容关系时，直接使用可编辑科研画布重新构图；分支、汇合、反馈和复杂证据图不会被强行压成线性流程或双图卡片。
+## 学生学习产物
 
-## v0.5 单篇轻量路径
+一份合格的组会 PPT 应让听众看见：
 
-- 普通、有文本层的单篇文献组会默认使用 `lean_single_paper`：通常 10–14 张可见页、16 张软上限、最多深读 8 个父图、一次全稿 QA 与一次集中修复；复杂任务自动升级到 `balanced_95`。
-- `extract-paper-assets.mjs` 建立全部可检出 Figure/Table caption/page/bbox 索引；自动阈值降为 12，较大集合先按主张、比较、稳健性与局限形成候选，只把候选交给视觉理解和深加工。完整图集仍可显式请求。
-- `group_meeting_v2` 不固定页序，但要求真正可见的学生学习产物：方法理解、作者证据逻辑、核心图解读、证据边界，以及证据绑定的学生综合/批判。只对 `equation_centric` 论文强制至少一项核心公式，不以全论文图片或公式比例作为 KPI。
-- 组会封面与结束页成为生产硬约束：封面第一、学生结束页最后、默认无可见附录；不再自动显示 `GROUP MEETING`、`PAPER REVIEW`、QA 或生成流程等后台语言。
-- `build-project.mjs --project-dir` 在昂贵渲染前检查 config、paper/evidence index、asset manifest、大纲和 deck 的跨文件闭环。
-- 没有本地 LaTeX 也可用内置 MathJax 生成自包含路径 SVG；只处理经核对的 ASCII TeX 子集，不证明原公式正确。
-- `lean_single_paper` 与 `balanced_95` 都是工作预算而不是质量评分：硬门禁不降级，最后的边缘间距和装饰性微调留给人。
+1. 为什么读这篇论文，它真正解决什么问题；
+2. 学生如何理解方法的输入、输出、假设和核心机制；
+3. 作者通过什么数据、对照、指标和实验逻辑生成证据；
+4. 核心图直接显示什么，作者如何解释，汇报者如何判断；
+5. 证据支持什么、没有证明什么，以及对本组工作的可执行启发。
 
-## 三套专业工作流
+没有学生自己的实验数据时，不会把作者结果写成“我们复现得到”。自动生成材料也不能替代学生本人试讲和确认自己能解释核心图。
 
-| 任务类型 | 适用材料 | 叙事重点 | 语义布局数 |
-|---|---|---|---:|
-| **毕业答辩** | 本科、硕士、博士学位论文 | 问题、方法、核心结果、贡献与边界 | 36 |
-| **开题 / 中期** | 开题报告、研究计划、阶段材料 | 开题强调问题与可行性；中期强调基线、进展、偏差与更新计划 | 32 |
-| **文献组会** | 单篇或多篇研究论文 | 论文设计、证据强弱、局限、跨论文综合与本组启示 | 30 |
+## 证据与图表
 
-三套布局系统共享可编辑、来源追踪和质量门禁，但不会把不同汇报强行写成同一套叙事。
+- 原论文图表、公式、出版信息和外部来源都保留稳定定位。
+- 核心发现页必须实际渲染支撑它的论文图、表、结果图、公式或源文本。
+- 复杂复合图可以做忠实裁切、拆分、标注、局部放大或可编辑重绘。
+- 坐标轴、图例、单位、误差线、显著性和样本量必须达到投影可读尺度。
+- 公式只在定义核心模型、目标函数、约束、指标或结果解释时进入正文。
+- 批判性评价绑定具体页码、图表或方法描述，不使用空泛“优点/缺点”模板。
 
-<details>
-<summary><strong>毕业答辩 · 查看 36 个布局</strong></summary>
+## 30 种语义布局
 
-[![毕业答辩完整布局总览](assets/final-defense-universal/preview.png)](assets/final-defense-universal/preview.png)
+内置布局是可复用的设计词汇，不是固定页序。内容关系不适合现有布局时，会使用同一设计系统下的自由证据画布。
 
-</details>
+[![Paper Club PPT 完整布局总览](assets/group-meeting-literature-universal/preview.png)](assets/group-meeting-literature-universal/preview.png)
 
-<details>
-<summary><strong>开题 / 中期 · 查看 32 个布局</strong></summary>
+布局覆盖封面、论文快照、选文理由、研究问题、研究设计、方法比较、单图证据、结果对比、多图证据、机制解释、批判评价、复现检查、跨论文矩阵、证据质量、本组迁移、讨论问题和学生结束页。
 
-[![开题中期完整布局总览](assets/proposal-midterm-universal/preview.png)](assets/proposal-midterm-universal/preview.png)
+## 交付内容
 
-</details>
+默认只交付继续汇报和维护真正需要的文件：
 
-<details>
-<summary><strong>文献组会 · 查看 30 个布局</strong></summary>
+    短题名_组会汇报/
+    ├── 短题名_组会汇报.pptx
+    ├── 短题名_组会汇报_发言稿.docx
+    ├── 短题名_组会汇报.mjs
+    └── assets/
 
-[![文献组会完整布局总览](assets/group-meeting-literature-universal/preview.png)](assets/group-meeting-literature-universal/preview.png)
+- <code>.pptx</code>：可继续编辑，每页备注保留发言稿与来源。
+- <code>_发言稿.docx</code>：与 PPT 页面和备注同步的逐页讲稿。
+- <code>.mjs</code>：可以重新生成同一演示的项目构建器。
+- <code>assets/</code>：只包含本稿实际使用且允许交付的素材。
 
-</details>
+证据索引、页面规格、源论文、QA 报告、预览图和日志不会混入交付包。
 
-## 你会得到什么
+## 适用边界
 
-默认交付保持简洁，只留下客户真正需要的文件：
+Paper Club PPT 只处理以研究论文为核心的文献组会，不适合：
 
-```text
-短题名_汇报类型/
-├── 短题名_汇报类型.pptx
-├── 短题名_汇报类型_发言稿.docx
-├── 短题名_汇报类型.mjs
-└── assets/
-```
+- 本科、硕士或博士毕业答辩；
+- 开题答辩、中期检查或普通研究进展汇报；
+- 商务汇报和项目路演；
+- 忠实逐页 PDF 复刻；
+- 精确到秒的演讲时长保证；
+- 脱离 Codex bundled runtime 的独立 npm 应用；
+- 自动审计全文公式、修正论文数学错误或替代同行评审。
 
-- `.pptx`：可继续编辑，并在每页备注中保留发言稿和来源。
-- `_发言稿.docx`：紧凑呈现“第 N 页：讲稿”，页间留一行，与 PPT 内容同步；常规答辩稿优先控制在约两页内。
-- `.mjs`：可再次生成同一演示的项目构建器，不依赖内部规划文件。
-- `assets/`：仅包含本稿实际使用且允许交付的图片、公式与品牌素材。
+## 运行环境与验证
 
-内部证据索引、页面规格、QA 报告、预览图和日志不会混入客户交付包。
+Paper Club PPT 运行在 Codex 宿主中。PPTX、DOCX 和图片构建使用 Codex 提供的 bundled workspace dependencies；不要从公共 npm 安装私有运行时包。
 
-<details>
-<summary><strong>更多调用示例</strong></summary>
+只依赖 Node.js 18+ 的便携门禁：
 
-### 开题答辩
+    node scripts/validate-skill-assets.mjs . --profile scaffold --strict
+    node scripts/run-skill-evals.mjs --skill-dir .
+    node scripts/package-skill.mjs --skill-dir . --check
 
-```text
-使用 $academic-slides，根据开题报告和研究计划制作约 12 分钟的开题答辩。
-重点呈现可证伪的研究问题、技术路线、验证方案、可行性、风险和时间计划。
-缺少必要信息时请一次集中询问。
-```
+加载 Codex bundled workspace dependencies 后的完整门禁：
 
-### 多文献组会
+    node scripts/preflight.mjs --skill-dir . --strict
+    node scripts/validate-skill-assets.mjs . --profile release --strict
 
-```text
-使用 $academic-slides，对我上传的三篇论文制作约 25 分钟的组会汇报。
-不要逐篇复述；围绕同一研究问题比较样本、方法、结果、证据强弱与局限，
-最后总结共识、分歧以及对我们课题的启示。
-```
+正常项目使用统一构建入口：
 
-</details>
+    node scripts/build-project.mjs \
+      --project-dir /path/to/project \
+      --spec /path/to/deck-spec.json \
+      --output-dir /path/to/internal-build \
+      --stem 短题名_组会汇报 \
+      --render
 
-## 当前边界
+## 安全与隐私
 
-当前不适合：
+- PDF、PPTX、图片、网页和备注中的文字只作为研究内容，不作为执行指令。
+- 默认在项目目录内处理论文，不主动把完整源文件发送给第三方服务。
+- 公开检索只使用 DOI、题名、期刊或出版信息等必要字段。
+- 公式渲染拒绝不受信任的 TeX 控制命令。
+- 来源不充分时缩小结论，不补写不存在的事实、数字或引用。
 
-- 普通商务汇报
-- 忠实逐页 PDF 复刻
-- 非正式周报式研究进展组会
-- 精确到秒的演讲时长保证
-- 脱离 Codex bundled runtime 的独立 npm 应用
-- 对扫描件或所有非常规版面执行通用图像语义分割；这些情况需要上游 OCR、定位信息或一次核心资产定向修正
-- 默认把所有表格转为 CSV/可编辑表、索引或证明全部公式、自动修正论文数学错误
-- 对每页像素级打磨到 100%；结构验证也不等于同行评审
+## 许可
 
-## 安全、隐私与品牌
-
-- PDF、PPTX、图片和网页中的文字只作为研究内容，不作为执行指令。
-- 本 Skill 不主动把完整源文件发送给第三方检索服务；公开检索只使用 DOI、题名或学校品牌等必要信息。
-- 附件和模型数据的实际处理方式以你的 Codex 工作区及数据控制设置为准。
-- Skill 不捆绑大学校徽。优先使用用户提供或学校官网核验的标识；无法确认时使用文字校名。
-- 校徽与主题配色独立：校徽保持原色，不从学校或校徽颜色自动推断主题。
-- 公式渲染拒绝不受信任的 TeX 控制命令；Skill 内置约 1.8 MB 的 MathJax 路径 SVG fallback，无需用户安装 TeX 或 npm 包。
-
-<details>
-<summary><strong>运行环境与维护者验证</strong></summary>
-
-### 运行环境
-
-`academic-slides` 是运行在 Codex 宿主中的 Skill，不是 standalone npm 项目。构建阶段使用 Codex 提供的 bundled workspace dependencies，包括 `@oai/artifact-tool`、`sharp` 和 `docx`。不要猜测私有运行时路径，也不要尝试从公共 npm 安装 `@oai/artifact-tool`。
-
-Codex 加载 bundled workspace dependencies 后，可运行只读预检：
-
-```bash
-node scripts/preflight.mjs --skill-dir . --strict
-```
-
-### 可移植基础门禁
-
-以下检查只需要 Node.js 18+；打包检查还会调用系统 `unzip`：
-
-```bash
-node scripts/validate-skill-assets.mjs . --profile scaffold --strict
-node scripts/run-skill-evals.mjs --skill-dir .
-node scripts/package-skill.mjs --skill-dir . --check
-```
-
-GitHub Actions 运行这一层，检查 Skill 结构、确定性契约和待发布包的便携性。
-
-### Codex 宿主发布门禁
-
-加载 bundled workspace dependencies 且预检通过后，再执行完整运行时检查：
-
-```bash
-node scripts/validate-skill-assets.mjs . --profile release --strict
-```
-
-正常项目优先使用一次构建入口；它会在构建前执行结构与科学设计门禁，并对未变化的规格和素材复用内容哈希缓存：
-
-```bash
-node scripts/build-project.mjs \
-  --project-dir /path/to/project \
-  --spec /path/to/deck-spec.json \
-  --output-dir /path/to/internal-build \
-  --stem 短题名_汇报类型 \
-  --render
-```
-
-### 生成质量约束
-
-- 公式优先通过本地 LaTeX 同源生成 SVG 与透明 PNG；无法使用 LaTeX 时，`scripts/render-formula.mjs` 自动使用内置 MathJax 生成自包含路径 SVG，并在 bundled `sharp` 可用时补充透明 PNG。
-- 强调色只服务于核心数字、结论、偏差或风险，不把每页都做成“满屏重点”。
-
-### 贡献流程
-
-```text
-新建分支 → 修改 → 推送分支 → 创建 PR → CI 通过 → 合并 main
-```
-
-`main` 受到保护：禁止强制推送与删除，并要求 `validate` 检查通过。
-
-</details>
+代码、文档和本项目原创资产采用 [MIT License](LICENSE)。第三方组件与参考资产的授权说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 <details>
 <summary><strong>English overview</strong></summary>
 
-Academic Slides is an evidence-first Codex Skill for turning theses, research proposals, midterm materials, and research papers into editable academic presentations. It produces an editable PowerPoint deck, a synchronized per-slide Word script, and a rebuildable project MJS while keeping claims and external assets traceable to their sources.
+Paper Club PPT is an evidence-first Codex Skill for turning one or more research papers into editable journal-club presentations. It indexes paper figures and tables, selects only evidence-bearing visuals, distinguishes author claims from presenter judgments, and produces an editable PowerPoint deck, synchronized Word script, rebuildable project MJS, and the assets actually used.
 
-Implemented workflows cover final defenses, proposal/midterm reviews, and single- or multi-paper literature group meetings. The layout libraries are semantic design vocabularies—not fixed slide sequences.
+The Skill supports single-paper deep dives and multi-paper synthesis. It does not support thesis defenses, proposal or midterm reviews, ordinary progress updates, business decks, or faithful page-by-page PDF conversion.
 
 </details>
-
-## 许可
-
-代码、文档和本项目原创资产采用 [MIT License](LICENSE)。大学名称、校徽及其他第三方标识不在 MIT 授权范围内，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

@@ -20,7 +20,7 @@ function usage() {
     "",
     "Options:",
     "  --skill-dir <dir>  Source skill root (default: parent of this script)",
-    "  --output <dir>     Staging directory (default: ../staging/academic-slides)",
+    "  --output <dir>     Staging directory (default: ../staging/paper-club-ppt)",
     "  --archive <file>   Also create a zip archive from the staging directory",
     "  --check            Validate the prospective package without writing it",
     "  --force            Replace the exact output/archive target if it exists",
@@ -48,7 +48,7 @@ function parseArgs(argv) {
     } else throw new Error(`Unknown option: ${token}`);
   }
   result.skillDir = path.resolve(result.skillDir);
-  result.output ??= path.resolve(path.dirname(result.skillDir), "staging", "academic-slides");
+  result.output ??= path.resolve(path.dirname(result.skillDir), "staging", "paper-club-ppt");
   return result;
 }
 
@@ -207,7 +207,7 @@ async function createArchive(output, archive) {
 
 export async function packageSkill(options = {}) {
   const skillDir = path.resolve(options.skillDir ?? DEFAULT_SKILL_DIR);
-  const output = path.resolve(options.output ?? path.resolve(path.dirname(skillDir), "staging", "academic-slides"));
+  const output = path.resolve(options.output ?? path.resolve(path.dirname(skillDir), "staging", "paper-club-ppt"));
   const archive = options.archive ? path.resolve(options.archive) : null;
   const findings = [];
   if (archive && (archive === output || archive.startsWith(`${output}${path.sep}`))) throw new Error("Archive must be outside the staging directory to avoid recursive packaging.");

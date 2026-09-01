@@ -1,54 +1,54 @@
 # 最小客户交付标准
 
-内部工作区保留证据、规划、QA 和缓存；客户包只保留可直接使用或重建本稿所必需的内容。不要把项目工作区原样复制给客户。
+内部工作区保留证据、规划、QA 和缓存；客户包只保留使用或重建本次组会 PPT 必需的内容。
 
 ## 唯一目录结构
 
-```text
-短题名_汇报类型/
-├── 短题名_汇报类型.pptx
-├── 短题名_汇报类型.mjs
-├── 短题名_汇报类型_发言稿.docx
-└── assets/
-    ├── figures/
-    │   ├── original/
-    │   ├── ready/
-    │   └── 论文图片说明.md
-    ├── formulas/
-    ├── branding/
-    └── data/
-```
+    短题名_组会汇报/
+    ├── 短题名_组会汇报.pptx
+    ├── 短题名_组会汇报.mjs
+    ├── 短题名_组会汇报_发言稿.docx
+    └── assets/
+        ├── papers/
+        ├── formulas/
+        └── data/
 
-`assets/` 必须存在；它的子目录仅在实际包含交付文件时创建。`figures/original/` 保存忠实提取图，`figures/ready/` 保存本稿使用的裁切、标注、增强或重绘版本。论文图片使用“图号 + 原图名”命名。实际使用公式按需保留 `.tex + .svg + .png`；不保留编译日志和临时 PDF。品牌目录只放本稿实际使用且已核验、允许随项目交付的标识。`data/` 只放本稿可编辑图表真正依赖的 CSV/XLSX。
+<code>assets/</code> 必须存在；子目录只在实际包含交付文件时创建。论文素材目录只保留本稿实际使用的忠实提取图和派生版本。入选公式按需保留 <code>.tex</code>、<code>.svg</code> 或 <code>.png</code>；不保留编译日志和临时 PDF。<code>data/</code> 只放可编辑图表真正依赖的数据文件。
 
 ## 命名
 
-文件夹与 PPTX/MJS 使用同一 basename：`短题名_汇报类型`。汇报类型只能使用：`本科答辩`、`硕士答辩`、`博士答辩`、`开题答辩`、`中期汇报`、`组会汇报`。
+文件夹、PPTX 和 MJS 使用同一 basename：<code>短题名_组会汇报</code>。
 
-不在名称中加入姓名、日期、版本号、`v1`、`final`、`最终版`、`终稿` 或 `最新版`。题名过长时提取不改变含义的短题名；不得为命名再向用户提问。修改后更新同名交付包，历史版本只留在内部工作区。
+不在名称中加入姓名、日期、版本号、v1、final、“最终版”、“终稿”或“最新版”。题名过长时提取不改变含义的短题名，不为命名另行询问用户。
 
 ## 三个文件的契约
 
-- PPTX 保持可编辑，并在每页备注中写入发言稿、过渡和唯一 `[Sources]` 区块。
-- Word 发言稿与 PPT 备注从同一份 `speaker_notes` 生成，但是便于打印和二次修改的紧凑投影：单行标题使用“短题名 + 汇报类型 + 发言稿”，正文每页一段 `第N页：讲稿`，页标签加粗，必要过渡无标签并入同段。不输出页面标题、meta、页脚或 Sources；完整 Sources 保留在 PPT 备注中。
-- Word 使用 A4、约 1.5 cm 页边距、16 pt 标题、10–10.5 pt 正文、单倍至 1.05 倍行距和段间约一行视觉留白。普通不超过 30 页、讲稿不超过约 4000 字符时，2 页内是软目标；不得为达成页数目标把正文降到 9.5 pt 以下。
-- MJS 是项目构建入口，不是 PPTX 机械反编译。它嵌入最终项目规格、只使用 `assets/` 内的相对素材路径，不读取未交付的 `deck-spec.json`，默认可重新生成同名 PPTX 与 DOCX。它可以依赖已安装的 `academic-slides` Skill，但不得写入 Skill 或本机的绝对路径；重建后不得留下 inspect、日志或预览旁路文件。
+- PPTX 保持可编辑，并在每页备注中写入发言稿、过渡和唯一 <code>[Sources]</code> 区块。
+- Word 发言稿与 PPT 备注从同一份 <code>speaker_notes</code> 生成。正文按“第 N 页：讲稿”紧凑排版，不输出 Sources。
+- MJS 嵌入最终项目规格，只使用 <code>assets/</code> 内的相对路径，不读取未交付的 <code>deck-spec.json</code>，默认重建同名 PPTX 与 DOCX。
+- MJS 可以依赖已安装的 <code>paper-club-ppt</code> Skill，但不得写入 Skill 或本机的绝对路径。
 
 ## 不交付
 
-不要把以下内容复制进客户包：原始论文 PDF、`project-config.json`、原始 `deck-spec.json`、证据索引、来源清单、论文/里程碑/文献分析 JSON、QA 报告、构建报告、大纲、预览图、联系表、逐页渲染图、PPTX 解包内容、OCR 文本、日志、缓存、`node_modules`、内部布局库、测试文件、完整校徽候选库、未使用素材或本机路径。
+不要复制以下内容：
 
-论文图片说明是素材使用说明，不属于内部推理，可以交付。多篇文献组会默认只交付入选和重点分析图片；完整提取仅在用户明确要求时交付。
+- 原始论文 PDF；
+- <code>project-config.json</code>、<code>deck-spec.json</code> 和大纲；
+- paper/evidence/asset 索引；
+- QA 报告、构建报告、预览图、联系表和逐页渲染图；
+- OCR 文本、日志、缓存、<code>node_modules</code> 和测试文件；
+- 内部布局库、未使用素材、越界路径或密钥。
+
+多篇任务默认只交付入选和重点分析图片；完整图表提取仅在用户明确要求时交付。
 
 ## 构建与交付
 
-客户交付只接受 `artifact_purpose: production`。省略该字段的旧规格可在内部校验中按 production 理解，但新生成的项目 MJS 必须在嵌入契约中显式写出 `artifact_purpose: "production"`；`layout_gallery` 只能用于内部布局库构建，`create-project-builder.mjs` 和 `stage-delivery.mjs` 均应拒绝它。
+客户交付只接受 <code>artifact_purpose: production</code>。正常交付包括一次内部构建和一次空白暂存重建：
 
-正常交付只有两次构建：一次内部构建用于完整 QA，一次空白暂存重建用于验证可复现性与生成客户包。不要在两者之间第三次运行项目 MJS。
-
-1. 在内部工作区完成并验证最终项目规格，通过 `scripts/build-project.mjs --render` 一次生成同名 PPTX、Word 与项目 MJS，并渲染内部 PPT 预览；素材输入目录在此时已筛选为允许交付的文件。
-2. 调用 `scripts/render-word-qa.mjs` 渲染已经生成的 Word。确认 PPTX 与 Word 页面数、顺序和讲稿正文同源，PPT 备注完整保留 Sources，Word 中文可见、保持紧凑且不输出 Sources。不要再次执行项目 MJS，也不要直接裸调用 bundled LibreOffice：包装器会解析并注入它自己的 fontconfig，Darwin 下同时生成 QuickLook 原生缩略图用于交叉检查。
-3. 内部 QA 通过后，调用 `scripts/stage-delivery.mjs --output <短题名_汇报类型> --mjs <项目.mjs> [--assets <已筛选素材目录>]`。脚本会从嵌入规格重新生成受信任的 canonical MJS，拒绝手写或被修改的源码，再在空白暂存目录一次生成 PPTX 与 Word；规格、PPT 备注和 Word 讲稿逐页一致后才进入白名单检查。
-4. 姓名、导师、学号等已知身份词通过重复的 `--forbidden-term` 传入；交付命名不得包含这些词。旧交付目录只在新暂存包完整通过后原子替换，失败时保留旧包。
-5. 检查根目录只有三个同名文件与 `assets/`；扫描 Office 包、MJS 和文本素材中的越界路径、密钥、未批准外链和内部文件名。
-6. 只向用户展示交付目录；不在交付消息中罗列内部中间产物。
+1. 使用 <code>scripts/build-project.mjs --render</code> 生成并检查内部 PPTX、Word 与项目 MJS。
+2. 使用 <code>scripts/render-word-qa.mjs</code> 检查 Word 可读性、页数和讲稿同步。
+3. 使用 <code>scripts/stage-delivery.mjs --output &lt;短题名_组会汇报&gt; --mjs &lt;项目.mjs&gt; [--assets &lt;已筛选素材目录&gt;]</code> 在空白目录重建一次。
+4. 暂存脚本校验 canonical MJS、页面顺序、PPT 备注、Word 讲稿和白名单内容。
+5. 已知姓名、学号或其他敏感词通过重复的 <code>--forbidden-term</code> 传入。
+6. 旧交付目录只在新暂存包完整通过后原子替换；失败时保留旧包。
+7. 最终只向用户展示交付目录，不罗列内部中间产物。

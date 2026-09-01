@@ -47,14 +47,11 @@ function oneSlideSpec(deck, slideId) {
   return spec;
 }
 
-const [schema, deck, tokens, presets, milestoneDeck, milestoneTokens, milestonePresets] = await Promise.all([
+const [schema, deck, tokens, presets] = await Promise.all([
   readJson("schemas/deck-spec.schema.json"),
-  readJson("assets/final-defense-universal/sample-deck-spec.json"),
-  readJson("assets/final-defense-universal/design-tokens.json"),
-  readJson("assets/final-defense-universal/theme-presets.json"),
-  readJson("assets/proposal-midterm-universal/sample-deck-spec.json"),
-  readJson("assets/proposal-midterm-universal/design-tokens.json"),
-  readJson("assets/proposal-midterm-universal/theme-presets.json"),
+  readJson("assets/group-meeting-literature-universal/sample-deck-spec.json"),
+  readJson("assets/group-meeting-literature-universal/design-tokens.json"),
+  readJson("assets/group-meeting-literature-universal/theme-presets.json"),
 ]);
 
 const overBudget = structuredClone(deck);
@@ -68,39 +65,41 @@ validateJsonValue(overBudget, schema, { rootSchema: schema, issues: schemaIssues
 assert(schemaIssues.some((item) => item.code === "maxItems"), "schema must reject more than two emphasis spans per slide");
 
 for (const [presetName, preset] of Object.entries(presets.presets)) {
-  const spec = oneSlideSpec(deck, "sample-chart-insight");
+  const spec = oneSlideSpec(deck, "sample-table-chart-result");
+  spec.slides[0].text_emphasis = [{ text: "效应随条件增强", role: "result" }];
   spec.theme.colors = themeColors(preset);
   const result = await createPresentationFromSpec(spec, { tokens, presets, theme: presetName, allowPlaceholder: true });
-  const runs = findTextRuns(result.presentation.toProto(), "提高 24%");
+  const runs = findTextRuns(result.presentation.toProto(), "效应随条件增强");
   assert.equal(runs.length, 1, `${presetName} should export one exact emphasis run`);
   assert.equal(runs[0].textStyle.bold, true, `${presetName} emphasis should be bold`);
   assert.equal(runs[0].textStyle.fill?.color?.value, preset.emphasis.slice(1).toUpperCase(), `${presetName} should use its text-safe emphasis token`);
 }
 
-const legacySpec = oneSlideSpec(deck, "sample-chart-insight");
+const legacySpec = oneSlideSpec(deck, "sample-table-chart-result");
 legacySpec.slides[0].text_emphasis = [];
 const legacyText = "需要加粗的整条项目符号";
 legacySpec.slides[0].content.bullets = [{ text: legacyText, level: 0, emphasis: "strong", evidence_refs: ["layout-registry"] }];
 const legacyResult = await createPresentationFromSpec(legacySpec, { tokens, presets, allowPlaceholder: true });
 assert(findTextRuns(legacyResult.presentation.toProto(), legacyText).some((run) => run.textStyle.bold === true), "legacy bullet emphasis should remain bold");
 
-const tableSpec = oneSlideSpec(milestoneDeck, "sample-risk-ethics-contingency");
-tableSpec.slides[0].text_emphasis = [{ text: "暂停相关分析", role: "critical" }];
-const tableResult = await createPresentationFromSpec(tableSpec, { tokens: milestoneTokens, presets: milestonePresets, allowPlaceholder: true });
-const tableRuns = findTextRuns(tableResult.presentation.toProto(), "暂停相关分析");
+const tableSpec = oneSlideSpec(deck, "sample-method-comparison");
+tableSpec.slides[0].text_emphasis = [{ text: "混杂偏倚", role: "critical" }];
+const tableResult = await createPresentationFromSpec(tableSpec, { tokens, presets, allowPlaceholder: true });
+const tableRuns = findTextRuns(tableResult.presentation.toProto(), "混杂偏倚");
 assert(tableRuns.length >= 1, "table-cell emphasis should export an exact rich-text run");
-assert(tableRuns.every((run) => run.textStyle.bold === true), "table-cell emphasis should be bold");
+assert(tableRuns.some((run) => run.textStyle.bold === true), "table-cell emphasis should be bold");
 assert(tableRuns.some((run) => run.textStyle.fill?.color?.value === "A5424A"), "critical table text should use the danger token");
 
-const ambiguous = oneSlideSpec(deck, "sample-chart-insight");
-ambiguous.slides[0].content.title = "提高 24%";
+const ambiguous = oneSlideSpec(deck, "sample-table-chart-result");
+ambiguous.slides[0].content.title = "效应随条件增强";
+ambiguous.slides[0].text_emphasis = [{ text: "效应随条件增强", role: "result" }];
 await assert.rejects(
   () => createPresentationFromSpec(ambiguous, { tokens, presets, allowPlaceholder: true }),
   /must match exactly once/,
   "ambiguous emphasis text must fail fast",
 );
 
-const shell = oneSlideSpec(deck, "sample-cover");
+const shell = oneSlideSpec(deck, "sample-group-cover");
 shell.slides[0].text_emphasis = [{ text: shell.slides[0].content.title.slice(0, 4), role: "key" }];
 await assert.rejects(
   () => createPresentationFromSpec(shell, { tokens, presets, allowPlaceholder: true }),

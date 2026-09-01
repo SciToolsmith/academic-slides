@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { access, readFile, readdir, stat } from "node:fs/promises";
-import { createHash } from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -12,8 +11,6 @@ import { validateScientificDesignFile } from "./validate-scientific-design.mjs";
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
 const PROFILE_REGISTRY_PATH = path.join(SKILL_DIR, "assets", "profile-registry.json");
-const FINAL_PROFILE = "final_defense";
-const PROPOSAL_MIDTERM_PROFILE = "proposal_midterm";
 const GROUP_MEETING_PROFILE = "group_meeting_literature";
 const STAGES = ["config", "source", "assets", "outline", "deck", "final"];
 
@@ -113,7 +110,7 @@ async function loadProfileRegistry(findings) {
 }
 
 function projectProfile(config, registry) {
-  return config.presentation?.type ?? registry?.defaultProfile ?? FINAL_PROFILE;
+  return config.presentation?.type ?? registry?.defaultProfile ?? GROUP_MEETING_PROFILE;
 }
 
 function deckProfile(deck, registry) {
@@ -121,7 +118,7 @@ function deckProfile(deck, registry) {
     ?? deck?.presentation_profile
     ?? deck?.presentation?.type
     ?? registry?.backwardCompatibility?.missingDeckProfile
-    ?? FINAL_PROFILE;
+    ?? GROUP_MEETING_PROFILE;
 }
 
 async function validateJsonAgainstBundledSchema(jsonPath, schemaName, findings, requireSchema) {
@@ -177,48 +174,6 @@ async function validateGroupSources(projectDir, config, findings) {
   }
 }
 
-async function validateMilestoneSources(projectDir, config, findings) {
-  const documents = Array.isArray(config.input?.documents) ? config.input.documents : [];
-  const byId = new Map(documents.map((document) => [document?.id, document]));
-  const milestone = config.milestone_profile ?? {};
-  const mode = milestone.mode;
-  const planIds = Array.isArray(milestone.plan_document_ids) ? milestone.plan_document_ids : [];
-  const progressIds = Array.isArray(milestone.progress_document_ids) ? milestone.progress_document_ids : [];
-  const planRoles = new Set(["research_proposal", "approved_plan", "study_protocol", "main_thesis"]);
-  const progressRoles = new Set(["midterm_report", "progress_evidence", "main_thesis"]);
-
-  if (mode === "proposal" && planIds.length === 0) findings.push(finding("error", "source.milestone.plan.missing", projectDir, "Proposal mode requires at least one plan document."));
-  if (mode === "midterm" && progressIds.length === 0) findings.push(finding("error", "source.milestone.progress.missing", projectDir, "Midterm mode requires at least one progress document."));
-  if (mode === "midterm" && planIds.length === 0) findings.push(finding("warning", "source.milestone.baseline.missing", projectDir, "No approved-plan baseline is available. Record this limitation and do not fabricate plan-versus-actual claims.", { strictExempt: true }));
-
-  const checkIds = async (ids, label, allowedRoles) => {
-    for (const documentId of ids) {
-      const document = byId.get(documentId);
-      if (!document) {
-        findings.push(finding("error", `source.milestone.${label}.unknown`, projectDir, `${label} document id ${documentId} is not present in input.documents.`));
-        continue;
-      }
-      if (!allowedRoles.has(document.role)) findings.push(finding("error", `source.milestone.${label}.role`, projectDir, `Document ${documentId} has role=${document.role ?? "missing"}; expected one of ${[...allowedRoles].join(", ")}.`));
-      const documentPath = typeof document.path === "string" ? path.resolve(projectDir, document.path) : null;
-      if (!documentPath || !(await exists(documentPath))) {
-        findings.push(finding("error", `source.milestone.${label}.file`, documentPath ?? projectDir, `${label} document ${documentId} points to a missing source.`));
-        continue;
-      }
-      const info = await stat(documentPath);
-      if (info.isDirectory() && (await sourceFiles(documentPath)).length === 0) findings.push(finding("error", `source.milestone.${label}.empty`, documentPath, `${label} document directory ${documentId} contains no supported source file.`));
-    }
-  };
-
-  await checkIds(planIds, "plan", planRoles);
-  await checkIds(progressIds, "progress", progressRoles);
-}
-
-function manifestEntries(manifest) {
-  if (Array.isArray(manifest)) return manifest;
-  for (const key of ["figures", "items", "assets"]) if (Array.isArray(manifest?.[key])) return manifest[key];
-  return [];
-}
-
 function paperIndexEntries(index) {
   if (Array.isArray(index)) return index;
   for (const key of ["papers", "items", "literature"]) if (Array.isArray(index?.[key])) return index[key];
@@ -260,33 +215,6 @@ async function validatePaperIndex(paperIndexPath, findings, mode, requireSchema)
   }
 }
 
-async function validateMilestoneAnalysis(analysisPath, config, findings, requireSchema) {
-  if (!(await exists(analysisPath))) {
-    findings.push(finding("error", "milestone-analysis.missing", analysisPath, "milestone-analysis.json is required for proposal/midterm projects."));
-    return null;
-  }
-  const analysis = await validateJsonAgainstBundledSchema(analysisPath, "milestone-analysis.schema.json", findings, requireSchema);
-  if (!analysis) return null;
-  const configMode = config.milestone_profile?.mode;
-  if (analysis.mode !== configMode) findings.push(finding("error", "milestone-analysis.mode", analysisPath, `milestone-analysis mode=${analysis.mode ?? "missing"} does not match project milestone_profile.mode=${configMode ?? "missing"}.`));
-  if (config.project?.id && analysis.project_id !== config.project.id) findings.push(finding("error", "milestone-analysis.project-id", analysisPath, `milestone-analysis project_id=${analysis.project_id ?? "missing"} does not match project-config project.id=${config.project.id}.`));
-
-  const sameIds = (left, right) => JSON.stringify([...(left ?? [])].sort()) === JSON.stringify([...(right ?? [])].sort());
-  if (!sameIds(analysis.plan_document_ids, config.milestone_profile?.plan_document_ids)) findings.push(finding("error", "milestone-analysis.plan-documents", analysisPath, "milestone-analysis plan_document_ids do not match project-config."));
-  if (!sameIds(analysis.progress_document_ids, config.milestone_profile?.progress_document_ids)) findings.push(finding("error", "milestone-analysis.progress-documents", analysisPath, "milestone-analysis progress_document_ids do not match project-config."));
-  if (configMode === "midterm" && analysis.as_of_date !== config.milestone_profile?.as_of_date) findings.push(finding("error", "milestone-analysis.as-of-date", analysisPath, "milestone-analysis as_of_date does not match project-config."));
-
-  for (const [label, records] of [["objective", analysis.objectives ?? []], ["work-package", analysis.work_packages ?? []], ["risk", analysis.risks ?? []]]) {
-    const ids = new Set();
-    for (const [index, record] of records.entries()) {
-      if (!isStableId(record?.id)) continue;
-      if (ids.has(record.id)) findings.push(finding("error", `milestone-analysis.${label}.duplicate`, analysisPath, `Duplicate ${label} id at index ${index}: ${record.id}.`));
-      else ids.add(record.id);
-    }
-  }
-  return analysis;
-}
-
 async function validateGroupPaperManifests(projectDir, paperIndexPath, paperIndex, findings, requireSchema) {
   const paperAssetManifests = [];
   for (const [index, paper] of paperIndexEntries(paperIndex).entries()) {
@@ -320,87 +248,8 @@ async function validateGroupPaperManifests(projectDir, paperIndexPath, paperInde
       }
       continue;
     }
-
-    const relative = paper?.figure_manifest_path;
-    if (relative == null) continue;
-    if (typeof relative !== "string" || !relative.trim()) {
-      findings.push(finding("error", "paper-index.figure-manifest", paperIndexPath, `papers[${index}].figure_manifest_path must be a non-empty path or null.`));
-      continue;
-    }
-    const candidates = path.isAbsolute(relative)
-      ? [relative]
-      : [path.resolve(projectDir, relative), path.resolve(path.dirname(paperIndexPath), relative)];
-    const availability = await Promise.all(candidates.map(exists));
-    const resolved = candidates[availability.findIndex(Boolean)];
-    if (!resolved) {
-      findings.push(finding("error", "paper-index.figure-manifest.missing", candidates[0], `papers[${index}].figure_manifest_path points to a missing file.`));
-      continue;
-    }
-    const manifest = await validateJsonAgainstBundledSchema(resolved, "figures-manifest.schema.json", findings, requireSchema);
-    if (manifest) await validateManifestFiles(projectDir, resolved, manifest, findings);
   }
   return paperAssetManifests;
-}
-
-async function validateManifestFiles(projectDir, manifestPath, manifest, findings) {
-  const ids = new Set();
-  const readyIds = new Set();
-  const entries = manifestEntries(manifest);
-  const referencedFiles = [];
-  const resolveRecord = async (record, pointer) => {
-    const relative = record?.path;
-    if (typeof relative !== "string" || !relative.trim()) return;
-    const candidates = path.isAbsolute(relative)
-      ? [relative]
-      : [path.resolve(projectDir, relative), path.resolve(path.dirname(manifestPath), relative)];
-    const availability = await Promise.all(candidates.map(exists));
-    const resolved = candidates[availability.findIndex(Boolean)];
-    if (!resolved) {
-      findings.push(finding("error", "manifest.file.missing", candidates[0], `${pointer} points to a missing file.`));
-      return;
-    }
-    referencedFiles.push(resolved);
-    if (typeof record.sha256 === "string" && /^[A-Fa-f0-9]{64}$/.test(record.sha256)) {
-      const actual = createHash("sha256").update(await readFile(resolved)).digest("hex");
-      if (actual.toLowerCase() !== record.sha256.toLowerCase()) findings.push(finding("error", "manifest.file.hash", resolved, `${pointer} sha256 does not match the file on disk.`));
-    }
-  };
-  for (const [index, item] of entries.entries()) {
-    if (!item || typeof item !== "object") continue;
-    const id = item.id ?? item.figure_id ?? item.figure_number;
-    if (id) {
-      if (ids.has(id)) findings.push(finding("error", "manifest.id.duplicate", manifestPath, `Duplicate figure id at item ${index}: ${id}`));
-      ids.add(id);
-    }
-    const original = item.file?.original ?? (typeof item.file === "object" ? item.file : null);
-    if (original?.path) await resolveRecord(original, `figures[${index}].file.original`);
-    else {
-      const legacy = item.file_path ?? item.path ?? item.original_path ?? (typeof item.file === "string" ? item.file : null);
-      if (legacy) await resolveRecord({ path: legacy, sha256: item.sha256 }, `figures[${index}]`);
-    }
-    for (const [readyIndex, ready] of (item.file?.ready_variants ?? []).entries()) {
-      if (ready?.id) {
-        if (readyIds.has(ready.id)) findings.push(finding("error", "manifest.ready-id.duplicate", manifestPath, `Duplicate ready variant id: ${ready.id}.`));
-        readyIds.add(ready.id);
-      }
-      await resolveRecord(ready, `figures[${index}].file.ready_variants[${readyIndex}]`);
-    }
-  }
-  const summary = manifest?.extraction_summary;
-  if (summary) {
-    if (summary.manifest_record_count !== entries.length) findings.push(finding("error", "manifest.count.records", manifestPath, `extraction_summary.manifest_record_count=${summary.manifest_record_count}, but figures has ${entries.length} records.`));
-    const originalsOnDisk = entries.filter((item) => item?.file?.original?.path || item?.file_path || item?.path || item?.original_path || typeof item?.file === "string").length;
-    if (summary.file_count !== originalsOnDisk) findings.push(finding("error", "manifest.count.files", manifestPath, `extraction_summary.file_count=${summary.file_count}, but ${originalsOnDisk} original file records are listed.`));
-    if (summary.status === "matched" && (summary.detected_caption_count !== summary.manifest_record_count || summary.manifest_record_count !== summary.file_count)) {
-      findings.push(finding("error", "manifest.count.matched", manifestPath, "Extraction status is matched, but caption, record, and file counts differ."));
-    }
-    if (summary.status === "explained_difference" && (!Array.isArray(summary.differences) || summary.differences.length === 0)) findings.push(finding("error", "manifest.count.explanation", manifestPath, "explained_difference requires at least one recorded difference."));
-  }
-  for (const [index, item] of entries.entries()) {
-    for (const [relationIndex, relation] of (item?.relationships ?? []).entries()) {
-      if (relation?.figure_id && !ids.has(relation.figure_id)) findings.push(finding("error", "manifest.relationship.unknown", manifestPath, `figures[${index}].relationships[${relationIndex}] refers to unknown figure id ${relation.figure_id}.`));
-    }
-  }
 }
 
 function isStableId(value) {
@@ -460,57 +309,11 @@ function mapStableRecords(records, label, filePath, findings) {
   return output;
 }
 
-function validateMilestoneAnalysisEvidence(analysis, evidenceIndex, paths, findings) {
-  if (!analysis || !evidenceIndex) return;
-  const evidenceById = mapStableRecords(Array.isArray(evidenceIndex.evidence) ? evidenceIndex.evidence : [], "evidence", paths.evidenceIndex, findings);
-  const checkRefs = (refs, pointer) => {
-    for (const ref of refs ?? []) if (!evidenceById.has(ref)) findings.push(finding("error", "milestone-analysis.evidence.unknown", paths.milestoneAnalysis, `${pointer} refers to unknown evidence id ${ref}.`));
-  };
-  for (const [index, objective] of (analysis.objectives ?? []).entries()) checkRefs(objective?.evidence_refs, `objectives[${index}].evidence_refs`);
-  for (const [index, workPackage] of (analysis.work_packages ?? []).entries()) {
-    checkRefs(workPackage?.baseline_evidence_refs, `work_packages[${index}].baseline_evidence_refs`);
-    checkRefs(workPackage?.progress_evidence_refs, `work_packages[${index}].progress_evidence_refs`);
-    if (analysis.mode === "midterm" && workPackage?.status === "completed" && (workPackage?.progress_evidence_refs?.length ?? 0) === 0) {
-      findings.push(finding("error", "milestone-analysis.completed.evidence", paths.milestoneAnalysis, `Completed work package ${workPackage?.id ?? index + 1} has no progress evidence.`));
-    } else if (analysis.mode === "midterm" && !["planned", "not_started"].includes(workPackage?.status) && (workPackage?.progress_evidence_refs?.length ?? 0) === 0) {
-      findings.push(finding("warning", "milestone-analysis.status.evidence", paths.milestoneAnalysis, `Work package ${workPackage?.id ?? index + 1} has status=${workPackage?.status ?? "missing"} without progress evidence.`));
-    }
-  }
-  for (const [index, risk] of (analysis.risks ?? []).entries()) checkRefs(risk?.evidence_refs, `risks[${index}].evidence_refs`);
-}
-
 function validateEvidenceIndexRelationships(evidenceIndex, paths, findings) {
   if (!evidenceIndex) return;
   const evidenceById = mapStableRecords(Array.isArray(evidenceIndex.evidence) ? evidenceIndex.evidence : [], "evidence", paths.evidenceIndex, findings);
   for (const evidence of evidenceById.values()) {
     for (const relatedId of evidence?.related_evidence_ids ?? []) if (!evidenceById.has(relatedId)) findings.push(finding("error", "evidence.related.unknown", paths.evidenceIndex, `Evidence ${evidence.id} refers to unknown related_evidence_id=${relatedId}.`));
-    if (evidence?.evidence_role === "deviation") {
-      const relatedRoles = new Set((evidence.related_evidence_ids ?? []).map((id) => evidenceById.get(id)?.evidence_role).filter(Boolean));
-      if (!relatedRoles.has("plan_commitment") || !["progress_update", "completed_result", "preliminary_result"].some((role) => relatedRoles.has(role))) {
-        findings.push(finding("error", "evidence.deviation.closure", paths.evidenceIndex, `Deviation evidence ${evidence.id} must relate to a plan_commitment and current progress evidence.`));
-      }
-    }
-  }
-}
-
-function validateMilestoneDeckEvidence(config, evidenceIndex, deck, paths, findings) {
-  if (config.presentation?.type !== PROPOSAL_MIDTERM_PROFILE || !evidenceIndex || !deck) return;
-  const evidenceById = mapStableRecords(Array.isArray(evidenceIndex.evidence) ? evidenceIndex.evidence : [], "evidence", paths.evidenceIndex, findings);
-  const planRoles = new Set(["plan_commitment"]);
-  const progressRoles = new Set(["progress_update", "completed_result", "preliminary_result"]);
-  for (const slide of deck.slides ?? []) {
-    const roles = new Set((slide?.narrative_roles ?? []));
-    const variant = slide?.layout?.variant;
-    const evidence = [...collectSlideEvidenceRefs(slide)].map((ref) => evidenceById.get(ref)).filter(Boolean);
-    const evidenceRoles = new Set(evidence.map((record) => record?.evidence_role).filter(Boolean));
-    if (variant === "plan-vs-actual" || roles.has("deviation")) {
-      if (![...planRoles].some((role) => evidenceRoles.has(role)) || ![...progressRoles].some((role) => evidenceRoles.has(role))) {
-        findings.push(finding("error", "evidence.milestone.plan-actual", paths.deckSpec, `Slide ${slide?.id ?? slide?.order ?? "unknown"} must cite both plan_commitment and progress evidence.`));
-      }
-    }
-    if (config.milestone_profile?.mode === "midterm" && (roles.has("progress_status") || roles.has("interim_result"))) {
-      if (![...progressRoles].some((role) => evidenceRoles.has(role))) findings.push(finding("error", "evidence.milestone.progress", paths.deckSpec, `Midterm slide ${slide?.id ?? slide?.order ?? "unknown"} reports progress without progress_update/completed_result/preliminary_result evidence.`));
-    }
   }
 }
 
@@ -572,14 +375,13 @@ function validateEvidenceClosure(config, sourceManifest, evidenceIndex, deck, pa
       }
     }
   }
-  validateMilestoneDeckEvidence(config, evidenceIndex, deck, paths, findings);
 }
 
 async function inferStage(paths) {
   if (await exists(paths.finalPptx)) return "final";
   if (await exists(paths.deckSpec)) return "deck";
   if (await exists(paths.outline)) return "outline";
-  if ((await exists(paths.figuresManifest)) || (await exists(paths.evidenceIndex)) || (paths.paperIndex && await exists(paths.paperIndex)) || (paths.milestoneAnalysis && await exists(paths.milestoneAnalysis))) return "assets";
+  if ((await exists(paths.evidenceIndex)) || (paths.paperIndex && await exists(paths.paperIndex))) return "assets";
   if ((await sourceFiles(paths.source)).length) return "source";
   return "config";
 }
@@ -588,13 +390,9 @@ function stageIncludes(target, stage) {
   return STAGES.indexOf(target) >= STAGES.indexOf(stage);
 }
 
-function resolveProjectPaths(projectDir, config, profileId) {
+function resolveProjectPaths(projectDir, config) {
   const documents = Array.isArray(config.input?.documents) ? config.input.documents : [];
-  const preferredRoles = profileId === GROUP_MEETING_PROFILE
-    ? ["focal_paper", "primary_paper", "main_paper", "source_paper"]
-    : profileId === PROPOSAL_MIDTERM_PROFILE
-      ? ["research_proposal", "approved_plan", "midterm_report", "progress_evidence", "main_thesis"]
-      : ["main_thesis"];
+  const preferredRoles = ["focal_paper", "background_paper", "supporting_paper"];
   const mainDocument = documents.find((item) => preferredRoles.includes(item?.role)) ?? documents[0];
   const configuredSource = typeof mainDocument?.path === "string" && mainDocument.path.trim()
     ? path.resolve(projectDir, mainDocument.path)
@@ -603,9 +401,6 @@ function resolveProjectPaths(projectDir, config, profileId) {
   return {
     source: configuredSource,
     sourceManifest: configuredPath(projectDir, config, ["paths.source_manifest", "source_manifest"], "source-manifest.json"),
-    thesisAnalysis: configuredPath(projectDir, config, ["paths.thesis_analysis", "thesis_analysis"], "thesis-analysis.json"),
-    milestoneAnalysis: configuredPath(projectDir, config, ["paths.milestone_analysis", "milestone_analysis"], "milestone-analysis.json"),
-    figuresManifest: configuredPath(projectDir, config, ["paths.figures_manifest", "assets.figures_manifest", "figures_manifest"], "assets/figures/figures.manifest.json"),
     evidenceIndex: configuredPath(projectDir, config, ["paths.evidence_index", "evidence_index"], "evidence-index.json"),
     paperIndex: configuredPath(projectDir, config, ["paths.paper_index", "assets.paper_index", "paper_index"], "paper-index.json"),
     outline: configuredPath(projectDir, config, ["paths.outline", "paths.outline_md", "outline"], "PPT内容与设计大纲.md"),
@@ -633,29 +428,19 @@ export async function validateProject(projectPath, options = {}) {
   if (profileRegistry && !profileRegistry.profiles[profileId]) findings.push(finding("error", "profile.unregistered", PROFILE_REGISTRY_PATH, `Presentation profile ${profileId} is not registered.`));
   const literatureMode = config.literature_profile?.mode;
   if (profileId === GROUP_MEETING_PROFILE && !["single_paper", "multi_paper"].includes(literatureMode)) findings.push(finding("error", "profile.literature-mode", configPath, "Group-meeting projects require literature_profile.mode=single_paper or multi_paper."));
-  const milestoneMode = config.milestone_profile?.mode;
-  if (profileId === PROPOSAL_MIDTERM_PROFILE && !["proposal", "midterm"].includes(milestoneMode)) findings.push(finding("error", "profile.milestone-mode", configPath, "Proposal/midterm projects require milestone_profile.mode=proposal or midterm."));
-  const paths = resolveProjectPaths(projectDir, config, profileId);
+  const paths = resolveProjectPaths(projectDir, config);
   const targetStage = options.stage === "auto" || !options.stage ? await inferStage(paths) : options.stage;
   let sourceManifest = null;
   let evidenceIndex = null;
-  let milestoneAnalysis = null;
   let paperIndex = null;
   let paperAssetManifests = [];
 
   if (stageIncludes(targetStage, "source")) {
-    if (profileId === GROUP_MEETING_PROFILE) await validateGroupSources(projectDir, config, findings);
-    else if (profileId === PROPOSAL_MIDTERM_PROFILE) await validateMilestoneSources(projectDir, config, findings);
-    else {
-      const sources = await sourceFiles(paths.source);
-      if (!sources.length) findings.push(finding("error", "source.missing", paths.source, "No supported PDF, DOCX, PPTX, TeX, Markdown, or text source document was found."));
-    }
+    await validateGroupSources(projectDir, config, findings);
   }
 
   if (stageIncludes(targetStage, "assets")) {
-    const recommendedJson = profileId === FINAL_PROFILE
-      ? [["sourceManifest", "source-manifest.json"], ["thesisAnalysis", "thesis-analysis.json"]]
-      : [["sourceManifest", "source-manifest.json"]];
+    const recommendedJson = [["sourceManifest", "source-manifest.json"]];
     for (const [key, label] of recommendedJson) {
       if (!(await exists(paths[key]))) findings.push(finding("warning", `${key}.missing`, paths[key], `${label} is recommended before asset planning.`));
       else {
@@ -667,28 +452,13 @@ export async function validateProject(projectPath, options = {}) {
         }
       }
     }
-    if (profileId === GROUP_MEETING_PROFILE) {
-      paperIndex = await validatePaperIndex(paths.paperIndex, findings, literatureMode, options.requireSchemas);
-      if (paperIndex) paperAssetManifests = await validateGroupPaperManifests(projectDir, paths.paperIndex, paperIndex, findings, options.requireSchemas);
-    } else if (profileId === FINAL_PROFILE) {
-      if (!(await exists(paths.figuresManifest))) findings.push(finding("error", "figures.manifest.missing", paths.figuresManifest, "Figure manifest is required at the assets stage."));
-      else {
-        const manifest = await validateJsonAgainstBundledSchema(paths.figuresManifest, "figures-manifest.schema.json", findings, options.requireSchemas);
-        if (manifest) await validateManifestFiles(projectDir, paths.figuresManifest, manifest, findings);
-      }
-    } else if (profileId === PROPOSAL_MIDTERM_PROFILE) {
-      milestoneAnalysis = await validateMilestoneAnalysis(paths.milestoneAnalysis, config, findings, options.requireSchemas);
-      if (await exists(paths.figuresManifest)) {
-        const manifest = await validateJsonAgainstBundledSchema(paths.figuresManifest, "figures-manifest.schema.json", findings, options.requireSchemas);
-        if (manifest) await validateManifestFiles(projectDir, paths.figuresManifest, manifest, findings);
-      }
-    }
+    paperIndex = await validatePaperIndex(paths.paperIndex, findings, literatureMode, options.requireSchemas);
+    if (paperIndex) paperAssetManifests = await validateGroupPaperManifests(projectDir, paths.paperIndex, paperIndex, findings, options.requireSchemas);
     if (!(await exists(paths.evidenceIndex))) findings.push(finding("error", "evidence.index.missing", paths.evidenceIndex, "Evidence index is required at the assets stage."));
     else {
       evidenceIndex = await validateJsonAgainstBundledSchema(paths.evidenceIndex, "evidence-index.schema.json", findings, options.requireSchemas);
     }
     validateEvidenceIndexRelationships(evidenceIndex, paths, findings);
-    if (profileId === PROPOSAL_MIDTERM_PROFILE) validateMilestoneAnalysisEvidence(milestoneAnalysis, evidenceIndex, paths, findings);
   }
 
   if (stageIncludes(targetStage, "outline")) {
@@ -716,11 +486,6 @@ export async function validateProject(projectPath, options = {}) {
         if (profileId === GROUP_MEETING_PROFILE) {
           const deckMode = deck.literature?.mode;
           if (deckMode !== literatureMode) findings.push(finding("error", "deck.literature-mode", paths.deckSpec, `deck literature.mode=${deckMode ?? "missing"} does not match project literature_profile.mode=${literatureMode ?? "missing"}.`));
-        }
-        if (profileId === PROPOSAL_MIDTERM_PROFILE) {
-          const deckMode = deck.milestone?.mode;
-          if (deckMode !== milestoneMode) findings.push(finding("error", "deck.milestone-mode", paths.deckSpec, `deck milestone.mode=${deckMode ?? "missing"} does not match project milestone_profile.mode=${milestoneMode ?? "missing"}.`));
-          if (milestoneMode === "midterm" && deck.milestone?.as_of_date !== config.milestone_profile?.as_of_date) findings.push(finding("error", "deck.milestone-as-of-date", paths.deckSpec, "Deck milestone.as_of_date does not match project-config."));
         }
         if (config.project?.id && deck.project_id !== config.project.id) findings.push(finding("error", "deck.project-id", paths.deckSpec, `deck project_id=${deck.project_id} does not match project-config project.id=${config.project.id}.`));
         if (config.presentation?.duration_minutes != null && deck.timing?.duration_minutes !== config.presentation.duration_minutes) findings.push(finding("error", "deck.duration", paths.deckSpec, "Deck duration_minutes does not match project-config."));

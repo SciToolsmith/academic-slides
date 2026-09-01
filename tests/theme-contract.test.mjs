@@ -15,11 +15,7 @@ const execFileAsync = promisify(execFile);
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(TEST_DIR, "..");
 const PRESET_NAMES = ["blue", "red", "purple", "cyan"];
-const PROFILE_DIRS = [
-  "final-defense-universal",
-  "proposal-midterm-universal",
-  "group-meeting-literature-universal",
-];
+const PROFILE_DIRS = ["group-meeting-literature-universal"];
 
 function deckColors(preset) {
   return {
@@ -96,7 +92,7 @@ async function main() {
     );
   }
 
-  const finalPresets = await readJson(path.join(SKILL_DIR, "assets", "final-defense-universal", "theme-presets.json"));
+  const finalPresets = await readJson(path.join(SKILL_DIR, "assets", "group-meeting-literature-universal", "theme-presets.json"));
   const custom = internal.normalizeTheme(finalPresets, {
     theme: {
       mode: "custom",
@@ -142,9 +138,9 @@ async function main() {
   assert.equal(primaryOverride.presetName, "custom");
   assert.equal(primaryOverride.primary, "#654321");
 
-  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-theme-contract-"));
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-theme-contract-"));
   try {
-    const sample = await readJson(path.join(SKILL_DIR, "assets", "final-defense-universal", "sample-deck-spec.json"));
+    const sample = await readJson(path.join(SKILL_DIR, "assets", "group-meeting-literature-universal", "sample-deck-spec.json"));
     const sections = [
       { id: "problem", order: 1, title: "研究问题与证据", short_title: "研究问题", role: "problem", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
       { id: "method", order: 2, title: "研究方法与分析", short_title: "研究方法", role: "method", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
@@ -157,15 +153,13 @@ async function main() {
     sample.sources = sample.sources.map((source) => ({ ...source, citation: "本项目规范", path: null }));
     const cover = structuredClone(sample.slides.find((slide) => slide.kind === "title"));
     const agenda = structuredClone(sample.slides.find((slide) => slide.kind === "agenda"));
-    const bodies = ["sample-claim-evidence", "sample-four-point-list", "sample-conclusion-list"].map((id, index) => {
+    const bodies = ["sample-claim-evidence-boundary", "sample-critical-appraisal", "sample-paper-conclusion"].map((id, index) => {
       const slide = structuredClone(sample.slides.find((item) => item.id === id));
       slide.id = `theme-body-${index + 1}`;
       slide.section_id = sections[index].id;
       slide.priority = index === 0 ? "core" : "supporting";
-      if (index === 0) {
-        slide.relationship_topology = "none";
-        slide.text_emphasis = [{ text: "说明证据来自哪里", role: "key" }];
-      }
+      if (index === 0) slide.relationship_topology = "none";
+      slide.evidence_refs = slide.speaker_notes.sources.map((source) => source.source_id);
       return slide;
     });
     const closing = structuredClone(sample.slides.find((slide) => slide.kind === "closing"));
@@ -189,7 +183,7 @@ async function main() {
     sample.claim_evidence_map = [];
     const sampleSpec = path.join(temporary, "deck-spec.json");
     await fs.writeFile(sampleSpec, `${JSON.stringify(sample, null, 2)}\n`, "utf8");
-    const stem = "主题契约_硕士答辩";
+    const stem = "主题契约_组会汇报";
     const builderPath = path.join(temporary, `${stem}.mjs`);
     const result = await createProjectBuilder({
       spec: sampleSpec,
@@ -207,7 +201,7 @@ async function main() {
 
     await execFileAsync(process.execPath, [builderPath, "--pptx"], {
       cwd: temporary,
-      env: { ...process.env, ACADEMIC_SLIDES_SKILL_DIR: SKILL_DIR },
+      env: { ...process.env, PAPER_CLUB_PPT_SKILL_DIR: SKILL_DIR },
       encoding: "utf8",
       maxBuffer: 20 * 1024 * 1024,
       timeout: 120_000,

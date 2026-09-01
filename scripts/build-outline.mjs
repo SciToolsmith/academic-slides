@@ -185,35 +185,16 @@ function evidenceForSlide(slide) {
 }
 
 function presentationProfile(deck) {
-  return deck?.profile ?? deck?.presentation_profile ?? deck?.presentation?.type ?? "final_defense";
+  return deck?.profile ?? deck?.presentation_profile ?? deck?.presentation?.type ?? "group_meeting_literature";
 }
 
-function outlineVocabulary(profile, deck) {
-  if (profile === "group_meeting_literature") {
-    return {
-      defaultTitle: "组会文献汇报",
-      strategyHeading: "组会汇报策略",
-      durationLabel: "汇报时长",
-      takeawayLabel: "核心判断",
-      overviewTitle: "标题 / 一句话判断",
-    };
-  }
-  if (profile === "proposal_midterm") {
-    const mode = deck?.milestone?.mode;
-    return {
-      defaultTitle: mode === "midterm" ? "中期汇报" : "开题答辩",
-      strategyHeading: mode === "midterm" ? "中期汇报策略" : "开题答辩策略",
-      durationLabel: "汇报时长",
-      takeawayLabel: mode === "midterm" ? "阶段判断" : "核心主张",
-      overviewTitle: "标题 / 一句话判断",
-    };
-  }
+function outlineVocabulary() {
   return {
-    defaultTitle: "学术答辩",
-    strategyHeading: "答辩策略",
-    durationLabel: "总时长",
-    takeawayLabel: "核心结论",
-    overviewTitle: "标题 / 一句话结论",
+    defaultTitle: "组会文献汇报",
+    strategyHeading: "组会汇报策略",
+    durationLabel: "汇报时长",
+    takeawayLabel: "核心判断",
+    overviewTitle: "标题 / 一句话判断",
   };
 }
 
@@ -239,7 +220,7 @@ function paperCount(deck) {
 export function buildOutlineMarkdown(deck, sourceName = "deck-spec.json") {
   const slides = [...(Array.isArray(deck.slides) ? deck.slides : [])].sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
   const profile = presentationProfile(deck);
-  const vocabulary = outlineVocabulary(profile, deck);
+  const vocabulary = outlineVocabulary();
   const lines = [];
   lines.push(`# ${text(deck.title, vocabulary.defaultTitle)}｜PPT 内容与设计大纲`, "");
   lines.push(`> 由 \`${sourceName}\` 生成。页面 ID 是稳定标识，增删页面时不应复用。`, "");
@@ -251,20 +232,10 @@ export function buildOutlineMarkdown(deck, sourceName = "deck-spec.json") {
   const totalMinutes = deck.timing?.duration_minutes ?? deck.timing?.total_minutes ?? deck.timing?.minutes;
   lines.push(`- ${vocabulary.durationLabel}：${totalMinutes != null ? `${totalMinutes} 分钟` : "—"}`);
   lines.push(`- 页面数：${slides.length}`);
-  if (profile === "group_meeting_literature") {
-    const mode = deck.literature?.mode;
-    lines.push(`- 文献模式：${mode === "single_paper" ? "单篇文献" : mode === "multi_paper" ? "多篇文献" : text(mode)}`);
-    const count = paperCount(deck);
-    if (count != null) lines.push(`- 文献数：${count}`);
-  }
-  if (profile === "proposal_midterm") {
-    const mode = deck.milestone?.mode;
-    lines.push(`- 评审阶段：${mode === "proposal" ? "开题" : mode === "midterm" ? "中期" : text(mode)}`);
-    if (mode === "midterm") lines.push(`- 进展截止日：${text(deck.milestone?.as_of_date)}`);
-    lines.push(`- 计划基线文档：${inlineList(deck.milestone?.plan_document_ids)}`);
-    lines.push(`- 进展文档：${inlineList(deck.milestone?.progress_document_ids)}`);
-    lines.push(`- 工作包：${(deck.milestone?.work_packages ?? []).map((item) => `${text(item.title)}（${text(item.status)}）`).join("、") || "—"}`);
-  }
+  const mode = deck.literature?.mode;
+  lines.push(`- 文献模式：${mode === "single_paper" ? "单篇文献" : mode === "multi_paper" ? "多篇文献" : text(mode)}`);
+  const count = paperCount(deck);
+  if (count != null) lines.push(`- 文献数：${count}`);
   if (deck.theme) {
     const themeLabel = typeof deck.theme === "string" ? deck.theme : `${text(deck.theme.id)}${deck.theme.mode ? `（${deck.theme.mode}）` : ""}`;
     lines.push(`- 主题：${themeLabel}`);
@@ -282,8 +253,7 @@ export function buildOutlineMarkdown(deck, sourceName = "deck-spec.json") {
     lines.push(`- 页面类型：${text(slide.kind)}`);
     lines.push(`- 所属章节：${text(sectionName(deck, slide))}`);
     const paperRefs = paperRefsForSlide(deck, slide);
-    if (profile === "group_meeting_literature" && paperRefs.length) lines.push(`- 对应文献：${inlineList(paperRefs)}`);
-    if (profile === "proposal_midterm" && Array.isArray(slide.narrative_roles) && slide.narrative_roles.length) lines.push(`- 叙事任务：${inlineList(slide.narrative_roles)}`);
+    if (paperRefs.length) lines.push(`- 对应文献：${inlineList(paperRefs)}`);
     lines.push(`- 页面任务：${text(slide.purpose)}`);
     lines.push(`- ${vocabulary.takeawayLabel}：${text(slide.takeaway)}`);
     const question = slide.audience_question ?? slide.question ?? slide.narrative?.question;

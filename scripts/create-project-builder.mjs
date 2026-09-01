@@ -142,11 +142,11 @@ function builderSource(spec, names, themePreset) {
   const specSha256 = canonicalSpecHash(spec);
   return `#!/usr/bin/env node
 
-// academic-slides-delivery: ${JSON.stringify({ contract_version: 2, generator: "academic-slides/create-project-builder", stem: names.stem, pptx: names.pptx, docx: names.docx, theme: themePreset, artifact_purpose: spec.artifact_purpose ?? "production", spec_sha256: specSha256 })}
+// paper-club-ppt-delivery: ${JSON.stringify({ contract_version: 2, generator: "paper-club-ppt/create-project-builder", stem: names.stem, pptx: names.pptx, docx: names.docx, theme: themePreset, artifact_purpose: spec.artifact_purpose ?? "production", spec_sha256: specSha256 })}
 
 // 项目构建入口。默认同时生成 PPTX 与 Word 发言稿。
 // 运行：node ${names.builder}\n// 可选：node ${names.builder} --pptx | --docx | --all
-// 需要已安装 academic-slides Skill，或设置 ACADEMIC_SLIDES_SKILL_DIR。
+// 需要已安装 paper-club-ppt Skill，或设置 PAPER_CLUB_PPT_SKILL_DIR。
 
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
@@ -166,17 +166,17 @@ async function exists(filePath) {
 
 async function locateSkill() {
   const candidates = [
-    process.env.ACADEMIC_SLIDES_SKILL_DIR,
-    path.join(PROJECT_DIR, "academic-slides"),
-    path.join(PROJECT_DIR, "..", "academic-slides"),
-    path.join(process.env.CODEX_HOME || path.join(os.homedir(), ".codex"), "skills", "academic-slides"),
+    process.env.PAPER_CLUB_PPT_SKILL_DIR,
+    path.join(PROJECT_DIR, "paper-club-ppt"),
+    path.join(PROJECT_DIR, "..", "paper-club-ppt"),
+    path.join(process.env.CODEX_HOME || path.join(os.homedir(), ".codex"), "skills", "paper-club-ppt"),
   ].filter(Boolean).map((item) => path.resolve(item));
   for (const candidate of candidates) {
     if (await exists(path.join(candidate, "scripts", "presentation-core.mjs"))
       && await exists(path.join(candidate, "scripts", "validate-deck-spec.mjs"))
       && await exists(path.join(candidate, "scripts", "validate-scientific-design.mjs"))) return candidate;
   }
-  throw new Error("找不到 academic-slides Skill。请安装该 Skill，或设置 ACADEMIC_SLIDES_SKILL_DIR。");
+  throw new Error("找不到 paper-club-ppt Skill。请安装该 Skill，或设置 PAPER_CLUB_PPT_SKILL_DIR。");
 }
 
 async function main() {
@@ -213,7 +213,7 @@ async function main() {
   const word = await import(pathToFileURL(path.join(skillDir, "scripts", "build-speaker-script.mjs")).href);
   const outputs = {};
   if (buildPptx) {
-    const template = await core.loadTemplateConfiguration(deckSpec.profile || "final_defense");
+    const template = await core.loadTemplateConfiguration(deckSpec.profile || "group_meeting_literature");
     const built = await core.createPresentationFromSpec(deckSpec, {
       profile: deckSpec.profile,
       baseDir: PROJECT_DIR,

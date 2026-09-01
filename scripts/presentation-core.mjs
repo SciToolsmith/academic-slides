@@ -158,40 +158,17 @@ const DEFAULT_NEUTRAL_THEME = Object.freeze({
   mutedText: DEFAULT_TOKENS.neutral.muted,
 });
 
-const MILESTONE_EXCLUSIVE_LAYOUTS = new Set([
-  "cover-short-title", "cover-long-title", "agenda-adaptive", "evaluation-focus", "closing-feedback",
-  "context-stakes", "literature-landscape", "evidence-gap", "question-hypothesis", "objectives-workpackages",
-  "conceptual-framework", "scope-boundaries", "contribution-value", "technical-route", "method-architecture",
-  "data-sample-variables", "model-formula", "validation-plan-status", "feasibility-resources",
-  "risk-ethics-contingency", "innovation-claims", "expected-outcomes", "baseline-gantt",
-  "proposal-decision-check", "progress-snapshot", "plan-vs-actual", "leading-result-single",
-  "leading-results-multipanel", "deviation-cause-action", "remaining-work-updated-plan",
-]);
-const PROPOSAL_ONLY_LAYOUTS = new Set(["innovation-claims", "expected-outcomes", "baseline-gantt", "proposal-decision-check"]);
-const MIDTERM_ONLY_LAYOUTS = new Set(["progress-snapshot", "plan-vs-actual", "leading-result-single", "leading-results-multipanel", "deviation-cause-action", "remaining-work-updated-plan"]);
 const PROFILE_SHELL_LAYOUTS = Object.freeze({
-  final_defense: Object.freeze({
-    title: new Set(["cover"]),
-    agenda: new Set(["agenda"]),
-    section: new Set(["section-divider"]),
-    closing: new Set(["closing"]),
-  }),
   group_meeting_literature: Object.freeze({
     title: new Set(["group-cover"]),
     agenda: new Set(["paper-agenda"]),
     section: new Set(["paper-divider"]),
     closing: new Set(["group-closing"]),
   }),
-  proposal_midterm: Object.freeze({
-    title: new Set(["cover-short-title", "cover-long-title"]),
-    agenda: new Set(["agenda-adaptive"]),
-    section: new Set(["section-divider"]),
-    closing: new Set(["closing-feedback"]),
-  }),
 });
 const SHELL_KIND_BY_LAYOUT = new Map(Object.values(PROFILE_SHELL_LAYOUTS).flatMap((byKind) => Object.entries(byKind)
   .flatMap(([kind, layoutIds]) => [...layoutIds].map((layoutId) => [layoutId, kind]))));
-const FORMULA_RENDERER_LAYOUTS = new Set(["formula-visual", "model-formula"]);
+const FORMULA_RENDERER_LAYOUTS = new Set(["formula-visual"]);
 const SLIDE_TEXT_REGISTRY = new WeakMap();
 
 function isObject(value) {
@@ -234,7 +211,7 @@ function normalizedFontName(value) {
   return cleanText(value).replace(/\s+/g, " ");
 }
 
-function validateThemeFontOverrides(themeFonts, profileFonts, profile = "final_defense") {
+function validateThemeFontOverrides(themeFonts, profileFonts, profile = "group_meeting_literature") {
   if (!isObject(themeFonts)) return;
   const cjkFonts = [profileFonts?.zh, ...list(profileFonts?.zhFallbacks)]
     .map(normalizedFontName)
@@ -279,46 +256,22 @@ function sectionVisible(section, field) {
 }
 
 function normalizeProfile(spec) {
-  const raw = String(first(spec?.profile, spec?.presentation_type, spec?.presentation?.type, "final_defense"))
+  const raw = String(first(spec?.profile, spec?.presentation_type, spec?.presentation?.type, "group_meeting_literature"))
     .trim()
     .toLowerCase()
     .replaceAll("-", "_");
   const aliases = {
-    final: "final_defense",
-    final_defense: "final_defense",
-    defense: "final_defense",
     group_meeting_literature: "group_meeting_literature",
     literature: "group_meeting_literature",
     journal_club: "group_meeting_literature",
     paper_presentation: "group_meeting_literature",
-    proposal_midterm: "proposal_midterm",
-    proposal: "proposal_midterm",
-    proposal_defense: "proposal_midterm",
-    opening_defense: "proposal_midterm",
-    midterm: "proposal_midterm",
-    midterm_defense: "proposal_midterm",
-    midterm_review: "proposal_midterm",
+    paper_club_ppt: "group_meeting_literature",
   };
   const profile = aliases[raw] ?? (PROFILE_TEMPLATE_DIRS[raw] ? raw : null);
   if (!profile || !PROFILE_TEMPLATE_DIRS[profile]) {
-    throw new Error(`Unsupported academic-slides profile "${raw}". Available profiles: ${Object.keys(PROFILE_TEMPLATE_DIRS).join(", ")}.`);
+    throw new Error(`Unsupported paper-club-ppt profile "${raw}". Available profiles: ${Object.keys(PROFILE_TEMPLATE_DIRS).join(", ")}.`);
   }
   return profile;
-}
-
-function normalizeMilestoneMode(spec) {
-  const explicit = first(
-    spec?.milestone?.mode,
-    spec?.milestone_profile?.mode,
-    spec?.presentation?.mode,
-  );
-  const profileHint = String(first(spec?.profile, spec?.presentation_type, spec?.presentation?.type, ""))
-    .trim().toLowerCase().replaceAll("-", "_");
-  const inferred = profileHint.includes("midterm") ? "midterm" : "proposal";
-  const raw = String(first(explicit, inferred)).trim().toLowerCase().replaceAll("-", "_");
-  if (["proposal", "opening", "proposal_defense"].includes(raw)) return "proposal";
-  if (["midterm", "mid_term", "midterm_defense", "midterm_review"].includes(raw)) return "midterm";
-  throw new Error(`Unsupported proposal/midterm mode "${raw}". Use proposal or midterm.`);
 }
 
 function normalizeHex(value, fallback) {
@@ -745,7 +698,7 @@ function normalizeTheme(presets, spec, options = {}) {
 
 function presentationTheme(colors, tokens) {
   return {
-    name: `Academic Slides · ${colors.displayName}`,
+    name: `Paper Club PPT · ${colors.displayName}`,
     themeColors: {
       accent1: colors.primary,
       accent2: colors.secondary,
@@ -779,7 +732,7 @@ function normalizeBrand(spec) {
 
 function normalizeLayoutId(slide) {
   const layout = isObject(slide.layout) ? slide.layout : {};
-  const raw = String(first(slide.layout_id, slide.layoutId, layout.id, layout.family, slide.kind, "claim-evidence")).toLowerCase();
+  const raw = String(first(slide.layout_id, slide.layoutId, layout.id, layout.family, slide.kind, "claim-evidence-boundary")).toLowerCase();
   const variant = String(first(layout.variant, "")).toLowerCase();
   const normalizedVariant = variant.replaceAll("_", "-");
   if (REGISTERED_LAYOUT_IDS.has(normalizedVariant)) return normalizedVariant;
@@ -788,26 +741,25 @@ function normalizeLayoutId(slide) {
     throw new Error(`Unknown layout variant "${variant}". Use a registered layout ID, omit variant to map from family, or use family=free_canvas with variant=custom:<slug>.`);
   }
   const map = {
-    title: "cover",
-    agenda: "agenda",
-    section: "section-divider",
-    hero_figure: variant.includes("right") ? "text-left-image-right" : "image-left-text-right",
-    comparison: "image-compare",
-    chart_insight: "chart-insight",
-    figure_formula: "formula-visual",
-    process_flow: "process",
-    system_architecture: "framework",
-    evidence_chain: "claim-evidence",
-    quote_analysis: "quote-analysis",
-    case_matrix: "case-compare",
-    method_design: "process",
-    validation_matrix: "validation-matrix",
-    contribution_limits: variant.includes("limit") ? "limitations" : "contribution",
+    title: "group-cover",
+    agenda: "paper-agenda",
+    section: "paper-divider",
+    hero_figure: "single-result-evidence",
+    comparison: "result-compare",
+    chart_insight: "table-chart-result",
+    process_flow: "method-sequence",
+    system_architecture: "concept-framework",
+    evidence_chain: "claim-evidence-boundary",
+    quote_analysis: "critical-appraisal",
+    case_matrix: "cross-paper-matrix",
+    method_design: "study-design",
+    validation_matrix: "method-comparison",
+    contribution_limits: "critical-appraisal",
     paper_profile: "paper-profile",
     literature_synthesis: "cross-paper-matrix",
     discussion: "discussion-questions",
-    summary: "contribution",
-    closing: "closing",
+    summary: "paper-conclusion",
+    closing: "group-closing",
     free_canvas: "free-evidence",
   };
   return map[raw] ?? raw.replaceAll("_", "-");
@@ -874,26 +826,16 @@ function semanticItems(slide, keys = [], fallbackCount = 3) {
 
 const VISUAL_ASSET_MINIMUMS = new Map([
   ["paper-profile", 1],
-  ["image-left-text-right", 1],
-  ["text-left-image-right", 1],
-  ["image-compare", 2],
-  ["case-compare", 2],
-  ["multi-image-evidence", 2],
-  ["two-image-results", 2],
-  ["figure-conclusion", 1],
   ["single-result-evidence", 1],
   ["result-compare", 2],
   ["multi-result-evidence", 2],
   ["mechanism-explanation", 1],
-  ["leading-result-single", 1],
-  ["leading-results-multipanel", 2],
 ]);
 const DIAGRAM_DATA_LAYOUTS = new Set([
-  "process", "framework", "technical-route", "method-architecture", "conceptual-framework",
-  "method-sequence", "research-evolution",
+  "concept-framework", "study-design", "method-sequence", "research-evolution",
 ]);
-const TABLE_DATA_LAYOUTS = new Set(["table-insight", "validation-matrix", "method-comparison", "cross-paper-matrix"]);
-const CHART_DATA_LAYOUTS = new Set(["chart-insight", "table-chart-result"]);
+const TABLE_DATA_LAYOUTS = new Set(["method-comparison", "cross-paper-matrix"]);
+const CHART_DATA_LAYOUTS = new Set(["table-chart-result"]);
 const INTERNAL_PLACEHOLDER_TEXT = [
   /^\s*要点\s*\d{1,2}\s*$/u,
   /^用与论文证据对应的短句替换这里的说明。?$/u,
@@ -950,7 +892,7 @@ function assertProfileAndShellContract(slideSpec, context, layoutId, slideNumber
 function assertProductionRendererPayload(slideSpec, context, layoutId, slideNumber) {
   if (!isProductionArtifact(context.spec)) return;
   if (containsInternalPlaceholder({ content: slideSpec.content, render_data: slideSpec.render_data, bullets: slideSpec.bullets })) {
-    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} contains renderer placeholder copy. Replace it with thesis-specific evidence before building.`);
+    throw new Error(`Production slide ${slideSpec.id ?? slideNumber} contains renderer placeholder copy. Replace it with paper-specific evidence before building.`);
   }
   if (!isProductionSubstantiveKind(slideSpec)) return;
   const payloadProblems = productionPayloadProblems(slideSpec, layoutId);
@@ -1024,7 +966,7 @@ function buildAssetIndex(spec, baseDir) {
   }
   if (Array.isArray(spec.sources)) {
     for (const item of spec.sources) {
-      if (item?.path && /^(?:brand_asset|thesis_figure|thesis_table|thesis_formula|paper_text|paper_figure|paper_table|paper_formula|paper_supplement|bibliographic_metadata|venue_metric|user_material|other)$/.test(String(item.type))) {
+      if (item?.path && /^(?:paper_text|paper_figure|paper_table|paper_formula|paper_supplement|bibliographic_metadata|venue_metric|user_material|other)$/.test(String(item.type))) {
         add(item.id, { ...item, alt_text: first(item.alt_text, item.title), type: item.type });
       }
     }
@@ -1251,159 +1193,8 @@ async function addGroupContentChrome(slide, slideSpec, context, slideNumber) {
   }, "slide-number");
 }
 
-function milestoneModeLabel(context) {
-  return context.mode === "midterm" ? "中期汇报" : "开题答辩";
-}
-
-async function addMilestoneContentChrome(slide, slideSpec, context, slideNumber) {
-  const { brand, colors, tokens } = context;
-  slide.background.fill = tokens.neutral.canvas;
-  const sectionRecord = context.sectionIndex?.get(slideSpec.section_id);
-  const sectionIndex = list(context.spec?.sections).findIndex((item) => item?.id === slideSpec.section_id);
-  const sectionNo = cleanText(first(
-    slideSpec.section_number,
-    slideSpec.sectionNumber,
-    sectionRecord?.number,
-    sectionIndex >= 0 ? String(sectionIndex + 1).padStart(2, "0") : "",
-  ));
-  const sectionTitle = cleanText(first(
-    sectionRecord?.short_title,
-    sectionRecord?.title,
-    slideSpec.section_title,
-    slideSpec.sectionTitle,
-    context.mode === "midterm" ? "阶段进展" : "研究方案",
-  ));
-
-  addShape(slide, "rect", { left: 34, top: 17, width: 56, height: 38 }, {
-    name: "milestone-section-number-box",
-    fill: colors.primary,
-    line: { style: "solid", fill: colors.primary, width: 0 },
-  });
-  addText(slide, sectionNo || "·", { left: 34, top: 17, width: 56, height: 38 }, {
-    fontSize: 16,
-    fontFamily: tokens.fonts.en,
-    bold: true,
-    color: tokens.neutral.white,
-    alignment: "center",
-  }, "milestone-section-number");
-  addText(slide, sectionTitle, { left: 104, top: 14, width: 470, height: 44 }, {
-    fontSize: 19,
-    fontFamily: fontFor(sectionTitle, tokens),
-    bold: true,
-    color: tokens.neutral.text,
-  }, "milestone-section-title");
-  addPill(slide, milestoneModeLabel(context), { left: 835, top: 18, width: 112, height: 34 }, colors, tokens, {
-    name: "milestone-mode-label",
-    fill: colors.primaryLight,
-    line: colors.primaryLight,
-    color: colors.primaryDark,
-    fontSize: 12,
-  });
-  addText(slide, brand.institution, { left: 958, top: 14, width: 238, height: 44 }, {
-    fontSize: 13,
-    fontFamily: fontFor(brand.institution, tokens),
-    bold: true,
-    color: colors.primary,
-    alignment: "right",
-  }, "milestone-institution-wordmark");
-  await addLogo(slide, brand, { left: 1206, top: 11, width: 46, height: 46 }, context);
-  addRule(slide, 28, 70, 1224, colors.primary, 2, "milestone-header-rule");
-
-  const title = slideTitle(slideSpec);
-  addText(slide, title, { left: 56, top: 86, width: 1168, height: 56 }, {
-    fontSize: 32,
-    fontFamily: fontFor(title, tokens),
-    bold: true,
-    color: tokens.neutral.text,
-  }, "slide-title");
-  addRule(slide, 56, 148, 180, colors.secondary, 3, "milestone-title-rule");
-  addText(slide, String(slideNumber), { left: 1198, top: 679, width: 42, height: 20 }, {
-    fontSize: 11,
-    fontFamily: tokens.fonts.en,
-    bold: true,
-    color: tokens.neutral.subtle,
-    alignment: "right",
-  }, "slide-number");
-}
-
-async function addContentChrome(slide, slideSpec, context, slideNumber) {
-  if (context.profile === "group_meeting_literature") {
-    await addGroupContentChrome(slide, slideSpec, context, slideNumber);
-    return;
-  }
-  if (context.profile === "proposal_midterm") {
-    await addMilestoneContentChrome(slide, slideSpec, context, slideNumber);
-    return;
-  }
-  const { brand, colors, tokens } = context;
-  const sectionRecord = context.sectionIndex?.get(slideSpec.section_id);
-  const section = cleanText(first(slideSpec.section_title, slideSpec.sectionTitle, slideSpec.section, sectionRecord?.short_title, sectionRecord?.title, ""));
-  const sectionNumber = cleanText(first(slideSpec.section_number, slideSpec.sectionNumber, ""));
-  await addLogo(slide, brand, { left: 18, top: 7, width: 44, height: 44 }, context);
-  addText(slide, brand.institution, { left: 72, top: 8, width: 260, height: 42 }, {
-    fontSize: 14,
-    fontFamily: fontFor(brand.institution, tokens),
-    bold: true,
-    color: colors.primary,
-  }, "institution-wordmark");
-  const allSections = list(context.spec?.sections).filter((item) => (
-    sectionVisible(item, "show_in_navigation") && cleanText(first(item?.title, item?.short_title))
-  ));
-  const activeSection = allSections.find((item) => item?.id === slideSpec.section_id);
-  const appendixSlide = sectionAudienceRole(sectionRecord) === "appendix" || slideSpec.kind === "appendix";
-  if (appendixSlide) {
-    addPill(slide, "附录·问答备查", {
-      left: 964, top: 11, width: 242, height: 34,
-    }, colors, tokens, { name: "appendix-label", fill: colors.primaryLight, color: colors.primaryDark, fontSize: 13 });
-  } else if (allSections.length >= 2 && allSections.length <= 6) {
-    const visibleSections = allSections;
-    const navLeft = 354;
-    const navRight = 1220;
-    const navWidth = (navRight - navLeft) / visibleSections.length;
-    visibleSections.forEach((item, index) => {
-      const active = item?.id === slideSpec.section_id;
-      const label = cleanText(first(item.short_title, item.title, `章节 ${index + 1}`));
-      addShape(slide, "rect", { left: navLeft + index * navWidth, top: 0, width: navWidth, height: 58 }, {
-        name: `section-nav-${index + 1}${active ? "-active" : ""}`,
-        fill: active ? colors.primary : tokens.neutral.canvas,
-        line: { style: "solid", fill: tokens.neutral.canvas, width: 0 },
-      });
-      addText(slide, label, { left: navLeft + index * navWidth + 8, top: 8, width: navWidth - 16, height: 42 }, {
-        fontSize: visibleSections.length >= 6 ? 11 : visibleSections.length === 5 ? 12 : 13,
-        fontFamily: fontFor(label, tokens),
-        bold: active,
-        color: active ? tokens.neutral.white : tokens.neutral.muted,
-        alignment: "center",
-      }, `section-nav-label-${index + 1}`);
-    });
-  } else if (allSections.length > 6 && activeSection) {
-    const activeIndex = allSections.indexOf(activeSection) + 1;
-    const activeLabel = cleanText(first(activeSection.short_title, activeSection.title, "当前章节"));
-    addPill(slide, `${String(activeIndex).padStart(2, "0")}/${String(allSections.length).padStart(2, "0")}  ${activeLabel}`, {
-      left: 908, top: 11, width: 298, height: 34,
-    }, colors, tokens, { name: "section-progress-label", fill: colors.primaryLight, color: colors.primaryDark, fontSize: 13 });
-  } else if (section) {
-    addPill(slide, `${sectionNumber ? `${sectionNumber}  ` : ""}${section}`, {
-      left: 928, top: 11, width: 278, height: 34,
-    }, colors, tokens, { name: "section-label", fill: colors.primaryLight, color: colors.primaryDark, fontSize: 13 });
-  }
-  addRule(slide, 0, 58, 1280, tokens.neutral.black, 1, "header-rule");
-  addText(slide, String(slideNumber), { left: 1210, top: 676, width: 32, height: 20 }, {
-    fontSize: 12,
-    fontFamily: tokens.fonts.en,
-    bold: true,
-    color: tokens.neutral.subtle,
-    alignment: "right",
-  }, "slide-number");
-  const title = slideTitle(slideSpec);
-  addText(slide, title, { left: 64, top: 78, width: 1152, height: 54 }, {
-    fontSize: tokens.typeScale.slideTitle,
-    fontFamily: fontFor(title, tokens),
-    bold: true,
-    color: tokens.neutral.text,
-    verticalAlignment: "middle",
-  }, "slide-title");
-  addRule(slide, 64, 139, 300, tokens.neutral.line, 1.5, "title-rule");
+ async function addContentChrome(slide, slideSpec, context, slideNumber) {
+  await addGroupContentChrome(slide, slideSpec, context, slideNumber);
 }
 
 function addTakeawayBand(slide, takeaway, context, options = {}) {
@@ -1455,7 +1246,10 @@ function addGroupCornerMotif(slide, left, top, color, mirrored = false) {
 
 function groupPaperEntries(spec, slideSpec) {
   const data = renderData(slideSpec);
-  const candidates = first(data.papers, slideSpec.papers, spec.literature?.papers, spec.sections, []);
+  const explicit = first(data.papers, slideSpec.papers, spec.literature?.papers);
+  const candidates = explicit ?? list(spec.sections).filter((section) => (
+    sectionAudienceRole(section) === "main" && sectionVisible(section, "show_in_agenda")
+  ));
   return list(candidates).map((entry, index) => {
     if (!isObject(entry)) return { number: String(index + 1).padStart(2, "0"), title: cleanText(entry), detail: "" };
     return {
@@ -1845,10 +1639,10 @@ async function renderClaimEvidenceBoundary(slide, slideSpec, context, slideNumbe
     { title: "一致性证据", body: "来自另一方法或样本的支持。" },
   ]).slice(0, 3);
   const boundary = cleanText(first(data.boundary, slideSpec.content?.callout, "证据只支持到这里；更强外推仍待验证。"));
-  const claimLabel = cleanText(first(data.claim_label, data.claimLabel, context.profile === "proposal_midterm" ? "研究范围 / 核心界定" : "作者主张"));
-  const evidenceLabel = cleanText(first(data.evidence_label, data.evidenceLabel, context.profile === "proposal_midterm" ? "纳入依据" : "证据链"));
-  const boundaryLabel = cleanText(first(data.boundary_label, data.boundaryLabel, context.profile === "proposal_midterm" ? "边界与不纳入项" : "汇报者边界判断"));
-  const reminder = cleanText(first(data.reminder, context.profile === "proposal_midterm" ? "边界越清楚，结论越可检验" : "作者声称 ≠ 汇报者认同"));
+  const claimLabel = cleanText(first(data.claim_label, data.claimLabel, "作者主张"));
+  const evidenceLabel = cleanText(first(data.evidence_label, data.evidenceLabel, "证据链"));
+  const boundaryLabel = cleanText(first(data.boundary_label, data.boundaryLabel, "汇报者边界判断"));
+  const reminder = cleanText(first(data.reminder, "作者声称 ≠ 汇报者认同"));
   addShape(slide, "roundRect", { left: 56, top: 160, width: 338, height: 390 }, {
     name: "author-claim-panel", fill: context.colors.primary,
     line: { style: "solid", fill: context.colors.primary, width: 0 }, borderRadius: "rounded-lg",
@@ -2229,921 +2023,7 @@ async function renderGroupClosing(slide, spec, slideSpec, context) {
   }, "group-closing-presenter");
 }
 
-async function renderMilestoneCover(slide, spec, slideSpec, context, longTitle = false) {
-  const data = renderData(slideSpec);
-  const title = slideTitle(slideSpec) || cleanText(first(spec.title, "研究课题题目"));
-  const subtitle = cleanText(first(data.subtitle, slideSpec.subtitle, spec.subtitle, ""));
-  const mode = milestoneModeLabel(context);
-  const presenter = cleanText(first(data.presenter, spec.presenter, spec.author, ""));
-  const advisor = cleanText(first(data.advisor, spec.advisor, ""));
-  const institution = cleanText(first(data.institution, context.brand.institution, "学术机构"));
-  const department = cleanText(first(data.department, context.brand.department, ""));
-  const date = cleanText(first(data.date, spec.date, spec.milestone?.as_of_date, ""));
-
-  slide.background.fill = context.tokens.neutral.canvas;
-  addText(slide, mode, { left: 62, top: 36, width: 180, height: 44 }, {
-    fontSize: 18,
-    fontFamily: context.tokens.fonts.zh,
-    bold: true,
-    color: context.colors.primary,
-  }, "milestone-cover-mode");
-  addRule(slide, 62, 91, 194, context.colors.primary, 4, "milestone-cover-mode-rule");
-  addText(slide, institution, { left: 830, top: 32, width: 324, height: 48 }, {
-    fontSize: 15,
-    fontFamily: fontFor(institution, context.tokens),
-    bold: true,
-    color: context.colors.primary,
-    alignment: "right",
-  }, "milestone-cover-institution");
-  await addLogo(slide, context.brand, { left: 1170, top: 24, width: 62, height: 62 }, context);
-
-  addText(slide, title, { left: 70, top: longTitle ? 150 : 168, width: 1140, height: longTitle ? 172 : 132 }, {
-    fontSize: longTitle ? 42 : 52,
-    fontFamily: fontFor(title, context.tokens),
-    bold: true,
-    color: context.tokens.neutral.black,
-    verticalAlignment: "bottom",
-  }, "milestone-cover-title");
-  addRule(slide, 70, longTitle ? 336 : 320, 1140, context.colors.primary, 3, "milestone-cover-title-rule");
-  if (subtitle) addText(slide, subtitle, { left: 72, top: longTitle ? 350 : 336, width: 1080, height: 68 }, {
-    fontSize: 20,
-    fontFamily: fontFor(subtitle, context.tokens),
-    bold: true,
-    color: context.colors.primary,
-  }, "milestone-cover-subtitle");
-
-  addShape(slide, "rect", { left: 0, top: 474, width: 1280, height: 246 }, {
-    name: "milestone-cover-footer-band",
-    fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addText(slide, context.mode === "midterm" ? "以原计划为基线，报告阶段证据、偏差与下一步" : "从研究问题出发，说明方法、可行性、风险与计划", {
-    left: 70, top: 506, width: 1140, height: 42,
-  }, {
-    fontSize: 18,
-    fontFamily: context.tokens.fonts.zh,
-    bold: true,
-    color: "#EAF0F8",
-  }, "milestone-cover-positioning");
-  const meta = [
-    ["汇报人", presenter || (context.allowPlaceholder ? "示范姓名" : "")],
-    ["指导教师", advisor || (context.allowPlaceholder ? "示范导师" : "")],
-    [department ? "单位" : "阶段", department || mode],
-    ["日期", date || (context.allowPlaceholder ? "20XX 年 X 月" : "")],
-  ].filter(([, value]) => value);
-  const metaWidth = 1140 / Math.max(1, meta.length);
-  meta.forEach(([label, value], index) => {
-    const left = 70 + index * metaWidth;
-    addText(slide, label, { left, top: 584, width: Math.min(86, metaWidth - 8), height: 26 }, {
-      fontSize: 12, fontFamily: context.tokens.fonts.zh, color: "#BFCBE0",
-    }, `milestone-cover-meta-label-${index + 1}`);
-    addText(slide, value, { left, top: 616, width: Math.max(120, metaWidth - 24), height: 42 }, {
-      fontSize: 17, fontFamily: fontFor(value, context.tokens), bold: true, color: context.tokens.neutral.white,
-    }, `milestone-cover-meta-value-${index + 1}`);
-  });
-}
-
-async function renderMilestoneAgenda(slide, spec, slideSpec, context, slideNumber) {
-  const explicitSections = firstNonEmptyList(renderData(slideSpec).sections, slideSpec.sections, slideSpec.content?.body);
-  const sections = explicitSections.length > 0
-    ? explicitSections
-    : list(spec.sections).filter((item) => sectionVisible(item, "show_in_agenda"));
-  if (sections.length < 2) throw new Error(`Agenda slide ${slideSpec.id ?? slideNumber} needs at least two sections or should be omitted.`);
-  if (sections.length > 10) throw new Error(`Agenda slide ${slideSpec.id ?? slideNumber} has ${sections.length} sections. Split it into two agenda slides; no item is truncated.`);
-  slide.background.fill = context.tokens.neutral.canvas;
-  addShape(slide, "rect", { left: 0, top: 0, width: 382, height: 720 }, {
-    name: "milestone-agenda-panel",
-    fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addRule(slide, 52, 94, 112, "#91A5C3", 3, "milestone-agenda-accent");
-  addText(slide, "目录", { left: 52, top: 218, width: 270, height: 86 }, {
-    fontSize: 54, fontFamily: context.tokens.fonts.zh, bold: true, color: context.tokens.neutral.white,
-  }, "milestone-agenda-title");
-  addText(slide, "CONTENTS", { left: 54, top: 304, width: 250, height: 42 }, {
-    fontSize: 20, fontFamily: context.tokens.fonts.en, bold: true, color: "#D8E1EF",
-  }, "milestone-agenda-subtitle");
-  addText(slide, `${milestoneModeLabel(context)} · 章节随研究逻辑自适应`, { left: 54, top: 624, width: 272, height: 42 }, {
-    fontSize: 13, fontFamily: context.tokens.fonts.zh, color: "#D8E1EF",
-  }, "milestone-agenda-mode");
-
-  const compact = sections.length > 6;
-  const columns = compact ? 2 : 1;
-  const perColumn = Math.ceil(sections.length / columns);
-  const columnWidth = compact ? 388 : 764;
-  const rowHeight = compact ? 74 : 80;
-  const rowGap = compact ? 10 : 14;
-  const totalHeight = perColumn * rowHeight + (perColumn - 1) * rowGap;
-  const top = 112 + (500 - totalHeight) / 2;
-  sections.forEach((section, index) => {
-    const column = compact ? Math.floor(index / perColumn) : 0;
-    const row = compact ? index % perColumn : index;
-    const left = 438 + column * 400;
-    const itemTop = top + row * (rowHeight + rowGap);
-    const number = cleanText(first(section.number, section.index, String(index + 1).padStart(2, "0")));
-    const title = cleanText(first(section.short_title, section.title, section.name, section));
-    addText(slide, number, { left, top: itemTop, width: 72, height: rowHeight }, {
-      fontSize: compact ? 24 : 29, fontFamily: context.tokens.fonts.en, bold: true, color: context.colors.primary,
-    }, `milestone-agenda-number-${index + 1}`);
-    addText(slide, title, { left: left + 82, top: itemTop, width: columnWidth - 100, height: rowHeight }, {
-      fontSize: compact ? 18 : 23, fontFamily: fontFor(title, context.tokens), bold: true, color: context.tokens.neutral.text,
-    }, `milestone-agenda-item-${index + 1}`);
-    addRule(slide, left, itemTop + rowHeight - 2, columnWidth - 26, context.tokens.neutral.line, 1, `milestone-agenda-rule-${index + 1}`);
-  });
-  addText(slide, String(slideNumber), { left: 1200, top: 680, width: 40, height: 20 }, {
-    fontSize: 11, fontFamily: context.tokens.fonts.en, color: context.tokens.neutral.subtle, alignment: "right",
-  }, "milestone-agenda-page-number");
-}
-
-async function renderMilestoneSectionDivider(slide, spec, slideSpec, context) {
-  const data = renderData(slideSpec);
-  const number = cleanText(first(data.section_number, data.sectionNumber, slideSpec.section_number, slideSpec.sectionNumber, slideSpec.number, "01")).replace(/^PART\s*/i, "");
-  const title = cleanText(first(data.section_title, data.sectionTitle, slideSpec.section_title, slideSpec.sectionTitle, slideSpec.title, "章节标题"));
-  const subtitle = cleanText(first(data.subtitle, slideSpec.section_subtitle, slideSpec.sectionSubtitle, slideSpec.subtitle, ""));
-  const bridge = cleanText(first(data.bridge, slideSpec.bridge, slideSpec.takeaway, ""));
-  slide.background.fill = context.tokens.neutral.canvas;
-  addText(slide, milestoneModeLabel(context), { left: 62, top: 42, width: 190, height: 40 }, {
-    fontSize: 16, fontFamily: context.tokens.fonts.zh, bold: true, color: context.colors.primary,
-  }, "milestone-divider-mode");
-  addText(slide, context.brand.institution, { left: 882, top: 40, width: 280, height: 42 }, {
-    fontSize: 14, fontFamily: fontFor(context.brand.institution, context.tokens), bold: true, color: context.colors.primary, alignment: "right",
-  }, "milestone-divider-institution");
-  await addLogo(slide, context.brand, { left: 1178, top: 30, width: 58, height: 58 }, context);
-  addRule(slide, 62, 106, 1174, context.colors.primary, 2, "milestone-divider-top-rule");
-  addText(slide, String(number).padStart(2, "0"), { left: 72, top: 190, width: 250, height: 150 }, {
-    fontSize: 92, fontFamily: context.tokens.fonts.en, bold: true, color: context.colors.primary,
-  }, "milestone-divider-number");
-  addVerticalRule(slide, 350, 202, 248, context.colors.primaryLight, 5, "milestone-divider-vertical-rule");
-  addText(slide, title, { left: 402, top: 204, width: 770, height: 92 }, {
-    fontSize: 48, fontFamily: fontFor(title, context.tokens), bold: true, color: context.tokens.neutral.text,
-  }, "milestone-divider-title");
-  if (subtitle) addText(slide, subtitle, { left: 404, top: 304, width: 760, height: 44 }, {
-    fontSize: 18, fontFamily: fontFor(subtitle, context.tokens), color: context.colors.primary,
-  }, "milestone-divider-subtitle");
-  if (bridge) addText(slide, bridge, { left: 404, top: 382, width: 744, height: 92 }, {
-    fontSize: 20, fontFamily: fontFor(bridge, context.tokens), color: context.tokens.neutral.muted,
-  }, "milestone-divider-bridge");
-  addShape(slide, "rect", { left: 0, top: 650, width: 1280, height: 70 }, {
-    name: "milestone-divider-footer-band", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-}
-
-async function renderMilestoneClosing(slide, spec, slideSpec, context) {
-  const data = renderData(slideSpec);
-  const title = slideTitle(slideSpec) || "敬请批评指正";
-  const takeaway = cleanText(first(slideTakeaway(slideSpec), data.synthesis, "感谢各位专家的审阅与建议。"));
-  slide.background.fill = context.tokens.neutral.canvas;
-  addText(slide, context.brand.institution, { left: 64, top: 42, width: 430, height: 42 }, {
-    fontSize: 15, fontFamily: fontFor(context.brand.institution, context.tokens), bold: true, color: context.colors.primary,
-  }, "milestone-closing-institution");
-  addRule(slide, 64, 104, 1152, context.colors.primary, 2, "milestone-closing-top-rule");
-  addShape(slide, "rect", { left: 0, top: 184, width: 1280, height: 390 }, {
-    name: "milestone-closing-band", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  await addLogo(slide, context.brand, { left: 594, top: 136, width: 92, height: 92 }, context);
-  addText(slide, title, { left: 118, top: 282, width: 1044, height: 96 }, {
-    fontSize: 52, fontFamily: fontFor(title, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-  }, "milestone-closing-title");
-  addRule(slide, 242, 404, 796, "#8EA2C1", 2, "milestone-closing-title-rule");
-  addText(slide, takeaway, { left: 176, top: 428, width: 928, height: 74 }, {
-    fontSize: 19, fontFamily: fontFor(takeaway, context.tokens), color: "#E5EBF5", alignment: "center",
-  }, "milestone-closing-takeaway");
-  const presenter = cleanText(first(data.presenter, spec.presenter, spec.author, ""));
-  const date = cleanText(first(data.date, spec.date, spec.milestone?.as_of_date, ""));
-  addText(slide, [milestoneModeLabel(context), presenter, date].filter(Boolean).join("  ·  "), { left: 180, top: 628, width: 920, height: 34 }, {
-    fontSize: 15, fontFamily: fontFor(presenter, context.tokens), color: context.tokens.neutral.muted, alignment: "center",
-  }, "milestone-closing-meta");
-}
-
-async function renderMilestoneEvaluationFocus(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const question = cleanText(first(data.question, data.decision, slideTakeaway(slideSpec), "本次评审最需要判断什么？"));
-  const rawCriteria = list(first(data.criteria, data.focus_items, data.focusItems, data.checks, data.items, []));
-  const criteria = (rawCriteria.length ? rawCriteria : semanticItems(slideSpec, ["criteria", "items"], 3)).map((entry, index) => {
-    if (!isObject(entry)) return { title: cleanText(entry), body: "" };
-    const verdict = cleanText(first(entry.verdict, ""));
-    const evidence = cleanText(first(entry.evidence, ""));
-    return {
-      ...entry,
-      title: cleanText(first(entry.title, entry.label, `判断 ${index + 1}`)),
-      body: cleanText(first(entry.body, entry.detail, [verdict, evidence && `依据：${evidence}`].filter(Boolean).join("｜"), "")),
-    };
-  }).slice(0, 4);
-  addShape(slide, "roundRect", { left: 56, top: 184, width: 520, height: 390 }, {
-    name: "milestone-focus-question-panel", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 }, borderRadius: "rounded-lg",
-  });
-  addText(slide, context.mode === "midterm" ? "本次中期汇报的核心判断" : "本次开题评审的核心判断", { left: 88, top: 214, width: 456, height: 42 }, {
-    fontSize: 16, fontFamily: context.tokens.fonts.zh, bold: true, color: "#D7E1EF",
-  }, "milestone-focus-label");
-  addText(slide, question, { left: 88, top: 286, width: 456, height: 214 }, {
-    fontSize: 31, fontFamily: fontFor(question, context.tokens), bold: true, color: context.tokens.neutral.white, verticalAlignment: "top",
-  }, "milestone-focus-question");
-  criteria.forEach((item, index) => {
-    const top = 184 + index * 98;
-    addText(slide, String(index + 1).padStart(2, "0"), { left: 630, top, width: 54, height: 70 }, {
-      fontSize: 16, fontFamily: context.tokens.fonts.en, bold: true, color: context.colors.primary, alignment: "center",
-    }, `milestone-focus-index-${index + 1}`);
-    addText(slide, item.title, { left: 708, top, width: 460, height: 34 }, {
-      fontSize: 20, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.tokens.neutral.text,
-    }, `milestone-focus-title-${index + 1}`);
-    addText(slide, item.body, { left: 708, top: top + 38, width: 460, height: 46 }, {
-      fontSize: 15, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted,
-    }, `milestone-focus-body-${index + 1}`);
-    if (index < criteria.length - 1) addRule(slide, 708, top + 88, 460, context.tokens.neutral.line, 1, `milestone-focus-rule-${index + 1}`);
-  });
-  const request = cleanText(first(data.request, data.verdict, slideSpec.content?.callout, "请围绕证据充分性、方案可行性与风险边界提出建议。"));
-  addTakeawayBand(slide, request, context, { top: 610, height: 50, fontSize: 16 });
-}
-
-async function renderMilestoneLiteratureLandscape(slide, slideSpec, context, slideNumber) {
-  const data = renderData(slideSpec);
-  const streams = list(first(data.streams, data.items, [])).map((entry, index) => isObject(entry) ? entry : { title: cleanText(entry) }).slice(0, 6);
-  const rows = (streams.length ? streams : [
-    { title: "理论解释", consensus: "建立关键关系", limit: "操作化不足" },
-    { title: "数据驱动", consensus: "预测表现提升", limit: "外部适用性不清" },
-    { title: "机制验证", consensus: "提供因果线索", limit: "样本与情境有限" },
-  ]).map((entry) => [
-    cleanText(first(entry.title, entry.route, "研究路线")),
-    cleanText(first(entry.consensus, entry.finding, entry.evidence, "主要共识")),
-    cleanText(first(entry.limit, entry.boundary, entry.gap, "主要边界")),
-  ]);
-  const temporary = {
-    ...slideSpec,
-    render_data: { ...data, table: { headers: ["研究路线 / 流派", "形成的共识或证据", "仍未解决的边界"], rows } },
-  };
-  await renderTableInsight(slide, temporary, context, slideNumber, false);
-}
-
-async function renderMilestoneQuestionHypothesis(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const question = cleanText(first(data.question, "需要回答的研究问题"));
-  const hypothesis = cleanText(first(data.hypothesis, slideTakeaway(slideSpec), "可被证据支持或否定的核心假设"));
-  const predictions = list(first(data.predictions, data.criteria, [])).map(cleanText).filter(Boolean).slice(0, 4);
-  const criterion = cleanText(first(data.criterion, data.boundary, "关键预测失败时，应修正或否定假设。"));
-  addShape(slide, "roundRect", { left: 56, top: 180, width: 1168, height: 76 }, {
-    name: "hypothesis-question-band", fill: context.tokens.neutral.surface,
-    line: { style: "solid", fill: context.tokens.neutral.line, width: 1 }, borderRadius: "rounded-lg",
-  });
-  addText(slide, `研究问题｜${question}`, { left: 82, top: 190, width: 1116, height: 56 }, {
-    fontSize: 20, fontFamily: fontFor(question, context.tokens), bold: true, color: context.tokens.neutral.text,
-  }, "hypothesis-question");
-  addShape(slide, "roundRect", { left: 56, top: 286, width: 492, height: 258 }, {
-    name: "hypothesis-core-panel", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 }, borderRadius: "rounded-lg",
-  });
-  addText(slide, "核心假设", { left: 84, top: 310, width: 180, height: 34 }, {
-    fontSize: 15, fontFamily: context.tokens.fonts.zh, bold: true, color: "#D8E2F0",
-  }, "hypothesis-core-label");
-  addText(slide, hypothesis, { left: 84, top: 358, width: 436, height: 146 }, {
-    fontSize: 27, fontFamily: fontFor(hypothesis, context.tokens), bold: true, color: context.tokens.neutral.white, verticalAlignment: "top",
-  }, "hypothesis-core-text");
-  const values = predictions.length ? predictions : ["预测一：关键变量按预期方向变化", "预测二：干预后结果同步变化", "预测三：独立数据中方向一致"];
-  values.forEach((prediction, index) => {
-    const top = 292 + index * 70;
-    addShape(slide, "ellipse", { left: 606, top: top + 10, width: 42, height: 42 }, {
-      name: `hypothesis-prediction-dot-${index + 1}`, fill: index === 0 ? context.colors.primary : context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primary, width: 1 },
-    });
-    addText(slide, String(index + 1), { left: 606, top: top + 10, width: 42, height: 42 }, {
-      fontSize: 13, fontFamily: context.tokens.fonts.en, bold: true, color: index === 0 ? context.tokens.neutral.white : context.colors.primary, alignment: "center",
-    }, `hypothesis-prediction-index-${index + 1}`);
-    addText(slide, prediction, { left: 674, top, width: 514, height: 62 }, {
-      fontSize: 17, fontFamily: fontFor(prediction, context.tokens), color: context.tokens.neutral.text,
-    }, `hypothesis-prediction-${index + 1}`);
-    if (index < values.length - 1) addRule(slide, 674, top + 64, 514, context.tokens.neutral.line, 1, `hypothesis-prediction-rule-${index + 1}`);
-  });
-  addTakeawayBand(slide, criterion, context, { top: 606, height: 52, fontSize: 16, fill: "#FFF7E9", line: context.colors.warning, color: context.colors.warning });
-}
-
-async function renderMilestoneScopeBoundaries(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const included = list(first(data.included, data.in_scope, [])).map(cleanText).filter(Boolean).slice(0, 6);
-  const excluded = list(first(data.excluded, data.out_of_scope, [])).map(cleanText).filter(Boolean).slice(0, 6);
-  const columns = [
-    { label: "纳入研究范围", items: included.length ? included : ["明确研究对象", "明确场景与工况", "明确可观测时间窗"], fill: context.colors.primaryLight, line: context.colors.primary },
-    { label: "暂不纳入 / 外推边界", items: excluded.length ? excluded : ["缺少必要数据的对象", "与核心问题无关的特殊情境", "未经独立验证的外部场景"], fill: "#FFF7E9", line: context.colors.warning },
-  ];
-  columns.forEach((column, index) => {
-    const left = 56 + index * 596;
-    addShape(slide, "roundRect", { left, top: 184, width: 568, height: 358 }, {
-      name: `scope-column-${index + 1}`, fill: column.fill,
-      line: { style: "solid", fill: column.line, width: 1.2 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, column.label, { left: left + 26, top: 208, width: 516, height: 42 }, {
-      fontSize: 21, fontFamily: context.tokens.fonts.zh, bold: true, color: column.line,
-    }, `scope-column-label-${index + 1}`);
-    addBulletList(slide, column.items, { left: left + 28, top: 270, width: 508, height: 232 }, {
-      fontSize: 18, color: context.tokens.neutral.text, lineSpacing: 1.28,
-    }, context.tokens, `scope-column-items-${index + 1}`);
-  });
-  addTakeawayBand(slide, cleanText(first(data.implication, slideTakeaway(slideSpec))), context, { top: 594, height: 64, fontSize: 17 });
-}
-
-async function renderMilestoneStudyDesign(slide, slideSpec, context, slideNumber) {
-  const data = renderData(slideSpec);
-  const design = list(first(data.design, data.items, [])).map((entry, index) => {
-    if (!isObject(entry)) return { title: cleanText(entry), body: "" };
-    return { number: String(index + 1).padStart(2, "0"), title: cleanText(first(entry.title, `设计 ${index + 1}`)), body: cleanText(first(entry.body, entry.detail, "")) };
-  });
-  await renderSelectionRationale(slide, { ...slideSpec, render_data: { ...data, items: design } }, context, slideNumber);
-}
-
-async function renderMilestoneValidation(slide, slideSpec, context, slideNumber) {
-  const data = renderData(slideSpec);
-  const validations = list(first(data.validations, data.checks, data.items, [])).map((entry, index) => {
-    if (!isObject(entry)) return { title: cleanText(entry), body: "", status: "待核" };
-    const body = [cleanText(entry.method), cleanText(entry.criterion), cleanText(entry.evidence)].filter(Boolean).join("｜");
-    const statusMap = { complete: "已完成", completed: "已完成", inProgress: "进行中", in_progress: "进行中", atRisk: "有风险", at_risk: "有风险", notStarted: "未开始", not_started: "未开始" };
-    return { number: String(index + 1).padStart(2, "0"), title: cleanText(first(entry.target, entry.title, `验证 ${index + 1}`)), body, status: statusMap[entry.status] ?? cleanText(first(entry.status, "待核")) };
-  });
-  await renderReproducibilityCheck(slide, { ...slideSpec, render_data: { ...data, checks: validations } }, context, slideNumber);
-}
-
-async function renderMilestoneFeasibility(slide, slideSpec, context, slideNumber) {
-  const data = renderData(slideSpec);
-  const dimensions = list(first(data.dimensions, data.criteria, data.items, [])).map((entry, index) => {
-    if (!isObject(entry)) return { title: cleanText(entry), body: "" };
-    return {
-      number: String(index + 1).padStart(2, "0"),
-      title: cleanText(first(entry.title, `可行性 ${index + 1}`)),
-      body: [cleanText(entry.evidence), cleanText(entry.boundary) && `边界：${cleanText(entry.boundary)}`].filter(Boolean).join("\n"),
-    };
-  });
-  await renderSelectionRationale(slide, { ...slideSpec, render_data: { ...data, items: dimensions } }, context, slideNumber);
-}
-
-async function renderMilestoneWorkPackages(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const objective = cleanText(first(data.objective, data.goal, slideTakeaway(slideSpec), "总目标由相互衔接的工作包共同实现。"));
-  const items = semanticItems(slideSpec, ["work_packages", "workPackages", "workpackages", "items"], 4).map((item) => ({
-    ...item,
-    body: cleanText(first(item.body, item.question && item.output ? `${item.question}\n交付：${item.output}` : item.question, item.output, "")),
-  })).slice(0, 5);
-  addShape(slide, "roundRect", { left: 56, top: 176, width: 1168, height: 74 }, {
-    name: "milestone-objective-band", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 }, borderRadius: "rounded-lg",
-  });
-  addText(slide, `总目标｜${objective}`, { left: 84, top: 184, width: 1112, height: 58 }, {
-    fontSize: 21, fontFamily: fontFor(objective, context.tokens), bold: true, color: context.tokens.neutral.white,
-  }, "milestone-objective-text");
-  const gap = 16;
-  const width = (1168 - gap * Math.max(0, items.length - 1)) / Math.max(1, items.length);
-  items.forEach((item, index) => {
-    const left = 56 + index * (width + gap);
-    addShape(slide, "roundRect", { left, top: 282, width, height: 266 }, {
-      name: `milestone-work-package-${index + 1}`,
-      fill: index === 0 ? context.colors.primaryLight : context.tokens.neutral.surface,
-      line: { style: "solid", fill: index === 0 ? context.colors.primary : context.tokens.neutral.line, width: 1.2 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, cleanText(first(item.number, String(index + 1).padStart(2, "0"))), { left: left + 18, top: 300, width: 52, height: 34 }, {
-      fontSize: 15, fontFamily: context.tokens.fonts.en, bold: true, color: context.colors.primary,
-    }, `milestone-work-package-number-${index + 1}`);
-    addText(slide, item.title, { left: left + 18, top: 348, width: width - 36, height: 68 }, {
-      fontSize: items.length >= 5 ? 18 : 21, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.tokens.neutral.text, verticalAlignment: "top",
-    }, `milestone-work-package-title-${index + 1}`);
-    addText(slide, item.body, { left: left + 18, top: 430, width: width - 36, height: 92 }, {
-      fontSize: items.length >= 5 ? 14 : 16, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted, verticalAlignment: "top",
-    }, `milestone-work-package-body-${index + 1}`);
-  });
-  const output = cleanText(first(data.output, data.deliverable, slideSpec.content?.callout, "每个工作包都应有可核验的输出与验证方式。"));
-  addTakeawayBand(slide, output, context, { top: 592, height: 66, fontSize: 17 });
-}
-
-async function renderMilestoneRisk(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const risks = list(first(data.risks, data.items, [])).map((entry, index) => {
-    if (!isObject(entry)) return { risk: cleanText(entry), trigger: "触发条件", response: "应对方案", owner: "责任人" };
-    return {
-      risk: cleanText(first(entry.risk, entry.title, entry.label, `风险 ${index + 1}`)),
-      trigger: cleanText(first(entry.trigger, entry.condition, entry.evidence, "触发条件")),
-      response: cleanText(first(entry.response, entry.mitigation, entry.action, entry.body, "应对方案")),
-      owner: cleanText(first(entry.owner, entry.status, entry.contingency, "责任 / 状态")),
-    };
-  }).slice(0, 5);
-  const values = risks.length ? risks : [
-    { risk: "数据或样本不足", trigger: "关键分层低于最低数量", response: "补充来源并预设替代分析", owner: "数据负责人" },
-    { risk: "方法不收敛", trigger: "主要指标未达到验证阈值", response: "切换备选方法并保留失败记录", owner: "方法负责人" },
-    { risk: "时间或资源受限", trigger: "里程碑连续两期延迟", response: "压缩非核心范围并调整依赖", owner: "课题负责人" },
-  ];
-  const tableValues = [["风险 / 合规问题", "触发或判断依据", "预案 / 纠偏措施", "责任与状态"], ...values.map((item) => [item.risk, item.trigger, item.response, item.owner])];
-  const table = slide.tables.add({
-    rows: values.length + 1,
-    columns: 4,
-    left: 56,
-    top: 182,
-    width: 1168,
-    height: Math.min(382, 62 + values.length * 62),
-    values: tableValues,
-  });
-  table.styleOptions = { headerRow: true, bandedRows: true, firstColumn: true };
-  table.borders.assign({ style: "solid", fill: context.tokens.neutral.line, width: 1 });
-  for (let row = 0; row <= values.length; row += 1) {
-    for (let column = 0; column < 4; column += 1) {
-      const cell = table.getCell(row, column);
-      cell.fill = row === 0 ? context.colors.primary : row % 2 === 0 ? context.tokens.neutral.surface : context.tokens.neutral.canvas;
-      cell.text.style = {
-        fontSize: pptFontSize(row === 0 ? 14 : 15), typeface: context.tokens.fonts.zh,
-        bold: row === 0 || column === 0, color: row === 0 ? context.tokens.neutral.white : context.tokens.neutral.text,
-        alignment: column === 3 ? "center" : "left", verticalAlignment: "middle",
-      };
-      registerTextTarget(slide, cell.text, tableValues[row][column], `milestone-risk-cell-${row}-${column}`, row === 0 ? context.tokens.neutral.white : context.tokens.neutral.text);
-    }
-  }
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 602, height: 56, fontSize: 16 });
-}
-
-function normalizeScheduleTasks(slideSpec) {
-  const data = renderData(slideSpec);
-  const periods = list(first(data.periods, data.timeline?.periods, ["阶段 1", "阶段 2", "阶段 3", "阶段 4", "阶段 5", "阶段 6"])).map(cleanText).filter(Boolean).slice(0, 10);
-  const tasks = list(first(data.tasks, data.work_packages, data.workPackages, data.timeline?.tasks, [])).map((entry, index) => {
-    if (!isObject(entry)) return { title: cleanText(entry), start: index, end: index + 1, status: "planned", deliverable: "" };
-    return {
-      title: cleanText(first(entry.title, entry.label, entry.task, `任务 ${index + 1}`)),
-      start: Number(first(entry.start, entry.start_index, entry.from, index)),
-      end: Number(first(entry.end, entry.end_index, entry.to, index + 1)),
-      status: cleanText(first(entry.status, "planned")),
-      deliverable: cleanText(first(entry.deliverable, entry.output, entry.milestone, "")),
-    };
-  }).slice(0, 7);
-  return {
-    periods: periods.length ? periods : ["阶段 1", "阶段 2", "阶段 3", "阶段 4"],
-    tasks: tasks.length ? tasks : [
-      { title: "完成关键数据或材料准备", start: 0, end: 2, status: "planned", deliverable: "数据基线" },
-      { title: "实施核心分析 / 实验", start: 1, end: 4, status: "in_progress", deliverable: "阶段结果" },
-      { title: "验证、整合与论文输出", start: 3, end: 6, status: "planned", deliverable: "论文 / 系统 / 报告" },
-    ],
-  };
-}
-
-async function renderMilestoneGantt(slide, slideSpec, context, slideNumber, updated = false) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const { periods, tasks } = normalizeScheduleTasks(slideSpec);
-  const left = 320;
-  const top = 212;
-  const width = 860;
-  const headerHeight = 46;
-  const rowHeight = Math.min(58, 330 / Math.max(1, tasks.length));
-  const periodWidth = width / periods.length;
-  periods.forEach((period, index) => {
-    const x = left + index * periodWidth;
-    addShape(slide, "rect", { left: x, top, width: periodWidth, height: headerHeight }, {
-      name: `milestone-gantt-period-${index + 1}`, fill: index % 2 === 0 ? context.colors.primary : context.colors.primaryDark,
-      line: { style: "solid", fill: context.tokens.neutral.white, width: 1 },
-    });
-    addText(slide, period, { left: x + 2, top, width: periodWidth - 4, height: headerHeight }, {
-      fontSize: periods.length > 7 ? 11 : 13, fontFamily: fontFor(period, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-    }, `milestone-gantt-period-label-${index + 1}`);
-  });
-  tasks.forEach((task, index) => {
-    const y = top + headerHeight + index * rowHeight;
-    addText(slide, task.title, { left: 58, top: y, width: 238, height: rowHeight }, {
-      fontSize: 15, fontFamily: fontFor(task.title, context.tokens), bold: true, color: context.tokens.neutral.text, alignment: "right",
-    }, `milestone-gantt-task-${index + 1}`);
-    for (let p = 0; p < periods.length; p += 1) {
-      addShape(slide, "rect", { left: left + p * periodWidth, top: y, width: periodWidth, height: rowHeight }, {
-        name: `milestone-gantt-grid-${index + 1}-${p + 1}`, fill: index % 2 === 0 ? context.tokens.neutral.surface : context.tokens.neutral.canvas,
-        line: { style: "solid", fill: context.tokens.neutral.line, width: 0.6 },
-      });
-    }
-    const start = clamp(task.start, 0, periods.length - 1);
-    const end = clamp(Math.max(task.end, start + 1), start + 1, periods.length);
-    const statusColor = /complete|完成/.test(task.status) ? context.colors.success
-      : /delay|block|risk|延期|阻塞|风险/i.test(task.status) ? context.colors.warning
-        : updated ? context.colors.secondary : context.colors.primary;
-    const barPosition = { left: left + start * periodWidth + 8, top: y + 14, width: (end - start) * periodWidth - 16, height: Math.max(16, rowHeight - 28) };
-    addShape(slide, "roundRect", barPosition, {
-      name: `milestone-gantt-bar-${index + 1}`, fill: statusColor,
-      line: { style: "solid", fill: statusColor, width: 0 }, borderRadius: "rounded-full",
-    });
-    if (task.deliverable) addText(slide, task.deliverable, { left: barPosition.left + 8, top: barPosition.top, width: Math.max(24, barPosition.width - 16), height: barPosition.height }, {
-      fontSize: barPosition.width < 150 ? 9 : 10, fontFamily: fontFor(task.deliverable, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-    }, `milestone-gantt-deliverable-${index + 1}`);
-  });
-  const decision = cleanText(first(renderData(slideSpec).decision, ""));
-  const footer = updated && decision ? `待决策｜${decision}` : slideTakeaway(slideSpec);
-  addTakeawayBand(slide, footer, context, { top: updated && decision ? 590 : 610, height: updated && decision ? 68 : 50, fontSize: updated && decision ? 14 : 16 });
-}
-
-async function renderProgressSnapshot(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const items = semanticItems(slideSpec, ["work_packages", "workPackages", "workpackages", "milestones", "items"], 4).map((item) => ({
-    ...item,
-    body: cleanText(first(item.body, item.evidence, item.output, "")),
-  })).slice(0, 6);
-  const statusColors = {
-    completed: context.colors.success, "已完成": context.colors.success,
-    complete: context.colors.success,
-    in_progress: context.colors.primary, "进行中": context.colors.primary,
-    inProgress: context.colors.primary,
-    delayed: context.colors.warning, "延期": context.colors.warning,
-    atRisk: context.colors.warning, at_risk: context.colors.warning, "有风险": context.colors.warning,
-    blocked: context.colors.danger, "阻塞": context.colors.danger,
-    planned: context.tokens.neutral.subtle, "未开始": context.tokens.neutral.subtle,
-    notStarted: context.tokens.neutral.subtle, not_started: context.tokens.neutral.subtle,
-  };
-  const statusLabels = {
-    completed: "已完成", complete: "已完成",
-    in_progress: "进行中", inProgress: "进行中",
-    delayed: "延期", atRisk: "有风险", at_risk: "有风险",
-    blocked: "阻塞", planned: "未开始", notStarted: "未开始", not_started: "未开始",
-  };
-  const asOf = cleanText(first(data.as_of_date, data.asOfDate, context.spec?.milestone?.as_of_date, "阶段截止日期"));
-  addText(slide, `截至 ${asOf}`, { left: 56, top: 170, width: 320, height: 42 }, {
-    fontSize: 18, fontFamily: fontFor(asOf, context.tokens), bold: true, color: context.colors.primary,
-  }, "progress-as-of-date");
-  items.forEach((item, index) => {
-    const top = 226 + index * 62;
-    const status = cleanText(first(item.status, item.value, "进行中"));
-    const displayStatus = statusLabels[status] ?? status;
-    const color = statusColors[status] ?? context.colors.primary;
-    addShape(slide, "ellipse", { left: 62, top: top + 16, width: 20, height: 20 }, {
-      name: `progress-status-dot-${index + 1}`, fill: color, line: { style: "solid", fill: color, width: 0 },
-    });
-    addText(slide, item.title, { left: 102, top, width: 300, height: 52 }, {
-      fontSize: 18, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.tokens.neutral.text,
-    }, `progress-title-${index + 1}`);
-    addText(slide, item.body, { left: 420, top, width: 560, height: 52 }, {
-      fontSize: 15, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted,
-    }, `progress-body-${index + 1}`);
-    addPill(slide, displayStatus, { left: 1036, top: top + 7, width: 146, height: 38 }, context.colors, context.tokens, {
-      name: `progress-status-${index + 1}`, fill: mixHex(color, "#FFFFFF", 0.86), line: color, color, fontSize: 13,
-    });
-    if (index < items.length - 1) addRule(slide, 102, top + 58, 1080, context.tokens.neutral.line, 1, `progress-rule-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 610, height: 50, fontSize: 16 });
-}
-
-async function renderPlanVsActual(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const rows = list(first(data.rows, data.items, [])).map((entry, index) => {
-    if (!isObject(entry)) return [cleanText(entry), "原计划", "当前实际", "偏差 / 判断"];
-    return [
-      cleanText(first(entry.title, entry.task, entry.label, `任务 ${index + 1}`)),
-      cleanText(first(entry.plan, entry.planned, entry.baseline, "原计划")),
-      cleanText(first(entry.actual, entry.progress, entry.current, "当前实际")),
-      cleanText(first(entry.delta, entry.deviation, entry.variance && entry.impact ? `${entry.variance}｜${entry.impact}` : entry.variance, entry.status, "一致 / 需调整")),
-    ];
-  }).slice(0, 6);
-  const values = rows.length ? rows : [
-    ["工作包 A", "完成数据准备", "已完成并通过质控", "按计划"],
-    ["工作包 B", "完成核心分析", "已完成主分析，验证中", "轻微延后"],
-    ["工作包 C", "启动外部验证", "等待关键样本", "需调整依赖"],
-  ];
-  const tableValues = [["任务 / 里程碑", "原批准计划", "截至当前的实际", "偏差与判断"], ...values];
-  const table = slide.tables.add({ rows: values.length + 1, columns: 4, left: 56, top: 184, width: 1168, height: Math.min(390, 60 + values.length * 62), values: tableValues });
-  table.styleOptions = { headerRow: true, bandedRows: true, firstColumn: true };
-  table.borders.assign({ style: "solid", fill: context.tokens.neutral.line, width: 1 });
-  for (let row = 0; row <= values.length; row += 1) {
-    for (let column = 0; column < 4; column += 1) {
-      const cell = table.getCell(row, column);
-      cell.fill = row === 0 ? context.colors.primary : row % 2 === 0 ? context.tokens.neutral.surface : context.tokens.neutral.canvas;
-      cell.text.style = { fontSize: pptFontSize(row === 0 ? 14 : 15), typeface: context.tokens.fonts.zh, bold: row === 0 || column === 0, color: row === 0 ? context.tokens.neutral.white : context.tokens.neutral.text, verticalAlignment: "middle" };
-      registerTextTarget(slide, cell.text, tableValues[row][column], `plan-actual-cell-${row}-${column}`, row === 0 ? context.tokens.neutral.white : context.tokens.neutral.text);
-    }
-  }
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 610, height: 50, fontSize: 16 });
-}
-
-async function renderDeviationCauseAction(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const rawItems = list(first(data.items, data.deviations, []));
-  const singleton = !rawItems.length && (data.baseline || data.actual || data.cause || data.actions)
-    ? [{
-      deviation: [cleanText(data.baseline) && `原计划：${cleanText(data.baseline)}`, cleanText(data.actual) && `实际：${cleanText(data.actual)}`].filter(Boolean).join("；"),
-      cause: cleanText(first(data.cause, "原因待核")),
-      action: list(first(data.actions, data.action, [])).map(cleanText).filter(Boolean).join("；"),
-    }]
-    : [];
-  const items = [...rawItems, ...singleton].map((entry) => isObject(entry) ? entry : { deviation: cleanText(entry) }).slice(0, 4);
-  const values = items.length ? items : [
-    { deviation: "关键样本到位晚于原计划", cause: "外部协作审批时间增加", action: "并行完成替代数据分析，调整验证顺序", evidence: "以项目记录和更新里程碑为准" },
-    { deviation: "方法参数需要重新标定", cause: "初始假设与实际数据分布不一致", action: "保留失败记录，按预设备选方案复核", evidence: "以复现实验和质量控制结果为准" },
-  ];
-  values.forEach((item, index) => {
-    const top = 182 + index * 104;
-    const cells = [
-      ["偏差事实", cleanText(first(item.deviation, item.fact, item.title, "偏差事实"))],
-      ["原因解释", cleanText(first(item.cause, item.reason, "原因解释"))],
-      ["纠偏行动", cleanText(first(item.action, item.response, item.next_action, "纠偏行动"))],
-    ];
-    cells.forEach(([label, value], column) => {
-      const left = 56 + column * 390;
-      addShape(slide, "roundRect", { left, top, width: 358, height: 86 }, {
-        name: `deviation-cell-${index + 1}-${column + 1}`,
-        fill: column === 0 ? "#FFF7E9" : column === 2 ? context.colors.primaryLight : context.tokens.neutral.surface,
-        line: { style: "solid", fill: column === 0 ? context.colors.warning : column === 2 ? context.colors.primary : context.tokens.neutral.line, width: 1 }, borderRadius: "rounded-lg",
-      });
-      addText(slide, label, { left: left + 16, top: top + 10, width: 92, height: 24 }, {
-        fontSize: 11, fontFamily: context.tokens.fonts.zh, bold: true, color: column === 0 ? context.colors.warning : context.colors.primary,
-      }, `deviation-label-${index + 1}-${column + 1}`);
-      addText(slide, value, { left: left + 16, top: top + 36, width: 326, height: 42 }, {
-        fontSize: 14, fontFamily: fontFor(value, context.tokens), bold: column === 2, color: context.tokens.neutral.text,
-      }, `deviation-value-${index + 1}-${column + 1}`);
-      if (column < 2) addShape(slide, "rightArrow", { left: left + 360, top: top + 29, width: 28, height: 28 }, {
-        name: `deviation-arrow-${index + 1}-${column + 1}`, fill: context.colors.secondary, line: { style: "solid", fill: context.colors.secondary, width: 0 },
-      });
-    });
-  });
-  const reviewPoint = cleanText(first(data.review_point, data.reviewPoint, ""));
-  const footer = [slideTakeaway(slideSpec), reviewPoint && `复查点：${reviewPoint}`].filter(Boolean).join("｜");
-  addTakeawayBand(slide, footer, context, { top: 610, height: 50, fontSize: reviewPoint ? 14 : 16 });
-}
-
-async function renderCover(slide, spec, slideSpec, context) {
-  const data = renderData(slideSpec);
-  const body = list(slideSpec.content?.body).map(cleanText).filter(Boolean);
-  const authorLine = body.find((line) => /^答辩人[：:]/.test(line));
-  const advisorLine = body.find((line) => /^指导教师[：:]/.test(line));
-  const footerLine = body.find((line) => line !== authorLine && line !== advisorLine);
-  const title = slideTitle(slideSpec) || cleanText(first(spec.title, spec.deck_title, "学术论文题目"));
-  const subtitle = cleanText(first(data.subtitle, slideSpec.subtitle, slideSpec.content?.subtitle, spec.subtitle, spec.english_title, ""));
-  const author = cleanText(first(data.author, slideSpec.author, spec.author, spec.presenter, ""));
-  const advisor = cleanText(first(data.advisor, slideSpec.advisor, spec.advisor, ""));
-  const degree = cleanText(first(data.degree, slideSpec.degree, slideSpec.content?.kicker, spec.degree, spec.academic_level, ""));
-  const date = cleanText(first(data.date, slideSpec.date, spec.date, ""));
-  slide.background.fill = context.tokens.neutral.canvas;
-  await addLogo(slide, context.brand, { left: 584, top: 48, width: 112, height: 92 }, context);
-  addText(slide, context.brand.institution, { left: 360, top: 142, width: 560, height: 32 }, {
-    fontSize: 17,
-    fontFamily: fontFor(context.brand.institution, context.tokens),
-    bold: true,
-    color: context.colors.primaryDark,
-    alignment: "center",
-  }, "cover-institution");
-  addShape(slide, "rect", { left: 0, top: 205, width: 1280, height: 260 }, {
-    name: "cover-band",
-    fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addText(slide, title, { left: 104, top: 246, width: 1072, height: 100 }, {
-    fontSize: context.tokens.typeScale.deckTitle,
-    fontFamily: fontFor(title, context.tokens),
-    bold: true,
-    color: context.tokens.neutral.white,
-    alignment: "center",
-  }, "cover-title");
-  if (subtitle) addText(slide, subtitle, { left: 150, top: 358, width: 980, height: 55 }, {
-    fontSize: 20,
-    fontFamily: fontFor(subtitle, context.tokens),
-    color: "#F4F7FC",
-    alignment: "center",
-  }, "cover-subtitle");
-  const identity = [authorLine || (author && `答辩人：${author}`), advisorLine || (advisor && `指导教师：${advisor}`)].filter(Boolean).join("    ");
-  addText(slide, identity, { left: 120, top: 505, width: 1040, height: 42 }, {
-    fontSize: 18,
-    fontFamily: fontFor(identity, context.tokens),
-    bold: true,
-    color: context.tokens.neutral.text,
-    alignment: "center",
-  }, "cover-meta");
-  const footer = first(footerLine, [degree, context.brand.department, date].filter(Boolean).join("  |  "));
-  addText(slide, footer, { left: 120, top: 606, width: 1040, height: 36 }, {
-    fontSize: 15,
-    fontFamily: fontFor(footer, context.tokens),
-    color: context.tokens.neutral.muted,
-    alignment: "center",
-  }, "cover-footer");
-}
-
-async function renderAgenda(slide, spec, slideSpec, context, slideNumber) {
-  slide.background.fill = context.tokens.neutral.canvas;
-  await addLogo(slide, context.brand, { left: 20, top: 12, width: 42, height: 42 }, context);
-  addText(slide, context.brand.institution, { left: 72, top: 12, width: 300, height: 42 }, {
-    fontSize: 14,
-    fontFamily: fontFor(context.brand.institution, context.tokens),
-    bold: true,
-    color: context.colors.primary,
-  }, "agenda-institution");
-  const explicitSections = firstNonEmptyList(renderData(slideSpec).sections, slideSpec.sections, slideSpec.content?.body);
-  const sections = explicitSections.length > 0
-    ? explicitSections
-    : list(spec.sections).filter((item) => sectionVisible(item, "show_in_agenda"));
-  if (!sections.length) {
-    throw new Error(`Agenda slide ${slideSpec.id ?? slideNumber} has no sections. Populate render_data.sections/spec.sections or omit the agenda slide; placeholder chapters are not generated.`);
-  }
-  const usable = sections;
-  if (usable.length > 10) {
-    throw new Error(`Agenda slide ${slideSpec.id ?? slideNumber} has ${usable.length} sections. Split it into consecutive agenda slides with at most 10 items each; no section will be truncated.`);
-  }
-
-  // Original-template silhouette: a layered left capsule with a flat entry
-  // edge and a generous rounded terminus. All shapes remain native/editable.
-  const halo = mixHex(context.colors.primary, context.tokens.neutral.white, 0.58);
-  addShape(slide, "roundRect", { left: 41, top: 154, width: 414, height: 413 }, {
-    name: "agenda-capsule-halo", fill: halo,
-    line: { style: "solid", fill: halo, width: 0 }, borderRadius: "rounded-full",
-  });
-  addShape(slide, "rect", { left: 41, top: 154, width: 207, height: 413 }, {
-    name: "agenda-capsule-halo-flat", fill: halo,
-    line: { style: "solid", fill: halo, width: 0 },
-  });
-  addShape(slide, "roundRect", { left: 50, top: 163, width: 373, height: 394 }, {
-    name: "agenda-capsule", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 }, borderRadius: "rounded-full",
-  });
-  addShape(slide, "rect", { left: 50, top: 163, width: 186, height: 394 }, {
-    name: "agenda-capsule-flat", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addText(slide, "目录", { left: 132, top: 282, width: 204, height: 88 }, {
-    fontSize: 48,
-    fontFamily: context.tokens.fonts.zh,
-    bold: true,
-    color: context.tokens.neutral.white,
-    alignment: "center",
-  }, "agenda-title-zh");
-  addText(slide, "CONTENTS", { left: 132, top: 374, width: 204, height: 42 }, {
-    fontSize: 18,
-    fontFamily: context.tokens.fonts.en,
-    bold: true,
-    color: "#E9EEF8",
-    alignment: "center",
-  }, "agenda-title-en");
-
-  const compact = usable.length > 6;
-  const columns = compact ? 2 : 1;
-  const perColumn = Math.ceil(usable.length / columns);
-  const rowHeight = compact ? 68 : usable.length === 6 ? 64 : 73;
-  const availableHeight = 480;
-  const maxStep = compact ? 94 : 102;
-  const fittedStep = perColumn > 1 ? (availableHeight - rowHeight) / (perColumn - 1) : 0;
-  const rowStep = Math.min(maxStep, fittedStep);
-  const groupHeight = rowHeight + rowStep * Math.max(0, perColumn - 1);
-  const startTop = 120 + (availableHeight - groupHeight) / 2;
-  usable.forEach((section, index) => {
-    const label = cleanText(first(section.number, section.index, String(index + 1).padStart(2, "0")));
-    const title = cleanText(first(section.short_title, section.title, section.name, section));
-    const column = compact ? Math.floor(index / perColumn) : 0;
-    const row = compact ? index % perColumn : index;
-    const top = startTop + row * rowStep;
-    const bandLeft = compact ? 500 + column * 386 : 608;
-    const bandWidth = compact ? 366 : 672;
-    addShape(slide, "roundRect", { left: bandLeft, top, width: bandWidth, height: rowHeight }, {
-      name: `agenda-band-${index + 1}`, fill: context.tokens.neutral.surface,
-      line: { style: "solid", fill: context.tokens.neutral.surface, width: 0 }, borderRadius: "rounded-lg",
-    });
-    const numberSize = compact ? 48 : usable.length === 6 ? 52 : 60;
-    const numberTop = top + (rowHeight - numberSize) / 2;
-    addShape(slide, "ellipse", { left: bandLeft + 3, top: numberTop - 6, width: numberSize + 12, height: numberSize + 12 }, {
-      name: `agenda-number-halo-${index + 1}`, fill: context.tokens.neutral.canvas,
-      line: { style: "solid", fill: context.tokens.neutral.canvas, width: 0 },
-    });
-    addShape(slide, "ellipse", { left: bandLeft + 9, top: numberTop, width: numberSize, height: numberSize }, {
-      name: `agenda-dot-${index + 1}`, fill: context.colors.primary,
-      line: { style: "solid", fill: context.colors.primary, width: 0 },
-    });
-    addText(slide, label, { left: bandLeft + 9, top: numberTop, width: numberSize, height: numberSize }, {
-      fontSize: compact ? 13 : usable.length === 6 ? 14 : 16,
-      fontFamily: context.tokens.fonts.en,
-      bold: true,
-      color: context.tokens.neutral.white,
-      alignment: "center",
-    }, `agenda-number-${index + 1}`);
-    const textLeft = compact ? bandLeft + 72 : bandLeft + 94;
-    addText(slide, title, { left: textLeft, top, width: bandLeft + bandWidth - textLeft - 18, height: rowHeight }, {
-      fontSize: compact ? 17 : usable.length === 6 ? 20 : 24,
-      fontFamily: fontFor(title, context.tokens),
-      bold: true,
-      color: context.tokens.neutral.text,
-    }, `agenda-title-${index + 1}`);
-  });
-  addText(slide, String(slideNumber), { left: 1208, top: 674, width: 32, height: 20 }, {
-    fontSize: 12, fontFamily: context.tokens.fonts.en, color: context.tokens.neutral.subtle, alignment: "right",
-  }, "agenda-page-number");
-}
-
-async function renderSectionDivider(slide, spec, slideSpec, context) {
-  const sectionNumber = cleanText(first(slideSpec.section_number, slideSpec.sectionNumber, slideSpec.number, slideSpec.content?.kicker, "01")).replace(/^PART\s*/i, "");
-  const title = cleanText(first(slideSpec.section_title, slideSpec.sectionTitle, slideSpec.title, slideSpec.content?.title, "章节标题"));
-  const subtitle = cleanText(first(slideSpec.section_subtitle, slideSpec.sectionSubtitle, slideSpec.subtitle, slideSpec.content?.subtitle, ""));
-  const bridge = cleanText(first(slideSpec.bridge, slideSpec.takeaway, ""));
-  slide.background.fill = context.tokens.neutral.canvas;
-  await addLogo(slide, context.brand, { left: 20, top: 12, width: 42, height: 42 }, context);
-  addText(slide, context.brand.institution, { left: 72, top: 12, width: 400, height: 42 }, {
-    fontSize: 14,
-    fontFamily: fontFor(context.brand.institution, context.tokens),
-    bold: true,
-    color: context.colors.primary,
-  }, "section-institution");
-  addRule(slide, 0, 66, 1280, context.tokens.neutral.black, 1, "section-header-rule");
-  addText(slide, `PART ${sectionNumber}`, { left: 0, top: 154, width: 1280, height: 52 }, {
-    fontSize: 22,
-    fontFamily: context.tokens.fonts.en,
-    bold: true,
-    color: context.tokens.neutral.muted,
-    alignment: "center",
-  }, "section-number");
-  addShape(slide, "rect", { left: 0, top: 228, width: 1280, height: 224 }, {
-    name: "section-band",
-    fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addText(slide, title, { left: 100, top: 260, width: 1080, height: 78 }, {
-    fontSize: context.tokens.typeScale.sectionTitle,
-    fontFamily: fontFor(title, context.tokens),
-    bold: true,
-    color: context.tokens.neutral.white,
-    alignment: "center",
-  }, "section-title");
-  if (subtitle) addText(slide, subtitle, { left: 130, top: 354, width: 1020, height: 42 }, {
-    fontSize: 18,
-    fontFamily: fontFor(subtitle, context.tokens),
-    color: "#E7EBF4",
-    alignment: "center",
-  }, "section-subtitle");
-  if (bridge) addText(slide, bridge, { left: 160, top: 518, width: 960, height: 66 }, {
-    fontSize: 18,
-    fontFamily: fontFor(bridge, context.tokens),
-    color: context.tokens.neutral.muted,
-    alignment: "center",
-  }, "section-bridge");
-}
-
-async function renderClaimEvidence(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const claim = slideTakeaway(slideSpec) || "先给出本页的一句话结论";
-  const evidenceItems = semanticItems(slideSpec, ["items", "evidence"], 3).slice(0, 4);
-  const metrics = slideMetrics(slideSpec).slice(0, 3);
-  const assets = slideAssetRequests(slideSpec, context.assetIndex, context.baseDir);
-  addText(slide, claim, { left: 82, top: 166, width: 1116, height: 76 }, {
-    fontSize: 29,
-    fontFamily: fontFor(claim, context.tokens),
-    bold: true,
-    color: context.colors.primaryDark,
-  }, "primary-claim");
-  addRule(slide, 82, 252, 90, context.colors.accent, 4, "claim-accent");
-  const rowHeight = evidenceItems.length === 4 ? 68 : 82;
-  const rowStep = evidenceItems.length === 4 ? 76 : 94;
-  evidenceItems.forEach((item, index) => {
-    const top = 278 + index * rowStep;
-    addShape(slide, "ellipse", { left: 84, top: top + (rowHeight - 48) / 2, width: 48, height: 48 }, {
-      name: `evidence-index-${index + 1}`, fill: index === 0 ? context.colors.primary : context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primary, width: 1.2 },
-    });
-    addText(slide, String(index + 1).padStart(2, "0"), { left: 84, top: top + (rowHeight - 48) / 2, width: 48, height: 48 }, {
-      fontSize: 13, fontFamily: context.tokens.fonts.en, bold: true,
-      color: index === 0 ? context.tokens.neutral.white : context.colors.primary, alignment: "center",
-    }, `evidence-index-text-${index + 1}`);
-    addText(slide, item.title, { left: 154, top, width: 230, height: rowHeight }, {
-      fontSize: 18, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.tokens.neutral.text,
-    }, `evidence-title-${index + 1}`);
-    addText(slide, item.body || "说明该证据怎样支撑主张，以及它支持到什么范围。", { left: 398, top, width: 380, height: rowHeight }, {
-      fontSize: 15, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted,
-    }, `evidence-body-${index + 1}`);
-    if (index < evidenceItems.length - 1) addRule(slide, 154, top + rowHeight + 5, 624, context.tokens.neutral.line, 1, `evidence-rule-${index + 1}`);
-  });
-  if (assets.length) {
-    await addImageOrPlaceholder(slide, assets[0], { left: 832, top: 278, width: 366, height: 260 }, {
-      ...context,
-      name: "claim-context-image",
-      placeholderLabel: "结论对应的上下文或证据图",
-    });
-    if (metrics[0]) addKeyNumber(slide, metrics[0], { left: 832, top: 546, width: 366, height: 58 }, context.colors, context.tokens, "metric-1");
-  } else if (metrics.length) {
-    metrics.forEach((metric, index) => addKeyNumber(slide, metric, {
-      left: 832,
-      top: 282 + index * 98,
-      width: 366,
-      height: 86,
-    }, context.colors, context.tokens, `metric-${index + 1}`));
-  } else {
-    addShape(slide, "roundRect", { left: 832, top: 278, width: 366, height: 286 }, {
-      name: "evidence-summary",
-      fill: context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primaryLight, width: 1 },
-      borderRadius: "rounded-xl",
-    });
-    addText(slide, "证据综合", { left: 866, top: 304, width: 298, height: 34 }, {
-      fontSize: 16, fontFamily: context.tokens.fonts.zh, bold: true, color: context.colors.primary,
-    }, "evidence-summary-label");
-    const synthesis = cleanText(first(data.synthesis, "材料、结果与边界三类证据共同决定结论的可信度和适用范围。"));
-    addText(slide, synthesis, {
-      left: 866, top: 352, width: 298, height: 166,
-    }, {
-      fontSize: 22,
-      fontFamily: fontFor(synthesis, context.tokens),
-      bold: true,
-      color: context.colors.primaryDark,
-      verticalAlignment: "top",
-    }, "evidence-summary-text");
-  }
-  const boundary = cleanText(first(data.boundary, slideSpec.content?.callout, "结论只覆盖上述证据共同支持的范围。"));
-  addTakeawayBand(slide, boundary, context, { top: 612, height: 46, fontSize: 15 });
-}
-
-async function renderSingleImage(slide, slideSpec, context, slideNumber, side) {
+  async function renderSingleImage(slide, slideSpec, context, slideNumber, side) {
   await addContentChrome(slide, slideSpec, context, slideNumber);
   const assets = slideAssetRequests(slideSpec, context.assetIndex, context.baseDir);
   const imageLeft = side === "left" ? 64 : 572;
@@ -3383,7 +2263,7 @@ async function renderFormulaVisual(slide, slideSpec, context, slideNumber) {
     const unit = cleanText(entry.unit);
     return `${symbol}${symbol && meaning ? "：" : ""}${meaning}${unit ? `（${unit}）` : ""}`;
   }).filter(Boolean);
-  addBulletList(slide, variableItems.length ? variableItems : ["只解释答辩中真正使用的变量", "保留单位、假设和适用边界"], {
+  addBulletList(slide, variableItems.length ? variableItems : ["只解释论文中真正使用的变量", "保留单位、假设和适用边界"], {
     left: 64, top: 474, width: 472, height: 120,
   }, { fontSize: 16, color: context.tokens.neutral.muted }, context.tokens, "formula-variables");
   const assets = slideAssetRequests(slideSpec, context.assetIndex, context.baseDir);
@@ -3411,7 +2291,7 @@ function diagramNodes(slideSpec) {
 async function renderProcess(slide, slideSpec, context, slideNumber, framework = false) {
   const declaredTopology = cleanText(first(slideSpec.relationship_topology, renderData(slideSpec).relationship_topology)).toLowerCase();
   if (["branch_converge", "parallel", "hierarchy"].includes(declaredTopology)) {
-    throw new Error(`Slide ${slideSpec.id ?? slideNumber} declares ${declaredTopology} topology and cannot use the linear process renderer. Use a thesis-specific scientific canvas.`);
+    throw new Error(`Slide ${slideSpec.id ?? slideNumber} declares ${declaredTopology} topology and cannot use the linear process renderer. Use a paper-specific scientific canvas.`);
   }
   if (slideSpec.diagram?.include === true) {
     const declaredNodes = list(slideSpec.diagram.nodes);
@@ -3643,137 +2523,7 @@ async function renderTimeline(slide, slideSpec, context, slideNumber) {
   addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 600, height: 56 });
 }
 
-async function renderQuoteAnalysis(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const quoteObject = isObject(slideSpec.content?.quote) ? slideSpec.content.quote : {};
-  const quote = cleanText(first(renderData(slideSpec).quote, slideSpec.quote, quoteObject.text, "这里呈现一段短引文、史料原文或关键学术观点。"));
-  const analysis = cleanText(first(renderData(slideSpec).analysis, slideSpec.analysis, quoteObject.analysis, slideTakeaway(slideSpec), "这里解释引文如何支持本研究论点。"));
-  addShape(slide, "roundRect", { left: 64, top: 180, width: 520, height: 360 }, {
-    name: "quote-surface",
-    fill: context.tokens.neutral.surface,
-    line: { style: "solid", fill: context.tokens.neutral.line, width: 1 },
-    borderRadius: "rounded-xl",
-  });
-  addText(slide, "“", { left: 86, top: 182, width: 80, height: 78 }, {
-    fontSize: 68,
-    fontFamily: context.tokens.fonts.serif,
-    color: context.colors.secondary,
-  }, "quote-mark");
-  addText(slide, quote, { left: 112, top: 236, width: 424, height: 236 }, {
-    fontSize: 24,
-    fontFamily: fontFor(quote, context.tokens, true),
-    color: context.tokens.neutral.text,
-    verticalAlignment: "middle",
-  }, "quote-text");
-  const sourceLine = cleanText(first(slideSpec.source_line, slideSpec.sourceLine, slideSpec.quote_source, ""));
-  if (sourceLine) addText(slide, sourceLine, { left: 112, top: 486, width: 424, height: 34 }, {
-    fontSize: 13,
-    fontFamily: fontFor(sourceLine, context.tokens),
-    color: context.tokens.neutral.subtle,
-    alignment: "right",
-  }, "quote-source");
-  addText(slide, "分析", { left: 640, top: 188, width: 120, height: 34 }, {
-    fontSize: 17,
-    fontFamily: context.tokens.fonts.zh,
-    bold: true,
-    color: context.colors.primary,
-  }, "analysis-label");
-  addText(slide, analysis, { left: 640, top: 234, width: 560, height: 190 }, {
-    fontSize: 26,
-    fontFamily: fontFor(analysis, context.tokens),
-    bold: true,
-    color: context.colors.primaryDark,
-    verticalAlignment: "top",
-  }, "analysis-claim");
-  addBulletList(slide, slideBullets(slideSpec).slice(0, 4), { left: 640, top: 442, width: 560, height: 116 }, {
-    fontSize: 16,
-    color: context.tokens.neutral.muted,
-  }, context.tokens, "analysis-bullets");
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 600, height: 56 });
-}
-
-async function renderContribution(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const contributions = list(first(renderData(slideSpec).contributions, slideSpec.contributions, slideSpec.bullets, slideSpec.content?.bullets, [])).slice(0, 5);
-  const normalized = (contributions.length ? contributions : ["问题或对象层贡献", "方法或路径层贡献", "证据或验证层贡献", "理论或实践层贡献"]).map((entry, index) => isObject(entry) ? entry : { title: cleanText(entry), evidence: "对应证据" });
-  const top = 178;
-  const rowHeight = 82;
-  normalized.forEach((entry, index) => {
-    const y = top + index * rowHeight;
-    addText(slide, String(index + 1).padStart(2, "0"), { left: 74, top: y, width: 72, height: 62 }, {
-      fontSize: 25,
-      fontFamily: context.tokens.fonts.en,
-      bold: true,
-      color: context.colors.primary,
-      alignment: "center",
-    }, `contribution-number-${index + 1}`);
-    const title = cleanText(first(entry.title, entry.claim, entry.text));
-    const evidence = cleanText(first(entry.evidence, entry.result, entry.source, entry.body, ""));
-    const boundary = cleanText(first(entry.boundary, entry.limit, ""));
-    const evidenceWithBoundary = [evidence, boundary && `边界：${boundary}`].filter(Boolean).join("｜");
-    addText(slide, title, { left: 174, top: y, width: 450, height: 62 }, {
-      fontSize: 19,
-      fontFamily: fontFor(title, context.tokens),
-      bold: true,
-      color: context.tokens.neutral.text,
-    }, `contribution-title-${index + 1}`);
-    addRule(slide, 650, y + 30, 90, context.colors.secondary, 2, `contribution-link-${index + 1}`);
-    addText(slide, evidenceWithBoundary || "将贡献绑定到具体结果页或证据", { left: 770, top: y, width: 430, height: 62 }, {
-      fontSize: 16,
-      fontFamily: fontFor(evidenceWithBoundary, context.tokens),
-      color: context.colors.primaryDark,
-    }, `contribution-evidence-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 608, height: 52 });
-}
-
-async function renderLimitations(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const limitations = list(first(renderData(slideSpec).limitations, slideSpec.limitations, slideSpec.bullets, slideSpec.content?.bullets, [])).slice(0, 5);
-  const nextSteps = list(first(renderData(slideSpec).next_steps, slideSpec.next_steps, slideSpec.nextSteps, [])).slice(0, 5);
-  addPill(slide, "当前边界", { left: 64, top: 178, width: 520, height: 38 }, context.colors, context.tokens, {
-    name: "limitations-label",
-    fill: context.tokens.neutral.surfaceStrong,
-    color: context.tokens.neutral.text,
-  });
-  addPill(slide, "下一步验证", { left: 676, top: 178, width: 540, height: 38 }, context.colors, context.tokens, {
-    name: "next-steps-label",
-    fill: context.colors.primaryLight,
-    color: context.colors.primaryDark,
-  });
-  const leftItems = limitations.length ? limitations : ["明确样本、工况、文本范围或模型假设", "区分已验证结论与工程/理论外推"];
-  const rightItems = nextSteps.length ? nextSteps : ["补充最能降低不确定性的验证", "给出判据、交付物和完成路径"];
-  const pairCount = Math.max(leftItems.length, rightItems.length);
-  const rowHeight = pairCount >= 5 ? 62 : 76;
-  const rowStep = pairCount >= 5 ? 68 : 88;
-  for (let index = 0; index < pairCount; index += 1) {
-    const top = 236 + index * rowStep;
-    const leftText = cleanText(first(leftItems[index], "待明确的研究边界"));
-    const rightText = cleanText(first(rightItems[index], "对应的验证动作与判据"));
-    addShape(slide, "roundRect", { left: 64, top, width: 500, height: rowHeight }, {
-      name: `limitation-row-${index + 1}`, fill: index % 2 === 0 ? context.tokens.neutral.surface : context.tokens.neutral.canvas,
-      line: { style: "solid", fill: context.tokens.neutral.line, width: 1 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, leftText, { left: 90, top: top + 8, width: 448, height: rowHeight - 16 }, {
-      fontSize: 16, fontFamily: fontFor(leftText, context.tokens), bold: true, color: context.tokens.neutral.text,
-    }, `limitation-text-${index + 1}`);
-    addRule(slide, 580, top + rowHeight / 2, 64, context.colors.secondary, 2, `limitation-arrow-line-${index + 1}`);
-    addShape(slide, "rightArrow", { left: 628, top: top + rowHeight / 2 - 9, width: 20, height: 18 }, {
-      name: `limitation-arrow-${index + 1}`, fill: context.colors.secondary,
-      line: { style: "solid", fill: context.colors.secondary, width: 0 },
-    });
-    addShape(slide, "roundRect", { left: 664, top, width: 552, height: rowHeight }, {
-      name: `next-step-row-${index + 1}`, fill: index % 2 === 0 ? context.colors.primaryLight : context.tokens.neutral.canvas,
-      line: { style: "solid", fill: context.colors.secondary, width: 1 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, rightText, { left: 690, top: top + 8, width: 500, height: rowHeight - 16 }, {
-      fontSize: 16, fontFamily: fontFor(rightText, context.tokens), color: context.colors.primaryDark,
-    }, `next-step-text-${index + 1}`);
-  }
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 586, height: 72 });
-}
-
-async function renderReferences(slide, slideSpec, context, slideNumber) {
+ async function renderReferences(slide, slideSpec, context, slideNumber) {
   await addContentChrome(slide, slideSpec, context, slideNumber);
   const references = list(first(renderData(slideSpec).references, slideSpec.references, slideSpec.bullets, slideSpec.content?.body, [])).map(cleanText).filter(Boolean);
   const items = references.length ? references : [
@@ -3985,129 +2735,7 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
   addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 598, height: 58 });
 }
 
-async function renderThreeColumnOverview(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "columns", "evidence_items", "evidenceItems"], 3).slice(0, 3);
-  const banner = cleanText(first(renderData(slideSpec).banner, renderData(slideSpec).conclusion, slideTakeaway(slideSpec), "三个并列维度共同界定本页问题"));
-  addShape(slide, "roundRect", { left: 146, top: 162, width: 988, height: 54 }, {
-    name: "overview-banner", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 }, borderRadius: "rounded-lg",
-  });
-  addText(slide, banner, { left: 174, top: 169, width: 932, height: 40 }, {
-    fontSize: 19, fontFamily: fontFor(banner, context.tokens), bold: true,
-    color: context.tokens.neutral.white, alignment: "center",
-  }, "overview-banner-text");
-  const cardWidth = 354;
-  items.forEach((item, index) => {
-    const left = 64 + index * 399;
-    addShape(slide, "roundRect", { left, top: 238, width: cardWidth, height: 348 }, {
-      name: `overview-card-${index + 1}`, fill: context.tokens.neutral.canvas,
-      line: { style: "solid", fill: context.colors.secondary, width: 1.4 }, borderRadius: "rounded-lg",
-    });
-    const marker = cleanText(first(item.value, item.number));
-    addText(slide, marker, { left: left + 24, top: 258, width: cardWidth - 48, height: 54 }, {
-      fontSize: 28, fontFamily: context.tokens.fonts.en, bold: true,
-      color: context.colors.primary, alignment: "center",
-    }, `overview-number-${index + 1}`);
-    addText(slide, item.title, { left: left + 28, top: 322, width: cardWidth - 56, height: 68 }, {
-      fontSize: 20, fontFamily: fontFor(item.title, context.tokens), bold: true,
-      color: context.tokens.neutral.text, alignment: "center",
-    }, `overview-title-${index + 1}`);
-    addRule(slide, left + 96, 401, cardWidth - 192, context.tokens.neutral.line, 1, `overview-rule-${index + 1}`);
-    addText(slide, item.body || "补充支撑该维度的证据、边界或解释。", { left: left + 32, top: 420, width: cardWidth - 64, height: 130 }, {
-      fontSize: 16, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted,
-      alignment: "center", verticalAlignment: "top",
-    }, `overview-body-${index + 1}`);
-  });
-}
-
-async function renderThreeLevelAnalysis(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "levels", "branches", "categories"], 3).slice(0, 3);
-  const label = cleanText(first(renderData(slideSpec).root_label, renderData(slideSpec).side_label, renderData(slideSpec).label, "分析主轴"));
-  addShape(slide, "ellipse", { left: 0, top: 212, width: 220, height: 300 }, {
-    name: "analysis-root-disc", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addText(slide, label, { left: 30, top: 304, width: 146, height: 100 }, {
-    fontSize: 22, fontFamily: fontFor(label, context.tokens), bold: true,
-    color: context.tokens.neutral.white, alignment: "center",
-  }, "analysis-root-label");
-  items.forEach((item, index) => {
-    const top = 174 + index * 142;
-    addShape(slide, "roundRect", { left: 236, top, width: 262, height: 108 }, {
-      name: `analysis-topic-${index + 1}`, fill: index === 1 ? context.colors.primary : context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primary, width: 1.2 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, item.title, { left: 258, top: top + 16, width: 218, height: 76 }, {
-      fontSize: 19, fontFamily: fontFor(item.title, context.tokens), bold: true,
-      color: index === 1 ? context.tokens.neutral.white : context.colors.primaryDark, alignment: "center",
-    }, `analysis-topic-text-${index + 1}`);
-    addRule(slide, 498, top + 53, 54, context.colors.secondary, 2, `analysis-link-${index + 1}`);
-    addShape(slide, "roundRect", { left: 552, top, width: 640, height: 108 }, {
-      name: `analysis-detail-${index + 1}`, fill: context.tokens.neutral.surface,
-      line: { style: "solid", fill: context.tokens.neutral.line, width: 1 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, item.body || "列出该分支的代表性观点、证据或研究空白。", { left: 578, top: top + 12, width: 588, height: 84 }, {
-      fontSize: 16, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.text,
-      verticalAlignment: "middle",
-    }, `analysis-detail-text-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 610, height: 48, fontSize: 16 });
-}
-
-async function renderFourPointList(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "points"], 4).slice(0, 4);
-  items.forEach((item, index) => {
-    const top = 170 + index * 105;
-    const letter = cleanText(first(item.letter, String.fromCharCode(65 + index)));
-    addShape(slide, "ellipse", { left: 82, top: top + 8, width: 68, height: 68 }, {
-      name: `point-marker-${index + 1}`, fill: index === 0 ? context.colors.primary : context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primary, width: 1.5 },
-    });
-    addText(slide, letter, { left: 82, top: top + 8, width: 68, height: 68 }, {
-      fontSize: 23, fontFamily: context.tokens.fonts.en, bold: true,
-      color: index === 0 ? context.tokens.neutral.white : context.colors.primary, alignment: "center",
-    }, `point-letter-${index + 1}`);
-    addText(slide, item.title, { left: 188, top, width: 300, height: 40 }, {
-      fontSize: 20, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.tokens.neutral.text,
-    }, `point-title-${index + 1}`);
-    addText(slide, item.body || "说明这一点如何影响研究问题、方法选择或结论边界。", { left: 188, top: top + 42, width: 930, height: 44 }, {
-      fontSize: 16, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted,
-    }, `point-body-${index + 1}`);
-    if (index < items.length - 1) addRule(slide, 188, top + 94, 960, context.tokens.neutral.line, 1, `point-rule-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 606, height: 52, fontSize: 16 });
-}
-
-async function renderThreeRowContent(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "rows", "modules"], 3).slice(0, 3);
-  items.forEach((item, index) => {
-    const top = 176 + index * 132;
-    addShape(slide, "roundRect", { left: 72, top, width: 150, height: 104 }, {
-      name: `row-number-block-${index + 1}`, fill: context.colors.primary,
-      line: { style: "solid", fill: context.colors.primary, width: 0 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, item.number, { left: 72, top: top + 12, width: 150, height: 40 }, {
-      fontSize: 25, fontFamily: context.tokens.fonts.en, bold: true, color: context.tokens.neutral.white, alignment: "center",
-    }, `row-number-${index + 1}`);
-    addText(slide, item.title, { left: 72, top: top + 52, width: 150, height: 38 }, {
-      fontSize: 16, fontFamily: fontFor(item.title, context.tokens), bold: true, color: "#EDF1F8", alignment: "center",
-    }, `row-title-in-block-${index + 1}`);
-    addShape(slide, "roundRect", { left: 244, top, width: 948, height: 104 }, {
-      name: `row-content-${index + 1}`, fill: index % 2 === 0 ? context.tokens.neutral.surface : context.colors.primaryLight,
-      line: { style: "solid", fill: context.tokens.neutral.line, width: 1 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, item.body || "用一至两句说明这一研究模块的任务、证据和预期输出。", { left: 276, top: top + 14, width: 884, height: 76 }, {
-      fontSize: 18, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.text,
-    }, `row-body-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 598, height: 58 });
-}
-
-async function renderMultiImageEvidence(slide, slideSpec, context, slideNumber) {
+ async function renderMultiImageEvidence(slide, slideSpec, context, slideNumber) {
   await addContentChrome(slide, slideSpec, context, slideNumber);
   const assets = slideAssetRequests(slideSpec, context.assetIndex, context.baseDir);
   const data = renderData(slideSpec);
@@ -4137,322 +2765,7 @@ async function renderMultiImageEvidence(slide, slideSpec, context, slideNumber) 
   addTakeawayBand(slide, summary, context, { top: 602, height: 56, fontSize: boundary ? 15 : 18 });
 }
 
-async function renderFourObjectives(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "objectives"], 4).slice(0, 4);
-  const overallGoal = cleanText(first(renderData(slideSpec).overall_goal, "总目标｜用一句话界定研究要解决的问题"));
-  addPill(slide, overallGoal, { left: 170, top: 162, width: 940, height: 48 }, context.colors, context.tokens, {
-    name: "objectives-overall-goal", fill: context.colors.primary, color: context.tokens.neutral.white, fontSize: 18,
-  });
-  items.forEach((item, index) => {
-    const left = 64 + index * 292;
-    const top = 232;
-    addShape(slide, "roundRect", { left, top, width: 260, height: 338 }, {
-      name: `objective-card-${index + 1}`, fill: context.tokens.neutral.surface,
-      line: { style: "solid", fill: context.colors.primary, width: 1.3 }, borderRadius: "rounded-xl",
-    });
-    addShape(slide, "ellipse", { left: left + 94, top: top + 28, width: 72, height: 72 }, {
-      name: `objective-number-disc-${index + 1}`, fill: context.colors.primary,
-      line: { style: "solid", fill: context.colors.primary, width: 0 },
-    });
-    addText(slide, item.number, { left: left + 94, top: top + 28, width: 72, height: 72 }, {
-      fontSize: 23, fontFamily: context.tokens.fonts.en, bold: true,
-      color: context.tokens.neutral.white, alignment: "center",
-    }, `objective-number-${index + 1}`);
-    addText(slide, item.title, { left: left + 24, top: top + 124, width: 212, height: 64 }, {
-      fontSize: 20, fontFamily: fontFor(item.title, context.tokens), bold: true,
-      color: context.tokens.neutral.text, alignment: "center",
-    }, `objective-title-${index + 1}`);
-    addRule(slide, left + 54, top + 202, 152, context.colors.secondary, 2, `objective-rule-${index + 1}`);
-    addText(slide, item.body || "一句话写清目标、判据或交付物。", { left: left + 30, top: top + 222, width: 200, height: 86 }, {
-      fontSize: 15, fontFamily: fontFor(item.body, context.tokens),
-      color: context.tokens.neutral.muted, alignment: "center", verticalAlignment: "top",
-    }, `objective-body-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 612, height: 48, fontSize: 16 });
-}
-
-async function renderThesisFramework(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const nodes = diagramNodes(slideSpec).slice(0, 7);
-  const root = nodes[0] ?? { label: "研究总目标" };
-  const branches = nodes.slice(1, 4);
-  while (branches.length < 3) branches.push({ label: `研究模块 ${branches.length + 1}`, detail: "关键任务" });
-  const evidence = nodes.slice(4, 7);
-  while (evidence.length < 3) evidence.push({ label: `证据输出 ${evidence.length + 1}`, detail: "图 / 表 / 式 / 案例" });
-  addShape(slide, "roundRect", { left: 420, top: 166, width: 440, height: 70 }, {
-    name: "thesis-root", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 }, borderRadius: "rounded-lg",
-  });
-  addText(slide, cleanText(root.label), { left: 446, top: 177, width: 388, height: 48 }, {
-    fontSize: 22, fontFamily: fontFor(root.label, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-  }, "thesis-root-label");
-  addVerticalRule(slide, 638, 236, 60, context.colors.secondary, 4, "thesis-root-stem");
-  addRule(slide, 202, 294, 876, context.colors.secondary, 3, "thesis-branch-rail");
-  branches.forEach((node, index) => {
-    const left = 72 + index * 414;
-    const center = left + 156;
-    addShape(slide, "rect", { left: center - 2, top: 294, width: 4, height: 32 }, {
-      name: `thesis-branch-stem-${index + 1}`, fill: context.colors.secondary,
-      line: { style: "solid", fill: context.colors.secondary, width: 0 },
-    });
-    addShape(slide, "roundRect", { left, top: 326, width: 312, height: 96 }, {
-      name: `thesis-branch-${index + 1}`, fill: context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primary, width: 1.2 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, cleanText(node.label), { left: left + 20, top: 338, width: 272, height: 70 }, {
-      fontSize: 19, fontFamily: fontFor(node.label, context.tokens), bold: true, color: context.colors.primaryDark, alignment: "center",
-    }, `thesis-branch-label-${index + 1}`);
-    addShape(slide, "rect", { left: center - 2, top: 422, width: 4, height: 34 }, {
-      name: `thesis-evidence-stem-${index + 1}`, fill: context.tokens.neutral.line,
-      line: { style: "solid", fill: context.tokens.neutral.line, width: 0 },
-    });
-    addShape(slide, "roundRect", { left, top: 456, width: 312, height: 102 }, {
-      name: `thesis-evidence-${index + 1}`, fill: context.tokens.neutral.surface,
-      line: { style: "solid", fill: context.tokens.neutral.line, width: 1 }, borderRadius: "rounded-lg",
-    });
-    const evidenceText = [cleanText(evidence[index].label), cleanText(evidence[index].detail)].filter(Boolean).join("\n");
-    addText(slide, evidenceText, { left: left + 22, top: 468, width: 268, height: 78 }, {
-      fontSize: 15, fontFamily: fontFor(evidenceText, context.tokens), color: context.tokens.neutral.text, alignment: "center",
-    }, `thesis-evidence-label-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 604, height: 54, fontSize: 16 });
-}
-
-async function renderRadialMethods(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "methods"], 4).slice(0, 4);
-  const center = cleanText(first(renderData(slideSpec).center, renderData(slideSpec).center_label, slideTakeaway(slideSpec), "共同服务于核心问题"));
-  const nodes = [
-    { left: 490, top: 168, width: 300, height: 94 },
-    { left: 112, top: 328, width: 300, height: 104 },
-    { left: 868, top: 328, width: 300, height: 104 },
-    { left: 490, top: 500, width: 300, height: 94 },
-  ];
-  addVerticalRule(slide, 638, 262, 238, context.tokens.neutral.line, 3, "radial-vertical-link");
-  addRule(slide, 412, 378, 456, context.tokens.neutral.line, 3, "radial-horizontal-link");
-  addShape(slide, "ellipse", { left: 520, top: 304, width: 240, height: 148 }, {
-    name: "radial-center", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addText(slide, center, { left: 540, top: 326, width: 200, height: 104 }, {
-    fontSize: 19, fontFamily: fontFor(center, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-  }, "radial-center-label");
-  items.forEach((item, index) => {
-    const pos = nodes[index];
-    addShape(slide, "roundRect", pos, {
-      name: `radial-node-${index + 1}`, fill: context.tokens.neutral.surface,
-      line: { style: "solid", fill: context.colors.secondary, width: 1.3 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, item.title, { left: pos.left + 18, top: pos.top + 8, width: pos.width - 36, height: 38 }, {
-      fontSize: 18, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.colors.primaryDark, alignment: "center",
-    }, `radial-title-${index + 1}`);
-    addText(slide, item.body || "并行方法或分析维度", { left: pos.left + 18, top: pos.top + 47, width: pos.width - 36, height: pos.height - 54 }, {
-      fontSize: 14, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted, alignment: "center",
-    }, `radial-body-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 618, height: 42, fontSize: 15 });
-}
-
-async function renderFourStepRibbon(slide, slideSpec, context, slideNumber) {
-  const declaredTopology = cleanText(first(slideSpec.relationship_topology, renderData(slideSpec).relationship_topology)).toLowerCase();
-  if (declaredTopology && !["linear", "none"].includes(declaredTopology)) {
-    throw new Error(`Slide ${slideSpec.id ?? slideNumber} declares ${declaredTopology} topology and cannot use four-step-ribbon. Use a branch/converge scientific canvas.`);
-  }
-  if (slideSpec.diagram?.include === true) {
-    const nodes = list(slideSpec.diagram.nodes);
-    const edges = list(slideSpec.diagram.edges);
-    const inDegree = new Map(nodes.map((node) => [cleanText(node.id), 0]));
-    const outDegree = new Map(nodes.map((node) => [cleanText(node.id), 0]));
-    for (const edge of edges) {
-      const from = cleanText(edge?.from);
-      const to = cleanText(edge?.to);
-      outDegree.set(from, (outDegree.get(from) ?? 0) + 1);
-      inDegree.set(to, (inDegree.get(to) ?? 0) + 1);
-    }
-    const isLinear = nodes.length === 4 && edges.length === 3
-      && edges.every((edge) => edge?.relation === "sequence")
-      && [...inDegree.values()].every((degree) => degree <= 1)
-      && [...outDegree.values()].every((degree) => degree <= 1);
-    if (!isLinear) {
-      throw new Error(`Slide ${slideSpec.id ?? slideNumber} diagram is not a four-node linear sequence and cannot use four-step-ribbon.`);
-    }
-  }
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "steps"], 4).slice(0, 4);
-  // The staggered cards keep the original template's rhythm, while elbow
-  // connectors preserve the actual 1 -> 2 -> 3 -> 4 sequence.
-  items.slice(0, -1).forEach((_, index) => {
-    const currentLeft = 66 + index * 302;
-    const currentTop = index % 2 === 0 ? 220 : 326;
-    const nextLeft = 66 + (index + 1) * 302;
-    const nextTop = (index + 1) % 2 === 0 ? 220 : 326;
-    const startX = currentLeft + 246;
-    const startY = currentTop + 87;
-    const endY = nextTop + 87;
-    const elbowX = startX + (nextLeft - startX) / 2;
-    addRule(slide, startX, startY - 2, elbowX - startX, context.colors.secondary, 4, `ribbon-link-a-${index + 1}`);
-    addVerticalRule(slide, elbowX - 2, Math.min(startY, endY), Math.abs(endY - startY), context.colors.secondary, 4, `ribbon-link-b-${index + 1}`);
-    addRule(slide, elbowX, endY - 2, nextLeft - elbowX - 14, context.colors.secondary, 4, `ribbon-link-c-${index + 1}`);
-    addShape(slide, "rightArrow", { left: nextLeft - 16, top: endY - 9, width: 18, height: 18 }, {
-      name: `ribbon-arrow-${index + 1}`, fill: context.colors.secondary,
-      line: { style: "solid", fill: context.colors.secondary, width: 0 },
-    });
-  });
-  items.forEach((item, index) => {
-    const left = 66 + index * 302;
-    const top = index % 2 === 0 ? 220 : 326;
-    addShape(slide, "roundRect", { left, top, width: 246, height: 174 }, {
-      name: `ribbon-step-${index + 1}`, fill: index === 0 ? context.colors.primary : context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primary, width: 1.2 }, borderRadius: "rounded-xl",
-    });
-    addText(slide, `STEP ${item.number}`, { left: left + 22, top: top + 18, width: 202, height: 34 }, {
-      fontSize: 15, fontFamily: context.tokens.fonts.en, bold: true,
-      color: index === 0 ? context.colors.accent : context.colors.primary,
-    }, `ribbon-step-number-${index + 1}`);
-    addText(slide, item.title, { left: left + 22, top: top + 56, width: 202, height: 54 }, {
-      fontSize: 19, fontFamily: fontFor(item.title, context.tokens), bold: true,
-      color: index === 0 ? context.tokens.neutral.white : context.tokens.neutral.text,
-    }, `ribbon-step-title-${index + 1}`);
-    addText(slide, item.body || "说明本步骤的输入、动作与输出。", { left: left + 22, top: top + 112, width: 202, height: 46 }, {
-      fontSize: 14, fontFamily: fontFor(item.body, context.tokens),
-      color: index === 0 ? "#EDF1F8" : context.tokens.neutral.muted,
-    }, `ribbon-step-body-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 592, height: 64 });
-}
-
-async function renderInnovationBrackets(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "innovations", "contributions"], 3).map((item, index) => ({
-    ...item,
-    title: cleanText(first(item.novelty, item.title, `创新 ${index + 1}`)),
-    body: cleanText(first(
-      item.body,
-      item.gap || item.novelty || item.validation
-        ? [item.gap && `缺口：${cleanText(item.gap)}`, item.novelty && `新做法：${cleanText(item.novelty)}`, item.validation && `验证：${cleanText(item.validation)}`].filter(Boolean).join("｜")
-        : "",
-    )),
-  })).slice(0, 3);
-  const label = cleanText(first(renderData(slideSpec).center, renderData(slideSpec).label, "创新与贡献"));
-  addShape(slide, "ellipse", { left: 84, top: 246, width: 230, height: 230 }, {
-    name: "innovation-disc", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addText(slide, label, { left: 106, top: 302, width: 186, height: 116 }, {
-    fontSize: 22, fontFamily: fontFor(label, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-  }, "innovation-disc-label");
-  items.forEach((item, index) => {
-    const top = 178 + index * 140;
-    addRule(slide, 314, top + 55, 80, context.colors.secondary, 3, `innovation-link-${index + 1}`);
-    addShape(slide, "roundRect", { left: 394, top, width: 796, height: 110 }, {
-      name: `innovation-row-${index + 1}`, fill: index === 1 ? context.colors.primaryLight : context.tokens.neutral.surface,
-      line: { style: "solid", fill: context.colors.secondary, width: 1.2 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, item.number, { left: 416, top: top + 20, width: 68, height: 66 }, {
-      fontSize: 25, fontFamily: context.tokens.fonts.en, bold: true, color: context.colors.primary, alignment: "center",
-    }, `innovation-number-${index + 1}`);
-    addText(slide, item.title, { left: 504, top: top + 12, width: 300, height: 40 }, {
-      fontSize: 19, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.tokens.neutral.text,
-    }, `innovation-title-${index + 1}`);
-    addText(slide, item.body || "说明相对于已有工作的新增动作，并绑定结果页证据。", { left: 504, top: top + 52, width: 652, height: 46 }, {
-      fontSize: 14, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted,
-    }, `innovation-body-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 610, height: 48, fontSize: 16 });
-}
-
-async function renderFourResultsCycle(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "results"], 4).slice(0, 4);
-  const positions = [
-    { left: 466, top: 166, width: 348, height: 100 },
-    { left: 858, top: 330, width: 350, height: 112 },
-    { left: 466, top: 504, width: 348, height: 100 },
-    { left: 72, top: 330, width: 350, height: 112 },
-  ];
-  addVerticalRule(slide, 638, 266, 238, context.tokens.neutral.line, 3, "results-cycle-vertical");
-  addRule(slide, 422, 384, 436, context.tokens.neutral.line, 3, "results-cycle-horizontal");
-  // A clockwise outer loop makes the claimed cycle explicit rather than
-  // relying on decorative radial spokes.
-  addRule(slide, 814, 214, 219, context.colors.secondary, 3, "results-cycle-1-2-top");
-  addVerticalRule(slide, 1031, 214, 104, context.colors.secondary, 3, "results-cycle-1-2-side");
-  addShape(slide, "downArrow", { left: 1022, top: 310, width: 20, height: 22 }, {
-    name: "results-cycle-arrow-1-2", fill: context.colors.secondary,
-    line: { style: "solid", fill: context.colors.secondary, width: 0 },
-  });
-  addVerticalRule(slide, 1031, 442, 112, context.colors.secondary, 3, "results-cycle-2-3-side");
-  addRule(slide, 814, 552, 219, context.colors.secondary, 3, "results-cycle-2-3-bottom");
-  addShape(slide, "leftArrow", { left: 806, top: 543, width: 22, height: 20 }, {
-    name: "results-cycle-arrow-2-3", fill: context.colors.secondary,
-    line: { style: "solid", fill: context.colors.secondary, width: 0 },
-  });
-  addRule(slide, 247, 552, 219, context.colors.secondary, 3, "results-cycle-3-4-bottom");
-  addVerticalRule(slide, 247, 442, 112, context.colors.secondary, 3, "results-cycle-3-4-side");
-  addShape(slide, "upArrow", { left: 238, top: 430, width: 20, height: 22 }, {
-    name: "results-cycle-arrow-3-4", fill: context.colors.secondary,
-    line: { style: "solid", fill: context.colors.secondary, width: 0 },
-  });
-  addVerticalRule(slide, 247, 214, 116, context.colors.secondary, 3, "results-cycle-4-1-side");
-  addRule(slide, 247, 214, 219, context.colors.secondary, 3, "results-cycle-4-1-top");
-  addShape(slide, "rightArrow", { left: 452, top: 205, width: 22, height: 20 }, {
-    name: "results-cycle-arrow-4-1", fill: context.colors.secondary,
-    line: { style: "solid", fill: context.colors.secondary, width: 0 },
-  });
-  addText(slide, "闭环方向：1 → 2 → 3 → 4 → 1", { left: 470, top: 270, width: 340, height: 26 }, {
-    fontSize: 13, fontFamily: context.tokens.fonts.zh, bold: true,
-    color: context.colors.secondary, alignment: "center",
-  }, "results-cycle-direction");
-  addShape(slide, "diamond", { left: 540, top: 300, width: 200, height: 168 }, {
-    name: "results-cycle-center", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  const centerLabel = cleanText(first(renderData(slideSpec).center, "核心结果"));
-  addText(slide, centerLabel, { left: 560, top: 342, width: 160, height: 78 }, {
-    fontSize: 20, fontFamily: fontFor(centerLabel, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-  }, "results-cycle-center-label");
-  items.forEach((item, index) => {
-    const pos = positions[index];
-    addShape(slide, "roundRect", pos, {
-      name: `result-node-${index + 1}`, fill: context.tokens.neutral.surface,
-      line: { style: "solid", fill: context.colors.secondary, width: 1.2 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, item.title, { left: pos.left + 18, top: pos.top + 8, width: pos.width - 36, height: 38 }, {
-      fontSize: 18, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.colors.primaryDark, alignment: "center",
-    }, `result-title-${index + 1}`);
-    addText(slide, item.body || "用一个数字或一句证据性结论概括。", { left: pos.left + 18, top: pos.top + 48, width: pos.width - 36, height: pos.height - 56 }, {
-      fontSize: 14, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted, alignment: "center",
-    }, `result-body-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 618, height: 42, fontSize: 15 });
-}
-
-async function renderTwoImageResults(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const assets = slideAssetRequests(slideSpec, context.assetIndex, context.baseDir);
-  const data = renderData(slideSpec);
-  const panels = semanticItems(slideSpec, ["panels", "items"], 2).slice(0, 2);
-  const frames = [
-    { left: 64, top: 174, width: 550, height: 328 },
-    { left: 666, top: 174, width: 550, height: 328 },
-  ];
-  for (let index = 0; index < 2; index += 1) {
-    await addImageOrPlaceholder(slide, assets[index], frames[index], { ...context, name: `result-image-${index + 1}`, placeholderLabel: `结果图 ${index + 1}` });
-    addShape(slide, "rect", { left: frames[index].left, top: 510, width: frames[index].width, height: 70 }, {
-      name: `result-caption-band-${index + 1}`, fill: index === 0 ? context.colors.primaryDark : context.colors.primary,
-      line: { style: "solid", fill: context.colors.primary, width: 0 },
-    });
-    const label = cleanText(first(index === 0 ? data.left_label : data.right_label, panels[index]?.title, assets[index]?.caption, `结果 ${index + 1}`));
-    const conclusion = cleanText(first(index === 0 ? data.left_conclusion : data.right_conclusion, panels[index]?.body, ""));
-    const caption = [label, conclusion].filter(Boolean).join("｜");
-    addText(slide, caption, { left: frames[index].left + 22, top: 520, width: frames[index].width - 44, height: 50 }, {
-      fontSize: 17, fontFamily: fontFor(caption, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-    }, `result-caption-${index + 1}`);
-  }
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 608, height: 50, fontSize: 16 });
-}
-
-async function renderFigureConclusion(slide, slideSpec, context, slideNumber) {
+ async function renderFigureConclusion(slide, slideSpec, context, slideNumber) {
   await addContentChrome(slide, slideSpec, context, slideNumber);
   const assets = slideAssetRequests(slideSpec, context.assetIndex, context.baseDir);
   const data = renderData(slideSpec);
@@ -4481,446 +2794,53 @@ async function renderFigureConclusion(slide, slideSpec, context, slideNumber) {
   }, "figure-conclusion-caption");
 }
 
-async function renderConclusionList(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const data = renderData(slideSpec);
-  const items = semanticItems(slideSpec, ["items", "conclusions", "outcomes"], 4).map((item) => ({
-    ...item,
-    body: cleanText(first(
-      item.body,
-      item.deliverable || item.acceptance
-        ? [item.deliverable && `交付：${cleanText(item.deliverable)}`, item.acceptance && `验收：${cleanText(item.acceptance)}`].filter(Boolean).join("｜")
-        : "",
-    )),
-  })).slice(0, 6);
-  const label = cleanText(first(data.label, data.outcomes ? "预期成果" : "结论"));
-  addShape(slide, "ellipse", { left: 0, top: 202, width: 254, height: 340 }, {
-    name: "conclusion-arc", fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  addText(slide, label, { left: 34, top: 316, width: 150, height: 80 }, {
-    fontSize: 30, fontFamily: fontFor(label, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
-  }, "conclusion-arc-label");
-  const availableHeight = 430;
-  const rowStep = items.length > 1 ? Math.min(98, (availableHeight - 64) / (items.length - 1)) : 0;
-  const startTop = 164 + (availableHeight - (64 + rowStep * Math.max(0, items.length - 1))) / 2;
-  items.forEach((item, index) => {
-    const top = startTop + index * rowStep;
-    addShape(slide, "ellipse", { left: 292, top: top + 8, width: 48, height: 48 }, {
-      name: `conclusion-dot-${index + 1}`, fill: index === 0 ? context.colors.primary : context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primary, width: 1.2 },
-    });
-    addText(slide, String(index + 1), { left: 292, top: top + 8, width: 48, height: 48 }, {
-      fontSize: 14, fontFamily: context.tokens.fonts.en, bold: true,
-      color: index === 0 ? context.tokens.neutral.white : context.colors.primary, alignment: "center",
-    }, `conclusion-index-${index + 1}`);
-    addText(slide, item.title, { left: 370, top, width: 280, height: 64 }, {
-      fontSize: 18, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.tokens.neutral.text,
-    }, `conclusion-title-${index + 1}`);
-    addText(slide, item.body || "给出与结果页对应的证据性结论。", { left: 674, top, width: 500, height: 64 }, {
-      fontSize: 14, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted,
-    }, `conclusion-body-${index + 1}`);
-    if (index < items.length - 1) addRule(slide, 370, top + 64, 804, context.tokens.neutral.line, 1, `conclusion-rule-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 618, height: 42, fontSize: 15 });
-}
-
-async function renderThreeOutlookColumns(slide, slideSpec, context, slideNumber) {
-  await addContentChrome(slide, slideSpec, context, slideNumber);
-  const items = semanticItems(slideSpec, ["items", "outlook", "directions"], 3).slice(0, 3);
-  items.forEach((item, index) => {
-    const left = 68 + index * 402;
-    addShape(slide, "roundRect", { left, top: 224, width: 360, height: 348 }, {
-      name: `outlook-column-${index + 1}`, fill: context.tokens.neutral.canvas,
-      line: { style: "solid", fill: context.colors.secondary, width: 1.3 }, borderRadius: "rounded-lg",
-    });
-    addShape(slide, "roundRect", { left: left + 110, top: 174, width: 140, height: 82 }, {
-      name: `outlook-number-tab-${index + 1}`, fill: index === 1 ? context.colors.primary : context.colors.primaryLight,
-      line: { style: "solid", fill: context.colors.primary, width: 1.2 }, borderRadius: "rounded-lg",
-    });
-    addText(slide, item.number, { left: left + 110, top: 188, width: 140, height: 54 }, {
-      fontSize: 28, fontFamily: context.tokens.fonts.en, bold: true,
-      color: index === 1 ? context.tokens.neutral.white : context.colors.primary, alignment: "center",
-    }, `outlook-number-${index + 1}`);
-    addText(slide, item.title, { left: left + 30, top: 282, width: 300, height: 72 }, {
-      fontSize: 20, fontFamily: fontFor(item.title, context.tokens), bold: true, color: context.tokens.neutral.text, alignment: "center",
-    }, `outlook-title-${index + 1}`);
-    addRule(slide, left + 110, 370, 140, context.tokens.neutral.line, 1, `outlook-rule-${index + 1}`);
-    addText(slide, item.body || "说明后续方向、验证方法与可交付结果。", { left: left + 34, top: 392, width: 292, height: 140 }, {
-      fontSize: 16, fontFamily: fontFor(item.body, context.tokens), color: context.tokens.neutral.muted,
-      alignment: "center", verticalAlignment: "top",
-    }, `outlook-body-${index + 1}`);
-  });
-  addTakeawayBand(slide, slideTakeaway(slideSpec), context, { top: 610, height: 48, fontSize: 16 });
-}
-
-async function renderClosing(slide, spec, slideSpec, context) {
-  slide.background.fill = context.tokens.neutral.canvas;
-  await addLogo(slide, context.brand, { left: 584, top: 54, width: 112, height: 92 }, context);
-  addShape(slide, "rect", { left: 0, top: 200, width: 1280, height: 260 }, {
-    name: "closing-band",
-    fill: context.colors.primary,
-    line: { style: "solid", fill: context.colors.primary, width: 0 },
-  });
-  const title = slideTitle(slideSpec) || "感谢各位老师，请批评指正";
-  addText(slide, title, { left: 110, top: 242, width: 1060, height: 90 }, {
-    fontSize: 44,
-    fontFamily: fontFor(title, context.tokens),
-    bold: true,
-    color: context.tokens.neutral.white,
-    alignment: "center",
-  }, "closing-title");
-  const thesisClaim = cleanText(first(slideSpec.thesis_claim, slideSpec.thesisClaim, slideTakeaway(slideSpec), spec.thesis_claim, ""));
-  if (thesisClaim) addText(slide, thesisClaim, { left: 142, top: 342, width: 996, height: 72 }, {
-    fontSize: 20,
-    fontFamily: fontFor(thesisClaim, context.tokens),
-    color: "#F1F4FA",
-    alignment: "center",
-  }, "closing-claim");
-  const metrics = slideMetrics(slideSpec).slice(0, 4);
-  const metricWidth = metrics.length === 4 ? 250 : 280;
-  const metricLeft = metrics.length === 4 ? 100 : 170;
-  const metricGap = metrics.length === 4 ? 280 : 330;
-  metrics.forEach((metric, index) => addKeyNumber(slide, metric, {
-    left: metricLeft + index * metricGap,
-    top: 510,
-    width: metricWidth,
-    height: 98,
-  }, context.colors, context.tokens, `closing-metric-${index + 1}`));
-  const boundary = cleanText(first(slideSpec.content?.callout, renderData(slideSpec).boundary, ""));
-  if (boundary) addText(slide, boundary, { left: 110, top: 608, width: 1060, height: 38 }, {
-    fontSize: 12,
-    fontFamily: fontFor(boundary, context.tokens),
-    color: context.tokens.neutral.muted,
-    alignment: "center",
-  }, "closing-boundary");
-  const author = cleanText(first(slideSpec.author, spec.author, spec.presenter, ""));
-  addText(slide, [context.brand.institution, author].filter(Boolean).join("  |  "), { left: 120, top: 670, width: 1040, height: 24 }, {
-    fontSize: 14,
-    fontFamily: fontFor(author, context.tokens),
-    color: context.tokens.neutral.muted,
-    alignment: "center",
-  }, "closing-footer");
-}
-
-async function renderSlide(slide, spec, slideSpec, context, slideNumber) {
+ async function renderSlide(slide, spec, slideSpec, context, slideNumber) {
   const layoutId = normalizeLayoutId(slideSpec);
-  if (context.profile !== "proposal_midterm" && MILESTONE_EXCLUSIVE_LAYOUTS.has(layoutId)) {
-    throw new Error(`Layout "${layoutId}" belongs to profile=proposal_midterm, but slide ${slideSpec.id ?? slideNumber} uses profile=${context.profile}. Use that profile or select a layout/free canvas appropriate to the active profile.`);
-  }
   assertProfileAndShellContract(slideSpec, context, layoutId, slideNumber);
   assertProductionRendererPayload(slideSpec, context, layoutId, slideNumber);
-  if (context.profile === "proposal_midterm") {
-    const galleryMode = context.spec?.project_id === "proposal-midterm-layout-library"
-      ? cleanText(renderData(slideSpec).mode)
-      : "";
-    const effectiveMode = ["proposal", "midterm"].includes(galleryMode) ? galleryMode : context.mode;
-    if (PROPOSAL_ONLY_LAYOUTS.has(layoutId) && effectiveMode !== "proposal") {
-      throw new Error(`Layout "${layoutId}" is proposal-only but slide ${slideSpec.id ?? slideNumber} uses mode=${effectiveMode}.`);
-    }
-    if (MIDTERM_ONLY_LAYOUTS.has(layoutId) && effectiveMode !== "midterm") {
-      throw new Error(`Layout "${layoutId}" is midterm-only but slide ${slideSpec.id ?? slideNumber} uses mode=${effectiveMode}.`);
-    }
-    context = { ...context, mode: effectiveMode };
+  const topology = cleanText(slideSpec.relationship_topology).toLowerCase();
+  if (["branch_converge", "feedback_loop", "network"].includes(topology)
+    && ["method-sequence", "research-evolution"].includes(layoutId)) {
+    throw new Error(`Slide ${slideSpec.id ?? slideNumber} declares ${topology} topology and cannot use the linear ${layoutId} renderer.`);
   }
   slide.background.fill = context.tokens.neutral.canvas;
   switch (layoutId) {
-    case "cover-short-title":
-      await renderMilestoneCover(slide, spec, slideSpec, context, false);
-      break;
-    case "cover-long-title":
-      await renderMilestoneCover(slide, spec, slideSpec, context, true);
-      break;
-    case "agenda-adaptive":
-      await renderMilestoneAgenda(slide, spec, slideSpec, context, slideNumber);
-      break;
-    case "evaluation-focus":
-      await renderMilestoneEvaluationFocus(slide, slideSpec, context, slideNumber);
-      break;
-    case "closing-feedback":
-      await renderMilestoneClosing(slide, spec, slideSpec, context);
-      break;
-    case "context-stakes":
-      await renderThreeColumnOverview(slide, slideSpec, context, slideNumber);
-      break;
-    case "literature-landscape":
-      await renderMilestoneLiteratureLandscape(slide, slideSpec, context, slideNumber);
-      break;
-    case "evidence-gap":
-      await renderKnownGapQuestion(slide, slideSpec, context, slideNumber);
-      break;
-    case "question-hypothesis":
-      await renderMilestoneQuestionHypothesis(slide, slideSpec, context, slideNumber);
-      break;
-    case "objectives-workpackages":
-      await renderMilestoneWorkPackages(slide, slideSpec, context, slideNumber);
-      break;
-    case "conceptual-framework":
-      await renderFramework(slide, slideSpec, context, slideNumber);
-      break;
-    case "scope-boundaries":
-      await renderMilestoneScopeBoundaries(slide, slideSpec, context, slideNumber);
-      break;
-    case "contribution-value":
-      await renderContribution(slide, slideSpec, context, slideNumber);
-      break;
-    case "technical-route":
-      await renderProcess(slide, slideSpec, context, slideNumber, false);
-      break;
-    case "method-architecture":
-      await renderFramework(slide, slideSpec, context, slideNumber);
-      break;
-    case "data-sample-variables":
-      await renderSampleDataProfile(slide, slideSpec, context, slideNumber);
-      break;
-    case "model-formula":
-      await renderFormulaVisual(slide, slideSpec, context, slideNumber);
-      break;
-    case "validation-plan-status":
-      await renderMilestoneValidation(slide, slideSpec, context, slideNumber);
-      break;
-    case "feasibility-resources":
-      await renderMilestoneFeasibility(slide, slideSpec, context, slideNumber);
-      break;
-    case "risk-ethics-contingency":
-      await renderMilestoneRisk(slide, slideSpec, context, slideNumber);
-      break;
-    case "innovation-claims":
-      await renderInnovationBrackets(slide, slideSpec, context, slideNumber);
-      break;
-    case "expected-outcomes":
-      await renderConclusionList(slide, slideSpec, context, slideNumber);
-      break;
-    case "baseline-gantt":
-      await renderMilestoneGantt(slide, slideSpec, context, slideNumber, false);
-      break;
-    case "proposal-decision-check":
-      await renderMilestoneEvaluationFocus(slide, slideSpec, context, slideNumber);
-      break;
-    case "progress-snapshot":
-      await renderProgressSnapshot(slide, slideSpec, context, slideNumber);
-      break;
-    case "plan-vs-actual":
-      await renderPlanVsActual(slide, slideSpec, context, slideNumber);
-      break;
-    case "leading-result-single":
-      await renderFigureConclusion(slide, slideSpec, context, slideNumber);
-      break;
-    case "leading-results-multipanel":
-      await renderMultiImageEvidence(slide, slideSpec, context, slideNumber);
-      break;
-    case "deviation-cause-action":
-      await renderDeviationCauseAction(slide, slideSpec, context, slideNumber);
-      break;
-    case "remaining-work-updated-plan":
-      await renderMilestoneGantt(slide, slideSpec, context, slideNumber, true);
-      break;
-    case "group-cover":
-      await renderGroupCover(slide, spec, slideSpec, context);
-      break;
-    case "paper-agenda":
-      await renderPaperAgenda(slide, spec, slideSpec, context, slideNumber);
-      break;
-    case "paper-divider":
-      await renderPaperDivider(slide, spec, slideSpec, context);
-      break;
-    case "paper-profile":
-      await renderPaperProfile(slide, slideSpec, context, slideNumber);
-      break;
-    case "selection-rationale":
-      await renderSelectionRationale(slide, slideSpec, context, slideNumber);
-      break;
-    case "known-gap-question":
-      await renderKnownGapQuestion(slide, slideSpec, context, slideNumber);
-      break;
-    case "concept-framework":
-      await renderFramework(slide, slideSpec, context, slideNumber);
-      break;
-    case "study-design":
-      if (context.profile === "proposal_midterm") await renderMilestoneStudyDesign(slide, slideSpec, context, slideNumber);
-      else await renderProcess(slide, slideSpec, context, slideNumber, true);
-      break;
-    case "method-sequence":
-      await renderTimeline(slide, slideSpec, context, slideNumber);
-      break;
-    case "method-comparison":
-      await renderTableInsight(slide, slideSpec, context, slideNumber, false);
-      break;
-    case "sample-data-profile":
-      await renderSampleDataProfile(slide, slideSpec, context, slideNumber);
-      break;
-    case "single-result-evidence":
-      await renderFigureConclusion(slide, slideSpec, context, slideNumber);
-      break;
-    case "result-compare":
-      await renderImageCompare(slide, slideSpec, context, slideNumber, false);
-      break;
-    case "multi-result-evidence":
-      await renderMultiImageEvidence(slide, slideSpec, context, slideNumber);
-      break;
-    case "table-chart-result":
-      await renderChartInsight(slide, slideSpec, context, slideNumber);
-      break;
-    case "mechanism-explanation":
-      await renderSingleImage(slide, slideSpec, context, slideNumber, "left");
-      break;
-    case "claim-evidence-boundary":
-      await renderClaimEvidenceBoundary(slide, slideSpec, context, slideNumber);
-      break;
-    case "paper-conclusion":
-      await renderPaperConclusion(slide, slideSpec, context, slideNumber);
-      break;
-    case "critical-appraisal":
-      await renderCriticalAppraisal(slide, slideSpec, context, slideNumber);
-      break;
-    case "reproducibility-check":
-      await renderReproducibilityCheck(slide, slideSpec, context, slideNumber);
-      break;
-    case "cross-paper-matrix":
-      await renderTableInsight(slide, slideSpec, context, slideNumber, false);
-      break;
-    case "consensus-divergence":
-      await renderConsensusDivergence(slide, slideSpec, context, slideNumber);
-      break;
-    case "evidence-quality-map":
-      await renderEvidenceQualityMap(slide, slideSpec, context, slideNumber);
-      break;
-    case "research-evolution":
-      await renderTimeline(slide, slideSpec, context, slideNumber);
-      break;
-    case "transfer-to-our-work":
-      await renderTransferToOurWork(slide, slideSpec, context, slideNumber);
-      break;
-    case "discussion-questions":
-      await renderDiscussionQuestions(slide, slideSpec, context, slideNumber);
-      break;
-    case "decision-request":
-      await renderDecisionRequest(slide, slideSpec, context, slideNumber);
-      break;
-    case "next-reading-actions":
-      await renderNextReadingActions(slide, slideSpec, context, slideNumber);
-      break;
-    case "selected-sources":
-      await renderReferences(slide, slideSpec, context, slideNumber);
-      break;
-    case "group-closing":
-      await renderGroupClosing(slide, spec, slideSpec, context);
-      break;
-    case "cover":
-      await renderCover(slide, spec, slideSpec, context);
-      break;
-    case "agenda":
-      await renderAgenda(slide, spec, slideSpec, context, slideNumber);
-      break;
-    case "section-divider":
-    case "section":
-      if (context.profile === "proposal_midterm") await renderMilestoneSectionDivider(slide, spec, slideSpec, context);
-      else await renderSectionDivider(slide, spec, slideSpec, context);
-      break;
-    case "three-column-overview":
-      await renderThreeColumnOverview(slide, slideSpec, context, slideNumber);
-      break;
-    case "three-level-analysis":
-      await renderThreeLevelAnalysis(slide, slideSpec, context, slideNumber);
-      break;
-    case "four-point-list":
-      await renderFourPointList(slide, slideSpec, context, slideNumber);
-      break;
-    case "three-row-content":
-      await renderThreeRowContent(slide, slideSpec, context, slideNumber);
-      break;
-    case "multi-image-evidence":
-      await renderMultiImageEvidence(slide, slideSpec, context, slideNumber);
-      break;
-    case "four-objectives":
-      await renderFourObjectives(slide, slideSpec, context, slideNumber);
-      break;
-    case "thesis-framework":
-      await renderThesisFramework(slide, slideSpec, context, slideNumber);
-      break;
-    case "radial-methods":
-      await renderRadialMethods(slide, slideSpec, context, slideNumber);
-      break;
-    case "four-step-ribbon":
-      await renderFourStepRibbon(slide, slideSpec, context, slideNumber);
-      break;
-    case "innovation-brackets":
-      await renderInnovationBrackets(slide, slideSpec, context, slideNumber);
-      break;
-    case "four-results-cycle":
-      await renderFourResultsCycle(slide, slideSpec, context, slideNumber);
-      break;
-    case "two-image-results":
-      await renderTwoImageResults(slide, slideSpec, context, slideNumber);
-      break;
-    case "figure-conclusion":
-      await renderFigureConclusion(slide, slideSpec, context, slideNumber);
-      break;
-    case "conclusion-list":
-      await renderConclusionList(slide, slideSpec, context, slideNumber);
-      break;
-    case "three-outlook-columns":
-      await renderThreeOutlookColumns(slide, slideSpec, context, slideNumber);
-      break;
-    case "image-left-text-right":
-      await renderSingleImage(slide, slideSpec, context, slideNumber, "left");
-      break;
-    case "text-left-image-right":
-      await renderSingleImage(slide, slideSpec, context, slideNumber, "right");
-      break;
-    case "image-compare":
-      await renderImageCompare(slide, slideSpec, context, slideNumber, false);
-      break;
-    case "case-compare":
-      await renderImageCompare(slide, slideSpec, context, slideNumber, true);
-      break;
-    case "chart-insight":
-      await renderChartInsight(slide, slideSpec, context, slideNumber);
-      break;
-    case "table-insight":
-      await renderTableInsight(slide, slideSpec, context, slideNumber, false);
-      break;
-    case "validation-matrix":
-      await renderTableInsight(slide, slideSpec, context, slideNumber, true);
-      break;
-    case "formula-visual":
-      await renderFormulaVisual(slide, slideSpec, context, slideNumber);
-      break;
-    case "process":
-      await renderProcess(slide, slideSpec, context, slideNumber, false);
-      break;
-    case "framework":
-      await renderFramework(slide, slideSpec, context, slideNumber);
-      break;
-    case "timeline":
-      await renderTimeline(slide, slideSpec, context, slideNumber);
-      break;
-    case "quote-analysis":
-      await renderQuoteAnalysis(slide, slideSpec, context, slideNumber);
-      break;
-    case "contribution":
-      await renderContribution(slide, slideSpec, context, slideNumber);
-      break;
-    case "limitations":
-      await renderLimitations(slide, slideSpec, context, slideNumber);
-      break;
-    case "references":
-      await renderReferences(slide, slideSpec, context, slideNumber);
-      break;
-    case "free-evidence":
-      await renderFreeEvidence(slide, slideSpec, context, slideNumber);
-      break;
-    case "closing":
-      await renderClosing(slide, spec, slideSpec, context);
-      break;
-    case "claim-evidence":
-      await renderClaimEvidence(slide, slideSpec, context, slideNumber);
-      break;
+    case "group-cover": await renderGroupCover(slide, spec, slideSpec, context); break;
+    case "paper-agenda": await renderPaperAgenda(slide, spec, slideSpec, context, slideNumber); break;
+    case "paper-divider": await renderPaperDivider(slide, spec, slideSpec, context); break;
+    case "paper-profile": await renderPaperProfile(slide, slideSpec, context, slideNumber); break;
+    case "selection-rationale": await renderSelectionRationale(slide, slideSpec, context, slideNumber); break;
+    case "known-gap-question": await renderKnownGapQuestion(slide, slideSpec, context, slideNumber); break;
+    case "concept-framework": await renderFramework(slide, slideSpec, context, slideNumber); break;
+    case "study-design": await renderProcess(slide, slideSpec, context, slideNumber, true); break;
+    case "method-sequence": await renderTimeline(slide, slideSpec, context, slideNumber); break;
+    case "method-comparison": await renderTableInsight(slide, slideSpec, context, slideNumber, false); break;
+    case "sample-data-profile": await renderSampleDataProfile(slide, slideSpec, context, slideNumber); break;
+    case "single-result-evidence": await renderFigureConclusion(slide, slideSpec, context, slideNumber); break;
+    case "result-compare": await renderImageCompare(slide, slideSpec, context, slideNumber, false); break;
+    case "multi-result-evidence": await renderMultiImageEvidence(slide, slideSpec, context, slideNumber); break;
+    case "table-chart-result": await renderChartInsight(slide, slideSpec, context, slideNumber); break;
+    case "mechanism-explanation": await renderSingleImage(slide, slideSpec, context, slideNumber, "left"); break;
+    case "claim-evidence-boundary": await renderClaimEvidenceBoundary(slide, slideSpec, context, slideNumber); break;
+    case "paper-conclusion": await renderPaperConclusion(slide, slideSpec, context, slideNumber); break;
+    case "critical-appraisal": await renderCriticalAppraisal(slide, slideSpec, context, slideNumber); break;
+    case "reproducibility-check": await renderReproducibilityCheck(slide, slideSpec, context, slideNumber); break;
+    case "cross-paper-matrix": await renderTableInsight(slide, slideSpec, context, slideNumber, false); break;
+    case "consensus-divergence": await renderConsensusDivergence(slide, slideSpec, context, slideNumber); break;
+    case "evidence-quality-map": await renderEvidenceQualityMap(slide, slideSpec, context, slideNumber); break;
+    case "research-evolution": await renderTimeline(slide, slideSpec, context, slideNumber); break;
+    case "transfer-to-our-work": await renderTransferToOurWork(slide, slideSpec, context, slideNumber); break;
+    case "discussion-questions": await renderDiscussionQuestions(slide, slideSpec, context, slideNumber); break;
+    case "decision-request": await renderDecisionRequest(slide, slideSpec, context, slideNumber); break;
+    case "next-reading-actions": await renderNextReadingActions(slide, slideSpec, context, slideNumber); break;
+    case "selected-sources": await renderReferences(slide, slideSpec, context, slideNumber); break;
+    case "group-closing": await renderGroupClosing(slide, spec, slideSpec, context); break;
+    case "free-evidence": await renderFreeEvidence(slide, slideSpec, context, slideNumber); break;
     default:
-      throw new Error(`Unsupported layout "${layoutId}" on slide ${slideSpec.id ?? slideNumber}. Use a registered layout or family=free_canvas with render_data.custom_elements.`);
+      throw new Error(`Unsupported layout "${layoutId}" on slide ${slideSpec.id ?? slideNumber}. Use a Paper Club PPT layout or family=free_canvas with render_data.custom_elements.`);
   }
   applySlideTextEmphasis(slide, slideSpec, context);
-  if (!["cover", "section-divider", "section", "closing", "group-cover", "paper-agenda", "paper-divider", "group-closing", "cover-short-title", "cover-long-title", "agenda-adaptive", "closing-feedback"].includes(layoutId)) addSourceHint(slide, slideSpec, context);
+  if (!["group-cover", "paper-agenda", "paper-divider", "group-closing"].includes(layoutId)) addSourceHint(slide, slideSpec, context);
   setNotes(slide, slideSpec);
 }
 
@@ -4984,9 +2904,8 @@ export async function createPresentationFromSpec(spec, options = {}) {
   presentation.theme.colorScheme = presentationTheme(colors, tokens);
   const layouts = createSemanticLayouts(presentation, colors);
   const sectionIndex = new Map(list(spec.sections).map((section) => [section?.id, section]));
-  const mode = profile === "proposal_midterm" ? normalizeMilestoneMode(spec) : null;
   const context = {
-    spec, profile, mode, tokens, colors, brand, baseDir, assetIndex, sectionIndex,
+    spec, profile, tokens, colors, brand, baseDir, assetIndex, sectionIndex,
     allowPlaceholder: isProductionArtifact(spec) ? false : (options.allowPlaceholder ?? true),
   };
   const slides = [...spec.slides].sort((left, right) => Number(first(left.order, 0)) - Number(first(right.order, 0)));
@@ -5058,7 +2977,7 @@ export async function exportPresentation(presentation, outputPath) {
   return { output: absolute, bytes: stat.size, slideCount: presentation.slides.items.length };
 }
 
-export async function loadTemplateConfiguration(profile = "final_defense") {
+export async function loadTemplateConfiguration(profile = "group_meeting_literature") {
   const normalizedProfile = normalizeProfile({ profile });
   const templateDir = PROFILE_TEMPLATE_DIRS[normalizedProfile];
   const [tokens, presets, registry] = await Promise.all([

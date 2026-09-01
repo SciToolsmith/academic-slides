@@ -14,7 +14,7 @@ import {
 
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(TEST_DIR, "..");
-const SAMPLE_SPEC = path.join(SKILL_DIR, "assets", "final-defense-universal", "sample-deck-spec.json");
+const SAMPLE_SPEC = path.join(SKILL_DIR, "assets", "group-meeting-literature-universal", "sample-deck-spec.json");
 
 function galleryFixture(sample) {
   const slides = sample.slides.slice(0, 3).map((slide, index) => ({ ...structuredClone(slide), order: index + 1 }));
@@ -37,9 +37,9 @@ function galleryFixture(sample) {
 }
 
 async function main() {
-  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "academic-slides-project-cache-"));
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-project-cache-"));
   const originalRuntimeModules = process.env.RUNTIME_NODE_MODULES;
-  const originalCjkFont = process.env.ACADEMIC_SLIDES_CJK_FONT;
+  const originalCjkFont = process.env.PAPER_CLUB_PPT_CJK_FONT;
   try {
     const inputDir = path.join(temporary, "input");
     const outputDir = path.join(temporary, "output");
@@ -72,7 +72,7 @@ async function main() {
         return { output: args.output };
       },
     };
-    const options = { spec: specPath, outputDir, stem: "缓存测试_毕业答辩", theme: "blue" };
+    const options = { spec: specPath, outputDir, stem: "缓存测试_组会汇报", theme: "blue" };
 
     const first = await buildProject(options, builders);
     assert.equal(first.cached, false);
@@ -95,7 +95,7 @@ async function main() {
     const directSpecPath = path.join(inputDir, "direct-asset-spec.json");
     await fs.writeFile(directAssetPath, "<svg>one</svg>");
     await fs.writeFile(directSpecPath, JSON.stringify({
-      profile: "final_defense",
+      profile: "group_meeting_literature",
       slides: [{ formula: { asset_ref: "assets/direct-formula.svg" } }],
     }));
     const directBefore = await computeProjectSignature({ spec: directSpecPath, stem: options.stem, theme: options.theme });
@@ -109,9 +109,9 @@ async function main() {
     await fs.writeFile(sourceBackedPath, "source-one");
     await fs.writeFile(unusedSourcePath, "unused-one");
     await fs.writeFile(sourceBackedSpecPath, JSON.stringify({
-      profile: "final_defense",
+      profile: "group_meeting_literature",
       sources: [
-        { id: "source-figure", type: "thesis_figure", path: "assets/source-backed.png" },
+        { id: "source-figure", type: "paper_figure", path: "assets/source-backed.png" },
         { id: "unused-paper", type: "paper_text", path: "assets/unused-source.pdf" },
       ],
       slides: [{ visuals: [{ asset_ref: "source-figure" }] }],
@@ -130,18 +130,18 @@ async function main() {
     await fs.writeFile(path.join(runtimeDocxDir, "package.json"), JSON.stringify({ name: "docx", version: "1.0.0" }));
     await fs.writeFile(path.join(runtimeDocxDir, "dist", "index.mjs"), "export const runtime = 1;\n");
     process.env.RUNTIME_NODE_MODULES = runtimeDir;
-    process.env.ACADEMIC_SLIDES_CJK_FONT = "Cache Test Font A";
+    process.env.PAPER_CLUB_PPT_CJK_FONT = "Cache Test Font A";
     const runtimeBefore = await computeProjectSignature({ spec: directSpecPath, stem: options.stem, theme: options.theme });
     await fs.writeFile(path.join(runtimeDocxDir, "package.json"), JSON.stringify({ name: "docx", version: "2.0.0" }));
     const afterRuntimeManifestEdit = await computeProjectSignature({ spec: directSpecPath, stem: options.stem, theme: options.theme });
     assert.notEqual(afterRuntimeManifestEdit.signature, runtimeBefore.signature);
-    process.env.ACADEMIC_SLIDES_CJK_FONT = "Cache Test Font B";
+    process.env.PAPER_CLUB_PPT_CJK_FONT = "Cache Test Font B";
     const afterFontEnvironmentEdit = await computeProjectSignature({ spec: directSpecPath, stem: options.stem, theme: options.theme });
     assert.notEqual(afterFontEnvironmentEdit.signature, afterRuntimeManifestEdit.signature);
     if (originalRuntimeModules === undefined) delete process.env.RUNTIME_NODE_MODULES;
     else process.env.RUNTIME_NODE_MODULES = originalRuntimeModules;
-    if (originalCjkFont === undefined) delete process.env.ACADEMIC_SLIDES_CJK_FONT;
-    else process.env.ACADEMIC_SLIDES_CJK_FONT = originalCjkFont;
+    if (originalCjkFont === undefined) delete process.env.PAPER_CLUB_PPT_CJK_FONT;
+    else process.env.PAPER_CLUB_PPT_CJK_FONT = originalCjkFont;
 
     const rendered = await buildProject({ ...options, render: true }, builders);
     assert.equal(rendered.cached, false);
@@ -189,8 +189,8 @@ async function main() {
     for (const [key, filePath] of Object.entries(repairedPreviewManifest.outputs)) {
       assert.equal(await fs.readFile(filePath, "utf8"), publishedBeforeFailure[key]);
     }
-    assert.equal(JSON.parse(await fs.readFile(path.join(outputDir, ".academic-slides-build-state.json"), "utf8")).signature, repairedPreviewManifest.signature);
-    assert.equal((await fs.readdir(outputDir)).some((name) => /^\.academic-slides-build-\d+-/.test(name)), false);
+    assert.equal(JSON.parse(await fs.readFile(path.join(outputDir, ".paper-club-ppt-build-state.json"), "utf8")).signature, repairedPreviewManifest.signature);
+    assert.equal((await fs.readdir(outputDir)).some((name) => /^\.paper-club-ppt-build-\d+-/.test(name)), false);
     assert.equal(await fs.access(projectLockPath(outputDir, options.stem)).then(() => true).catch(() => false), false);
 
     const third = await buildProject(options, builders);
@@ -198,15 +198,15 @@ async function main() {
     assert.notEqual(third.signature, first.signature);
     assert.deepEqual(calls, { deck: 6, word: 6, builder: 6 });
     assert.equal(await fs.access(repairedPreviewManifest.previewDir).then(() => true).catch(() => false), false);
-    assert.ok(JSON.parse(await fs.readFile(path.join(outputDir, ".academic-slides-build-state.json"), "utf8")).signature);
+    assert.ok(JSON.parse(await fs.readFile(path.join(outputDir, ".paper-club-ppt-build-state.json"), "utf8")).signature);
 
     const concurrentInputDir = path.join(temporary, "concurrent-input");
     const concurrentOutputDir = path.join(temporary, "concurrent-output");
     await fs.mkdir(concurrentInputDir, { recursive: true });
     const concurrentSpecA = path.join(concurrentInputDir, "a.json");
     const concurrentSpecB = path.join(concurrentInputDir, "b.json");
-    await fs.writeFile(concurrentSpecA, JSON.stringify({ profile: "final_defense", tag: "A", slides: [] }));
-    await fs.writeFile(concurrentSpecB, JSON.stringify({ profile: "final_defense", tag: "B", slides: [] }));
+    await fs.writeFile(concurrentSpecA, JSON.stringify({ profile: "group_meeting_literature", tag: "A", slides: [] }));
+    await fs.writeFile(concurrentSpecB, JSON.stringify({ profile: "group_meeting_literature", tag: "B", slides: [] }));
     let activeDeckBuilds = 0;
     let maximumActiveDeckBuilds = 0;
     const concurrentBuilders = {
@@ -233,14 +233,14 @@ async function main() {
         return { output };
       },
     };
-    const concurrentStem = "并发缓存测试_硕士答辩";
+    const concurrentStem = "并发缓存测试_组会汇报";
     const concurrentOptions = { outputDir: concurrentOutputDir, stem: concurrentStem, theme: "blue" };
     const [concurrentA, concurrentB] = await Promise.all([
       buildProject({ ...concurrentOptions, spec: concurrentSpecA }, concurrentBuilders),
       buildProject({ ...concurrentOptions, spec: concurrentSpecB }, concurrentBuilders),
     ]);
     assert.equal(maximumActiveDeckBuilds, 1);
-    const concurrentState = JSON.parse(await fs.readFile(path.join(concurrentOutputDir, ".academic-slides-build-state.json"), "utf8"));
+    const concurrentState = JSON.parse(await fs.readFile(path.join(concurrentOutputDir, ".paper-club-ppt-build-state.json"), "utf8"));
     const concurrentSignatureA = (await computeProjectSignature({ spec: concurrentSpecA, stem: concurrentStem, theme: "blue" })).signature;
     const concurrentSignatureB = (await computeProjectSignature({ spec: concurrentSpecB, stem: concurrentStem, theme: "blue" })).signature;
     const finalTag = concurrentState.signature === concurrentSignatureA ? "A" : concurrentState.signature === concurrentSignatureB ? "B" : null;
@@ -282,8 +282,8 @@ async function main() {
   } finally {
     if (originalRuntimeModules === undefined) delete process.env.RUNTIME_NODE_MODULES;
     else process.env.RUNTIME_NODE_MODULES = originalRuntimeModules;
-    if (originalCjkFont === undefined) delete process.env.ACADEMIC_SLIDES_CJK_FONT;
-    else process.env.ACADEMIC_SLIDES_CJK_FONT = originalCjkFont;
+    if (originalCjkFont === undefined) delete process.env.PAPER_CLUB_PPT_CJK_FONT;
+    else process.env.PAPER_CLUB_PPT_CJK_FONT = originalCjkFont;
     await fs.rm(temporary, { recursive: true, force: true });
   }
   console.log("build-project-cache.test.mjs: PASS");
