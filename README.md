@@ -65,13 +65,21 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 | 输出一份难以继续维护的静态文件 | 同时交付项目 `.mjs` 与实际使用的素材，后续可重新构建 |
 
 ```text
-源材料 → 证据与图片索引 → 叙事和逐页规划 → 入选素材 → PPTX + DOCX + MJS → 全页质检
+PDF → 全量图表轻索引/条件物化 → 简短 MD 说明 → 证据与灵活大纲 → 核心资产 → PPTX + DOCX + MJS → 一次全稿 QA
 ```
 
 - 章节数量和名称由材料决定，不默认五部分。
 - 用户主动提供的汇报时长用于近似控制信息量与讲稿长度，未提供时不追问，也不虚构默认时长。
 - 内置学术蓝、典雅红、沉静紫和清朗青四套配色；未指定时一次询问，并推荐学术蓝。
 - 注册布局不适合内容关系时，直接使用可编辑科研画布重新构图；分支、汇合、反馈和复杂证据图不会被强行压成线性流程或双图卡片。
+
+## v0.4 自动化闭环
+
+- 对有文本层的常规论文 PDF，`extract-paper-assets.mjs` 建立全部可检出 Figure/Table caption 索引和派生 MD；小型单篇默认物化全部去图注 crop，大集合全量索引后只物化入选项。
+- 文献组会使用语义科学合同，不固定页序：必须讲清问题、证据如何产生、源证据支持的核心发现、可信边界和汇报者判断。只对 `equation_centric` 论文强制核心公式，不以全论文公式比例作为 KPI。
+- `build-project.mjs --project-dir` 在昂贵渲染前检查 config、paper/evidence index、asset manifest、大纲和 deck 的跨文件闭环。
+- 没有本地 LaTeX 也可用内置 MathJax 生成自包含路径 SVG；只处理经核对的 ASCII TeX 子集，不证明原公式正确。
+- 默认 `balanced_95` 是工作预算而不是质量评分：硬门禁不降级，通常一次全稿 QA 加一次定向修复，最后的边缘间距和装饰性微调留给人。
 
 ## 三套专业工作流
 
@@ -153,6 +161,9 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 - 非正式周报式研究进展组会
 - 精确到秒的演讲时长保证
 - 脱离 Codex bundled runtime 的独立 npm 应用
+- 对扫描件或所有非常规版面执行通用图像语义分割；这些情况需要上游 OCR、定位信息或一次核心资产定向修正
+- 默认把所有表格转为 CSV/可编辑表、索引或证明全部公式、自动修正论文数学错误
+- 对每页像素级打磨到 100%；结构验证也不等于同行评审
 
 ## 安全、隐私与品牌
 
@@ -161,7 +172,7 @@ git clone https://github.com/SciToolsmith/academic-slides.git "$HOME/.agents/ski
 - 附件和模型数据的实际处理方式以你的 Codex 工作区及数据控制设置为准。
 - Skill 不捆绑大学校徽。优先使用用户提供或学校官网核验的标识；无法确认时使用文字校名。
 - 校徽与主题配色独立：校徽保持原色，不从学校或校徽颜色自动推断主题。
-- 公式渲染拒绝不受信任的 TeX 控制命令。
+- 公式渲染拒绝不受信任的 TeX 控制命令；Skill 内置约 1.8 MB 的 MathJax 路径 SVG fallback，无需用户安装 TeX 或 npm 包。
 
 <details>
 <summary><strong>运行环境与维护者验证</strong></summary>
@@ -200,6 +211,7 @@ node scripts/validate-skill-assets.mjs . --profile release --strict
 
 ```bash
 node scripts/build-project.mjs \
+  --project-dir /path/to/project \
   --spec /path/to/deck-spec.json \
   --output-dir /path/to/internal-build \
   --stem 短题名_汇报类型 \
@@ -208,7 +220,7 @@ node scripts/build-project.mjs \
 
 ### 生成质量约束
 
-- 公式优先通过本地 LaTeX 同源生成 SVG 与透明 PNG；无法使用 LaTeX 时才采用可靠降级方案。
+- 公式优先通过本地 LaTeX 同源生成 SVG 与透明 PNG；无法使用 LaTeX 时，`scripts/render-formula.mjs` 自动使用内置 MathJax 生成自包含路径 SVG，并在 bundled `sharp` 可用时补充透明 PNG。
 - 强调色只服务于核心数字、结论、偏差或风险，不把每页都做成“满屏重点”。
 
 ### 贡献流程

@@ -14,7 +14,7 @@
     "papers"
   ],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"enum": ["1.0", "1.1"]},
     "project_id": {"$ref": "#/$defs/stableId"},
     "mode": {"enum": ["single_paper", "multi_paper"]},
     "focal_paper_ids": {
@@ -83,8 +83,11 @@
         "bibliography",
         "metadata_verification",
         "analysis",
-        "figure_manifest_path",
         "presentation_priority"
+      ],
+      "anyOf": [
+        {"required": ["asset_manifest_path"]},
+        {"required": ["figure_manifest_path"]}
       ],
       "properties": {
         "paper_id": {"$ref": "#/$defs/stableId"},
@@ -95,7 +98,11 @@
         "analysis": {"$ref": "#/$defs/paperAnalysis"},
         "figure_manifest_path": {
           "type": ["string", "null"],
-          "description": "Project-relative path to this paper's figures.manifest.json; use null only when the source contains no figures."
+          "description": "Legacy project-relative path to this paper's figures.manifest.json. Prefer asset_manifest_path for new projects."
+        },
+        "asset_manifest_path": {
+          "type": ["string", "null"],
+          "description": "Project-relative path to the lightweight paper-assets.json figure/table inventory; use null only when the source contains no numbered figures or tables. Core formulas remain evidence-index records rather than bulk-rendered assets."
         },
         "venue_metrics": {
           "type": "array",
@@ -200,6 +207,14 @@
           "items": {"type": "string", "minLength": 1}
         },
         "gap": {"type": ["string", "null"]},
+        "evidence_logic": {
+          "type": ["string", "null"],
+          "description": "Concise explanation of how the study design and observations support the paper's main claims."
+        },
+        "method_formality": {
+          "enum": ["non_equation", "equation_supported", "equation_centric"],
+          "description": "Whether understanding the method depends on equations; used to activate formula coverage only when scientifically justified."
+        },
         "method": {
           "type": "array",
           "items": {"type": "string", "minLength": 1}
@@ -214,6 +229,16 @@
           "type": "array",
           "items": {"type": "string", "minLength": 1}
         },
+        "credibility_checks": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
+        "boundary_conditions": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "default": []
+        },
         "presenter_observations": {
           "type": "array",
           "items": {"$ref": "#/$defs/presenterObservation"},
@@ -227,12 +252,23 @@
       "required": ["id", "claim", "evidence_refs"],
       "properties": {
         "id": {"$ref": "#/$defs/stableId"},
+        "claim_id": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/stableId"}
+          ],
+          "description": "Optional explicit link to deck-spec.claim_evidence_map; defaults semantically to id."
+        },
         "claim": {"type": "string", "minLength": 1},
         "evidence_refs": {
           "type": "array",
           "minItems": 1,
           "items": {"$ref": "#/$defs/stableId"},
           "uniqueItems": true
+        },
+        "presentation_priority": {
+          "enum": ["core", "supporting", "context", "exclude"],
+          "default": "supporting"
         },
         "scope_limit": {"type": ["string", "null"]}
       }

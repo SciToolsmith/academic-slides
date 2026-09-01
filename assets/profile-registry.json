@@ -1,13 +1,45 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
+  "skillVersion": "0.4.0",
   "defaultProfile": "final_defense",
   "backwardCompatibility": {
     "missingDeckProfile": "final_defense"
   },
+  "workflow": {
+    "phases": ["intake", "source", "assets", "outline", "build", "qa", "delivery"],
+    "phaseReferences": {
+      "intake": ["references/intake.md"],
+      "source": ["references/workflow.md", "references/evidence-and-notes.md"],
+      "assets": ["references/asset-preparation.md"],
+      "outline": ["references/layout-selection.md"],
+      "build": ["references/workflow.md"],
+      "qa": ["references/qa.md"],
+      "delivery": ["references/delivery.md"]
+    },
+    "qualityBudgets": {
+      "default": "balanced_95",
+      "balanced_95": {
+        "fullDeckQaPasses": 1,
+        "targetedRepairPasses": 1,
+        "promoteAdvisoryWarnings": false
+      },
+      "strict_release": {
+        "fullDeckQaPasses": 1,
+        "targetedRepairPasses": 1,
+        "promoteAdvisoryWarnings": true
+      }
+    }
+  },
   "profiles": {
     "final_defense": {
       "id": "final_defense",
+      "detect": ["毕业答辩", "学位论文答辩", "thesis defense", "dissertation defense"],
       "reference": "references/final-defense.md",
+      "assetPolicy": {
+        "inventoryKind": "figures_manifest",
+        "defaultMaterialization": "original_once",
+        "formulaMaterialization": "selected_core_only"
+      },
       "assetDirectory": "assets/final-defense-universal",
       "modes": [],
       "layoutLibrary": "layout-library.pptx",
@@ -30,7 +62,13 @@
     },
     "proposal_midterm": {
       "id": "proposal_midterm",
+      "detect": ["开题答辩", "研究计划答辩", "中期答辩", "中期检查", "proposal defense", "midterm review"],
       "reference": "references/proposal-midterm.md",
+      "assetPolicy": {
+        "inventoryKind": "selected_evidence",
+        "defaultMaterialization": "selected_only",
+        "formulaMaterialization": "selected_core_only"
+      },
       "assetDirectory": "assets/proposal-midterm-universal",
       "modes": [
         "proposal",
@@ -56,7 +94,16 @@
     },
     "group_meeting_literature": {
       "id": "group_meeting_literature",
+      "detect": ["组会文献汇报", "单篇文献精读", "多篇文献精读", "journal club", "paper presentation"],
       "reference": "references/group-meeting-literature.md",
+      "assetPolicy": {
+        "inventoryKind": "paper_assets",
+        "extractor": "scripts/extract-paper-assets.mjs",
+        "schema": "schemas/paper-assets.schema.json",
+        "defaultMaterialization": "auto",
+        "formulaMaterialization": "selected_core_only"
+      },
+      "scientificContract": "group_meeting_v1",
       "assetDirectory": "assets/group-meeting-literature-universal",
       "modes": [
         "single_paper",

@@ -2,6 +2,7 @@ name: Portable validation
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -16,6 +17,9 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      matrix:
+        node-version: [18, 22]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -23,7 +27,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Poppler runtime
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
 
       - name: Validate skill scaffold
         run: node scripts/validate-skill-assets.mjs . --profile scaffold --strict
@@ -31,5 +38,30 @@ jobs:
       - name: Run deterministic contract evals
         run: node scripts/run-skill-evals.mjs --skill-dir .
 
+      - name: Test bundled MathJax renderer
+        run: node tests/mathjax-formula-render.test.mjs
+
+      - name: Test paper asset extraction
+        run: node tests/paper-asset-extraction.test.mjs
+
+      - name: Test group-meeting scientific content contract
+        run: node tests/scientific-content-contract.test.mjs
+
+      - name: Test evidence closure and scientific design
+        run: |
+          node tests/p0-security-and-evidence.test.mjs
+          node tests/scientific-design-quality.test.mjs
+          node tests/build-project-cache.test.mjs
+
       - name: Check portable release package
+        if: matrix.node-version == 22
         run: node scripts/package-skill.mjs --skill-dir . --check
+
+  required-validation:
+    name: validate
+    if: always()
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every portable validation job
+        run: test "${{ needs.validate.result }}" = "success"

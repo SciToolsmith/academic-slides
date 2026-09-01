@@ -6,6 +6,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readJsonFile, validateDeckSpecFile, validateJsonValue } from "./validate-deck-spec.mjs";
+import { validateScientificContent } from "./validate-scientific-content.mjs";
 import { validateScientificDesignFile } from "./validate-scientific-design.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -287,7 +288,39 @@ async function validateMilestoneAnalysis(analysisPath, config, findings, require
 }
 
 async function validateGroupPaperManifests(projectDir, paperIndexPath, paperIndex, findings, requireSchema) {
+  const paperAssetManifests = [];
   for (const [index, paper] of paperIndexEntries(paperIndex).entries()) {
+    const assetRelative = paper?.asset_manifest_path;
+    if (assetRelative != null) {
+      if (typeof assetRelative !== "string" || !assetRelative.trim()) {
+        findings.push(finding("error", "paper-index.asset-manifest", paperIndexPath, `papers[${index}].asset_manifest_path must be a non-empty path or null.`));
+        continue;
+      }
+      const candidates = path.isAbsolute(assetRelative)
+        ? [assetRelative]
+        : [path.resolve(projectDir, assetRelative), path.resolve(path.dirname(paperIndexPath), assetRelative)];
+      const availability = await Promise.all(candidates.map(exists));
+      const resolved = candidates[availability.findIndex(Boolean)];
+      if (!resolved) {
+        findings.push(finding("error", "paper-index.asset-manifest.missing", candidates[0], `papers[${index}].asset_manifest_path points to a missing file.`));
+        continue;
+      }
+      const manifest = await validateJsonAgainstBundledSchema(resolved, "paper-assets.schema.json", findings, requireSchema);
+      if (manifest) {
+        for (const [assetIndex, asset] of (manifest.assets ?? []).entries()) {
+          const relativeFile = asset?.crop?.file ?? asset?.materialization?.path;
+          if (asset?.crop?.status !== "materialized" || typeof relativeFile !== "string" || !relativeFile.trim()) continue;
+          const fileCandidates = path.isAbsolute(relativeFile)
+            ? [relativeFile]
+            : [path.resolve(path.dirname(resolved), relativeFile), path.resolve(projectDir, relativeFile)];
+          const fileAvailability = await Promise.all(fileCandidates.map(exists));
+          if (!fileAvailability.some(Boolean)) findings.push(finding("error", "paper-assets.file.missing", fileCandidates[0], `assets[${assetIndex}] is materialized but its crop file is missing.`));
+        }
+        paperAssetManifests.push({ paper_id: paper?.paper_id ?? paper?.id, path: resolved, manifest });
+      }
+      continue;
+    }
+
     const relative = paper?.figure_manifest_path;
     if (relative == null) continue;
     if (typeof relative !== "string" || !relative.trim()) {
@@ -306,6 +339,7 @@ async function validateGroupPaperManifests(projectDir, paperIndexPath, paperInde
     const manifest = await validateJsonAgainstBundledSchema(resolved, "figures-manifest.schema.json", findings, requireSchema);
     if (manifest) await validateManifestFiles(projectDir, resolved, manifest, findings);
   }
+  return paperAssetManifests;
 }
 
 async function validateManifestFiles(projectDir, manifestPath, manifest, findings) {
@@ -606,6 +640,8 @@ export async function validateProject(projectPath, options = {}) {
   let sourceManifest = null;
   let evidenceIndex = null;
   let milestoneAnalysis = null;
+  let paperIndex = null;
+  let paperAssetManifests = [];
 
   if (stageIncludes(targetStage, "source")) {
     if (profileId === GROUP_MEETING_PROFILE) await validateGroupSources(projectDir, config, findings);
@@ -632,8 +668,8 @@ export async function validateProject(projectPath, options = {}) {
       }
     }
     if (profileId === GROUP_MEETING_PROFILE) {
-      const paperIndex = await validatePaperIndex(paths.paperIndex, findings, literatureMode, options.requireSchemas);
-      if (paperIndex) await validateGroupPaperManifests(projectDir, paths.paperIndex, paperIndex, findings, options.requireSchemas);
+      paperIndex = await validatePaperIndex(paths.paperIndex, findings, literatureMode, options.requireSchemas);
+      if (paperIndex) paperAssetManifests = await validateGroupPaperManifests(projectDir, paths.paperIndex, paperIndex, findings, options.requireSchemas);
     } else if (profileId === FINAL_PROFILE) {
       if (!(await exists(paths.figuresManifest))) findings.push(finding("error", "figures.manifest.missing", paths.figuresManifest, "Figure manifest is required at the assets stage."));
       else {
@@ -693,6 +729,10 @@ export async function validateProject(projectPath, options = {}) {
         const countedSlides = policy?.include_appendix_in_count === true ? (deck.slides ?? []) : (deck.slides ?? []).filter((slide) => slide?.kind !== "appendix");
         if (policy?.mode === "fixed" && Number.isInteger(policy.target_slide_count) && countedSlides.length !== policy.target_slide_count) findings.push(finding("error", "deck.page-policy", paths.deckSpec, `Project requires ${policy.target_slide_count} counted slides; deck has ${countedSlides.length}.`));
         validateEvidenceClosure(config, sourceManifest, evidenceIndex, deck, paths, findings);
+        const scientificContent = validateScientificContent({ config, paperIndex, evidenceIndex, deck, assetManifests: paperAssetManifests }, { strict: options.strict });
+        for (const item of scientificContent.issues) {
+          findings.push(finding(item.severity, item.code, paths.deckSpec, `${item.path}: ${item.message}`, { strictExempt: item.strict_exempt === true }));
+        }
       } catch (error) {
         findings.push(finding("error", "deck.spec.invalid", paths.deckSpec, error.message));
       }

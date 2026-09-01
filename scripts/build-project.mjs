@@ -8,6 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { validateProject } from "./validate-project.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
@@ -32,7 +33,13 @@ const RELEVANT_SOURCE_FILES = [
   "scripts/speaker-notes.mjs",
   "scripts/validate-deck-spec.mjs",
   "scripts/validate-scientific-design.mjs",
+  "scripts/validate-scientific-content.mjs",
+  "scripts/validate-project.mjs",
   "schemas/deck-spec.schema.json",
+  "schemas/evidence-index.schema.json",
+  "schemas/paper-index.schema.json",
+  "schemas/paper-assets.schema.json",
+  "schemas/project-config.schema.json",
   "assets/profile-registry.json",
 ];
 const RENDERER_SOURCE_ASSET_TYPES = new Set([
@@ -52,6 +59,7 @@ function usage() {
     "",
     "Options:",
     "  --theme <name>  blue | red | purple | cyan",
+    "  --project-dir <dir>  Validate the complete source/evidence/outline/deck project before building",
     "  --render        Render one internal slide preview after the build",
     "  --force         Ignore a matching build signature",
     "  -h, --help      Show this help",
@@ -65,7 +73,7 @@ function parseArgs(argv) {
     if (token === "-h" || token === "--help") result.help = true;
     else if (token === "--render") result.render = true;
     else if (token === "--force") result.force = true;
-    else if (["--spec", "--output-dir", "--stem", "--theme"].includes(token)) {
+    else if (["--spec", "--output-dir", "--stem", "--theme", "--project-dir"].includes(token)) {
       const value = argv[++index];
       if (!value || value.startsWith("--")) throw new Error(`${token} requires a value.`);
       result[token.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
@@ -544,6 +552,23 @@ export async function buildProject(options, injectedBuilders = null) {
   const statePath = path.join(outputDir, STATE_FILENAME);
   const previewDir = path.join(outputDir, PREVIEW_DIRNAME);
   return withProjectLock(outputDir, stem, async () => {
+  let projectValidation = null;
+  const explicitProjectDir = options.projectDir ? path.resolve(options.projectDir) : null;
+  const specDirectory = path.dirname(specPath);
+  const autoProjectDir = explicitProjectDir == null && await Promise.any([
+    "project-config.json", "project.config.json", "project.json",
+  ].map(async (filename) => (await isFile(path.join(specDirectory, filename))) ? specDirectory : Promise.reject(new Error("missing")))).catch(() => null);
+  const validationProjectDir = explicitProjectDir ?? autoProjectDir;
+  if (validationProjectDir) {
+    projectValidation = await validateProject(validationProjectDir, { stage: "deck", strict: false, requireSchemas: true });
+    if (path.resolve(projectValidation.paths?.deckSpec ?? "") !== specPath) {
+      throw new Error(`Project validation resolved a different deck spec (${projectValidation.paths?.deckSpec ?? "missing"}) than --spec (${specPath}). Set paths.deck_spec in project-config.json.`);
+    }
+    if (!projectValidation.ok) {
+      const errors = projectValidation.issues.filter((item) => item.severity === "error");
+      throw new Error(`Cross-file project validation failed (${errors.length} error(s)): ${errors.slice(0, 8).map((item) => item.code).join(", ")}.`);
+    }
+  }
   const signatureStartedAt = performance.now();
   const signatureInfo = await computeProjectSignature({ spec: specPath, stem, theme });
   const signatureMs = Math.round(performance.now() - signatureStartedAt);
@@ -565,6 +590,7 @@ export async function buildProject(options, injectedBuilders = null) {
         signature_ms: signatureMs,
         cache_hit: true,
       },
+      projectValidation,
     };
   }
 
@@ -646,6 +672,7 @@ export async function buildProject(options, injectedBuilders = null) {
       deck: { ...deckReport, output: outputs.pptx, previewDir: options.render === true ? previewDir : null },
       word: { ...wordReport, output: outputs.docx },
       builder: { ...builderReport, output: outputs.mjs },
+      projectValidation,
     },
     metrics: {
       total_ms: totalMs,

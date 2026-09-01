@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "project_id", "evidence"],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"enum": ["1.0", "1.1"]},
     "project_id": {"$ref": "#/$defs/stableId"},
     "generated_at": {"type": "string", "minLength": 1},
     "evidence": {
@@ -32,6 +32,18 @@
       "properties": {
         "id": {"$ref": "#/$defs/stableId"},
         "type": {"$ref": "#/$defs/nonEmptyString"},
+        "modality": {
+          "enum": ["text", "figure", "table", "formula", "diagram", "metric", "dataset", "other"]
+        },
+        "presentation_priority": {
+          "enum": ["core", "supporting", "context", "exclude"]
+        },
+        "display_requirement": {
+          "enum": ["main", "supporting", "appendix", "optional", "exclude"]
+        },
+        "formula_role": {
+          "enum": ["definition", "objective", "constraint", "method_core", "result_explanation", "derivation", "none"]
+        },
         "evidence_role": {
           "enum": ["background", "gap", "hypothesis", "plan_commitment", "feasibility", "preliminary_result", "progress_update", "completed_result", "deviation", "risk", "corrective_action", "expected_output", "other"]
         },

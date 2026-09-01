@@ -3,6 +3,7 @@
 import { access, readFile, realpath } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { constants as fsConstants } from "node:fs";
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { promisify } from "node:util";
 import path from "node:path";
@@ -14,6 +15,14 @@ const require = createRequire(import.meta.url);
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
 const MIN_NODE_MAJOR = 18;
+const BUNDLED_MATHJAX_VERSION = "3.2.2";
+const BUNDLED_MATHJAX_FILES = Object.freeze({
+  "es5/node-main.js": "a3e6f8f69fb7a786f4b4d08f0f17781381996ec2c278a0f406f9e812ffa809b2",
+  "es5/input/tex-full.js": "de76b151355304bde8217d8056264d9c2bec2f47acb7ffd4d142cbe14f5b0035",
+  "es5/output/svg.js": "6fdee599b240851fd27b31017e1a18802d99743ac4fae8204998997176647609",
+  "es5/output/svg/fonts/tex.js": "6afb8e7f4f7f19255c4b111f4a00c06716b70ea9b977516127c054e7799d2da4",
+  "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+});
 
 function usage() {
   return [
@@ -124,6 +133,32 @@ async function packageCheck(id, packageName, required = false) {
   return { id, kind: "node-package", required, available: false, package: packageName, path: null, version: null };
 }
 
+export async function bundledMathJaxCheck(skillDir) {
+  const root = path.join(skillDir, "scripts", "vendor", "mathjax", BUNDLED_MATHJAX_VERSION);
+  const missing = [];
+  const mismatched = [];
+  for (const [relative, expectedHash] of Object.entries(BUNDLED_MATHJAX_FILES)) {
+    try {
+      const filePath = path.join(root, relative);
+      await access(filePath, fsConstants.R_OK);
+      const actualHash = createHash("sha256").update(await readFile(filePath)).digest("hex");
+      if (actualHash !== expectedHash) mismatched.push({ file: relative, expected: expectedHash, actual: actualHash });
+    } catch {
+      missing.push(relative);
+    }
+  }
+  return {
+    id: "bundled-mathjax",
+    kind: "bundled-component",
+    required: true,
+    available: missing.length === 0 && mismatched.length === 0,
+    path: missing.length === 0 && mismatched.length === 0 ? root : null,
+    version: BUNDLED_MATHJAX_VERSION,
+    missing,
+    mismatched,
+  };
+}
+
 function uniqueStrings(values) {
   return [...new Set(values.filter((value) => typeof value === "string" && value.trim()).map((value) => value.trim()))];
 }
@@ -219,6 +254,7 @@ export async function runPreflight(options = {}) {
   const kpsewhich = await commandCheck("kpsewhich", "kpsewhich", ["--version"]);
   const checks = [
     node,
+    await bundledMathJaxCheck(skillDir),
     await packageCheck("artifact-tool", "@oai/artifact-tool", true),
     await packageCheck("sharp", "sharp", true),
     await packageCheck("docx", "docx", true),
@@ -234,15 +270,13 @@ export async function runPreflight(options = {}) {
     kpsewhich,
     await texResourceCheck("xecjk", "xeCJK.sty", kpsewhich.path),
     await texResourceCheck("fandol-hei", "FandolHei-Regular.otf", kpsewhich.path),
-    await packageCheck("mathjax-full", "mathjax-full"),
-    await packageCheck("mathjax", "mathjax"),
-    await packageCheck("katex", "katex"),
   ];
 
   const latexEngine = available(checks, "pdflatex") || available(checks, "xelatex");
   const svgBackend = available(checks, "dvisvgm") || available(checks, "pdftocairo");
   const pngBackend = available(checks, "pdftocairo");
-  const localMathRenderer = available(checks, "mathjax-full") || available(checks, "mathjax") || available(checks, "katex");
+  const bundledMathRenderer = available(checks, "bundled-mathjax");
+  const localMathRenderer = bundledMathRenderer;
   const sourcePdfCrop = available(checks, "pdftocairo") || available(checks, "pdftoppm");
   const primaryFormula = latexEngine && svgBackend && pngBackend;
   const cjkFormula = available(checks, "xelatex") && available(checks, "xecjk") && available(checks, "fandol-hei");
@@ -269,16 +303,16 @@ export async function runPreflight(options = {}) {
     },
     newFormulaFallback: {
       reliable: localMathRenderer,
-      method: localMathRenderer ? "trusted local MathJax/KaTeX renderer" : null,
-      detail: localMathRenderer
-        ? "A local renderer can handle new verified LaTeX expressions."
-        : "Without the primary LaTeX pipeline, complex new formulas must be blocked or reported; raw LaTeX is not an acceptable fallback.",
+      method: bundledMathRenderer ? "bundled-mathjax-3.2.2-path-svg" : null,
+      detail: bundledMathRenderer
+        ? "The Skill includes a self-contained MathJax TeX-to-path-SVG fallback; the user does not need to install TeX or npm packages."
+        : "Without the bundled renderer or primary LaTeX pipeline, complex new formulas must be blocked or reported; raw LaTeX is not an acceptable fallback.",
     },
   };
 
   const findings = [];
   for (const item of checks.filter((check) => check.required && !check.available)) findings.push({ severity: "error", code: `required.${item.id}`, message: `${item.id} is unavailable.` });
-  if (!primaryFormula && sourcePdfCrop) findings.push({ severity: "warning", code: "formula.primary.unavailable", message: "Local LaTeX formula rendering is unavailable; faithful source-PDF crops remain available for existing formulas." });
+  if (!primaryFormula && !bundledMathRenderer && sourcePdfCrop) findings.push({ severity: "warning", code: "formula.primary.unavailable", message: "Local LaTeX and bundled MathJax rendering are unavailable; faithful source-PDF crops remain available only for existing formulas." });
   if (!primaryFormula && !localMathRenderer) findings.push({ severity: "warning", code: "formula.new.unavailable", message: "No reliable renderer for complex new formulas is available; block or report those formulas instead of exposing raw LaTeX." });
   if (!primaryFormula && !sourcePdfCrop) findings.push({ severity: "error", code: "formula.existing.unavailable", message: "Neither the primary LaTeX pipeline nor a reliable source-PDF crop fallback is available." });
   if (available(checks, "xelatex") && !cjkFormula) findings.push({ severity: "warning", code: "formula.cjk.unavailable", message: "XeLaTeX exists, but xeCJK or FandolHei-Regular.otf is unavailable; Unicode/CJK formula text cannot be rendered safely." });

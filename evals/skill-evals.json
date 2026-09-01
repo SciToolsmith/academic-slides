@@ -29,7 +29,7 @@
     {
       "id": "latex-fallback-contract",
       "files": ["SKILL.md", "references/workflow.md"],
-      "termsAny": ["When LaTeX is unavailable", "无本地 LaTeX 时"]
+      "termsAny": ["bundled MathJax path SVG", "内置 MathJax 路径 SVG"]
     },
     {
       "id": "notes-sources-contract",
@@ -65,6 +65,31 @@
       "id": "theme-independent-from-brand-contract",
       "files": ["SKILL.md", "references/intake.md"],
       "termsAny": ["do not infer a preset from school colors", "不根据学校、校徽或机构品牌色自动选择主题"]
+    },
+    {
+      "id": "paper-assets-contract",
+      "files": ["SKILL.md", "references/asset-preparation.md", "schemas/paper-assets.schema.json"],
+      "termsAny": ["paper-assets.json", "论文图表资产说明.md"]
+    },
+    {
+      "id": "group-scientific-contract",
+      "files": ["SKILL.md", "references/group-meeting-literature.md", "scripts/validate-scientific-content.mjs"],
+      "termsAny": ["group_meeting_v1", "核心发现"]
+    },
+    {
+      "id": "cross-file-build-gate",
+      "files": ["SKILL.md", "references/workflow.md", "scripts/build-project.mjs"],
+      "termsAny": ["--project-dir", "跨文件闭环"]
+    },
+    {
+      "id": "balanced-95-budget",
+      "files": ["SKILL.md", "references/workflow.md", "assets/profile-registry.json"],
+      "termsAny": ["balanced_95", "one full QA pass plus one targeted repair pass"]
+    },
+    {
+      "id": "profile-phase-routing",
+      "files": ["SKILL.md", "assets/profile-registry.json"],
+      "termsAny": ["phaseReferences", "workflow.phases"]
     }
   ],
   "cases": [
@@ -272,13 +297,15 @@
       "prompt": "制作包含论文核心公式和学校标识的答辩 PPT。",
       "environment": {
         "latex": false,
-        "localMathRenderer": false,
+        "bundledMathJax": true,
+        "localMathRenderer": true,
         "verifiedLogoMatch": false,
         "lowResolutionFigure": {"widthPx": 280, "heightPx": 160}
       },
       "expected": {
         "existingFormulaFallbacksAllowed": ["source_pdf_crop"],
-        "newComplexFormulaPolicy": "block_or_report",
+        "newFormulaFallbacksAllowed": ["bundled_mathjax_path_svg"],
+        "newComplexFormulaPolicy": "mathjax_then_block_or_report",
         "brandingFallbacksAllowed": ["text_wordmark"],
         "mustPreserveSelectedTheme": true,
         "lowResolutionPoliciesAllowed": ["omit", "redraw_from_verified_data", "warn_and_use_small"],

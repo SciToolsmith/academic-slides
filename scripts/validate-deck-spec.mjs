@@ -767,7 +767,7 @@ function semanticDeckIssues(deck, strict = false) {
     const hasDuration = typeof deck.timing.duration_minutes === "number" && Number.isFinite(deck.timing.duration_minutes);
     const hasUsableFraction = typeof deck.timing.usable_fraction === "number" && Number.isFinite(deck.timing.usable_fraction);
     const hasTargetSeconds = typeof deck.timing.target_seconds === "number" && Number.isFinite(deck.timing.target_seconds);
-    if (deck.schema_version === "1.1" && !hasDuration && (deck.timing.usable_fraction != null || deck.timing.target_seconds != null)) {
+    if (["1.1", "1.2"].includes(deck.schema_version) && !hasDuration && (deck.timing.usable_fraction != null || deck.timing.target_seconds != null)) {
       findings.push(issue("error", "timing.orphan-budget", "$/timing", "usable_fraction and target_seconds must be omitted when duration_minutes is absent."));
     }
     const calculatedTarget = hasDuration && hasUsableFraction ? deck.timing.duration_minutes * deck.timing.usable_fraction * 60 : null;
