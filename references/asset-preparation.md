@@ -7,6 +7,8 @@
     project/
     ├── source/
     ├── assets/
+    │   ├── figures/
+    │   │   └── ready/
     │   ├── papers/
     │   │   └── <paper-id>/
     │   │       ├── original/
@@ -40,7 +42,7 @@
 - <code>论文图表资产说明.md</code>：供选材的紧凑阅读层；
 - 按需生成的 caption-free 图表裁图。
 
-默认 <code>auto</code> 模式只在可检出图表数不超过阈值 12 时物化全部裁图。超过阈值时先建立完整 caption/page/bbox 轻索引，再根据主张、方法、比较、稳健性和局限形成通常 6–8 个候选 ID，使用 <code>--select &lt;id,id&gt; --force</code> 定向物化。模型只深读候选，普通单篇主稿通常使用其中 3–6 个父图。
+<code>auto</code> 是通用提取器的兼容默认值。普通单篇组会应先显式使用 <code>--materialize none</code> 建立完整 caption/page/bbox 轻索引，再根据主张、方法、比较、稳健性和局限选择一组核心 ID，使用 <code>--materialize selected --select &lt;id,id&gt; --force</code> 定向物化。常从约 3–6 个承担不同证据角色的父图开始，但新增素材只要确实补上独立证据、可读性或用户重点，就可以保留。模型只深读候选，不把“已物化”误当作“必须逐张阅读”。这里的 <code>--force</code> 仅用于有意替换该提取器先前生成的 manifest、说明和同名裁图；它不等于普通构建重试的 <code>build-project.mjs --force</code>。
 
 用户明确要求完整图集时可以使用 <code>--materialize all</code>，不增加人工审批门。
 

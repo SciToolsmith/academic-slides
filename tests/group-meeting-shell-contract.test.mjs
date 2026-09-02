@@ -25,8 +25,14 @@ async function fixture() {
   cover.render_data = { subtitle: cover.content.subtitle, presenter: "Student A", research_group: "Lab A", date: "2026-09-01" };
   const bodyTitles = [
     "1.1 文献基本信息",
+    "1.1 文献基本信息",
+    "1.2 研究背景与意义",
     "1.2 研究背景与意义",
     "1.3 研究设计与方法",
+    "1.3 研究设计与方法",
+    "1.3 研究设计与方法",
+    "1.4 主要结果与结论",
+    "1.4 主要结果与结论",
     "1.4 主要结果与结论",
   ];
   const bodies = bodyTitles.map((title, index) => ({
@@ -66,6 +72,13 @@ async function validate(deck) {
 const baseline = await fixture();
 const baselineResult = await validate(baseline);
 assert.deepEqual(issueCodes(baselineResult), [], JSON.stringify(baselineResult.issues, null, 2));
+
+const belowSinglePaperFloor = structuredClone(baseline);
+belowSinglePaperFloor.slides.splice(1, 1);
+belowSinglePaperFloor.slides = belowSinglePaperFloor.slides.map((slide, index) => ({ ...slide, order: index + 1 }));
+belowSinglePaperFloor.timing.target_slide_count = belowSinglePaperFloor.slides.length;
+belowSinglePaperFloor.timing.estimated_seconds = belowSinglePaperFloor.slides.reduce((sum, slide) => sum + Number(slide.speaker_notes?.estimated_seconds ?? 0), 0);
+assert(issueCodes(await validate(belowSinglePaperFloor)).includes("group-meeting.single-paper.page-minimum"));
 
 const coverNotFirst = structuredClone(baseline);
 [coverNotFirst.slides[0].order, coverNotFirst.slides[1].order] = [2, 1];

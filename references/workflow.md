@@ -11,20 +11,22 @@
     → 灵活大纲与逐页规格
     → 只深加工入选资产
     → PPTX / Word / MJS 同源构建
-    → 一次全稿检查 + 一次针对性修复
+    → 计划中的全稿检查 + 按问题扩展的复查
     → 最小客户包
 
 普通、有文本层的单篇论文默认使用 <code>lean_single_paper</code>。多篇、扫描件、复杂公式或高保真任务使用 <code>balanced_95</code>。两者保留相同的科学、证据、安全、兼容和交付硬门禁。
 
-## 渐进披露与工作预算
+## 渐进披露与可伸缩默认
 
-开局只读 <code>SKILL.md</code>、<code>references/intake.md</code> 和 <code>references/group-meeting-literature.md</code>。进入证据、设计、QA 和交付阶段时再读取对应参考。把确认过的设置、来源哈希、证据定位和页面决策写入清单与 <code>deck-spec.json</code>，不要反复粘贴整篇论文或完整工具输出。
+开局只读 <code>SKILL.md</code>、<code>references/operating-defaults.md</code>、<code>references/intake.md</code> 和 <code>references/group-meeting-literature.md</code>。进入证据、设计、QA 和交付阶段时再读取对应参考。把确认过的设置、来源哈希、证据定位和页面决策写入清单与 <code>deck-spec.json</code>，不要反复粘贴整篇论文或完整工具输出。
 
-正常任务包括一次环境预检、一次论文解析、一次叙事规格、一次内部完整构建与渲染、一轮针对性修复，以及一次干净交付重建。
+普通任务优先建立一次可复用的论文、证据和素材底座，再据此做叙事规格、构建和复查。完整渲染、定向修复和干净交付重建是默认计划，不是阻止处理真实问题的次数上限。
 
-- <code>lean_single_paper</code>：通常 10–14 张可见页，16 张软上限，最多深读 8 个父图。
+- <code>lean_single_paper</code>：生产型单篇不少于 12 张可见页；常以 12–14 页和一组聚焦核心视觉开始，根据独立证据任务增减。
 - <code>balanced_95</code>：用于多篇、扫描件、多源冲突、复杂公式、密集重绘或用户明确的高保真要求。
 - 硬失败为零且重要问题已修复后停止。边缘字距、轻微留白、像素相似度和无害元数据不触发额外整稿循环。
+
+具体的质量门、扩展条件和停止原则见 <code>references/operating-defaults.md</code>；这里不设置 token、分钟、图数或回修次数配额。
 
 ## 1. 预检与配置
 
@@ -56,7 +58,7 @@
 5. 只物化和深读候选视觉。
 6. 更新 <code>paper-index.json</code> 和 <code>evidence-index.json</code>。
 
-只有不超过自动阈值 12 的极小图表集合才默认全部物化。普通单篇主稿通常使用 3–6 个承担不同证据角色的父图。只有入选资产才做标注、拆图、局部放大、OCR、表格重建或忠实重绘。
+普通单篇先用 <code>--materialize none</code> 建立完整轻索引，再从中选取能承担不同证据角色的核心视觉（通常约 3–6 个）并按需物化。不要把自动物化误当成逐张视觉深读；当新增素材填补独立证据缺口、解决可读性问题或满足用户明确要求时，可以继续扩展。只有入选资产才做标注、拆图、局部放大、OCR、表格重建或忠实重绘。
 
 核心主张必须指向 PDF 页码、图表号、公式号、补充材料或可靠出版页面。作者结论使用 <code>source_author_claim</code>；汇报者综合或批判使用 <code>presenter_synthesis</code> 或 <code>presenter_critique</code>，两种声音不得混淆。
 
@@ -114,21 +116,21 @@
       --stem <短题名_组会汇报> \
       --render
 
-同一规格一次生成 PPTX、Word 发言稿和项目 MJS。规格、资产和核心渲染代码未变时使用签名缓存。只有定向调试才分别调用底层脚本。
+同一规格一次生成 PPTX、Word 发言稿和项目 MJS。规格、资产和核心渲染代码未变时使用签名缓存；不要把 <code>build-project.mjs --force</code> 当作普通重试。策划、素材整理或文案调整期间可不带 <code>--render</code> 验证结构；规格稳定后进行计划中的完整渲染。只有定向调试才分别调用底层脚本。
 
 项目 MJS 嵌入最终规格，只引用交付 <code>assets/</code> 中的相对路径，默认重建同名 PPTX 与 DOCX。新项目 MJS 必须显式标记 <code>artifact_purpose: production</code>。
 
 ## 5. QA、修复与交付
 
 1. 运行 schema、项目、科学内容、科学设计和溢出检查。
-2. 渲染全稿一次，先看联系表。
+2. 在规格稳定后渲染全稿，先看联系表。
 3. 全尺寸检查封面、结束页、方法/公式、核心发现、复杂图表、自由画布和自动风险页。
 4. 修复学术错误、证据断裂、不可读内容、损坏媒体、遮挡、裁切和异常换行。
-5. 局部修改后只复查受影响页及其衔接页。
-6. 只有主题、字体、全局壳层、导航或渲染器变化才重新进行整稿视觉检查。
+5. 局部修改后默认只复查受影响页及其衔接页；必要时扩展检查范围。
+6. 主题、字体、全局壳层、导航、渲染器或核心素材发生全局变化时重新进行整稿视觉检查。
 7. 硬失败为零且重要问题已修复后停止。
 
-内部 QA 通过后读取 <code>references/delivery.md</code>，调用 <code>scripts/stage-delivery.mjs</code> 在空白暂存目录重建一次。客户包只保留同名 PPTX、MJS、Word 发言稿和实际使用的 <code>assets/</code>。
+内部 QA 通过后读取 <code>references/delivery.md</code>，调用 <code>scripts/stage-delivery.mjs</code> 在空白暂存目录重建。客户包只保留同名 PPTX、MJS、Word 发言稿和实际使用的 <code>assets/</code>。
 
 维护 Skill 时运行：
 

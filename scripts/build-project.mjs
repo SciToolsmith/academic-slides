@@ -601,6 +601,7 @@ export async function buildProject(options, injectedBuilders = null) {
   let deckReport;
   let wordReport;
   let builderReport;
+  let publishedState;
   const stageMetrics = {};
   try {
     // Portability and scientific-design checks in createProjectBuilder are cheap.
@@ -646,6 +647,7 @@ export async function buildProject(options, injectedBuilders = null) {
       referenced_asset_count: signatureInfo.referencedAssets.length,
       completed_at: new Date().toISOString(),
     };
+    publishedState = state;
     const pendingStatePath = path.join(workDir, STATE_FILENAME);
     await fs.writeFile(pendingStatePath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
     stageStartedAt = performance.now();
@@ -661,6 +663,17 @@ export async function buildProject(options, injectedBuilders = null) {
   if (!(await outputsExist(outputs))) throw new Error("Project build did not publish all three required outputs.");
 
   const totalMs = Math.round(performance.now() - startedAt);
+  const metrics = {
+    total_ms: totalMs,
+    signature_ms: signatureMs,
+    cache_hit: false,
+    ...stageMetrics,
+  };
+  if (publishedState) {
+    publishedState.metrics = metrics;
+    publishedState.completed_at = new Date().toISOString();
+    await fs.writeFile(statePath, `${JSON.stringify(publishedState, null, 2)}\n`, "utf8");
+  }
   return {
     ok: true,
     cached: false,
@@ -673,12 +686,7 @@ export async function buildProject(options, injectedBuilders = null) {
       builder: { ...builderReport, output: outputs.mjs },
       projectValidation,
     },
-    metrics: {
-      total_ms: totalMs,
-      signature_ms: signatureMs,
-      cache_hit: false,
-      ...stageMetrics,
-    },
+    metrics,
   };
   });
 }

@@ -695,7 +695,7 @@ function markdownFor(manifest) {
     lines.push("");
   }
   if (manifest.policy.effective_materialization === "selected" && manifest.summary.indexed_only_count > 0) {
-    lines.push("> 该论文资产数超过自动阈值。上表已覆盖全部 caption；请按主张、比较、稳健性和局限选出核心 ID，再用 `--select <asset-id> --force` 只物化候选图表。不要让模型逐张深读全部索引项。", "");
+    lines.push("> 上表已覆盖全部 caption；请按主张、比较、稳健性和局限选出核心 ID。需要更新已生成 manifest 时，用 `--materialize selected --select <asset-id> --force` 定向物化候选图表。不要让模型逐张深读全部索引项。", "");
   }
   return `${lines.join("\n").trim()}\n`;
 }

@@ -318,6 +318,9 @@ function groupMeetingStructureIssues(deck, slides) {
     const literatureMode = deck.literature?.mode;
     const focalPaperIds = Array.isArray(deck.literature?.focal_paper_ids) ? deck.literature.focal_paper_ids : [];
     const paperCount = focalPaperIds.length;
+    if (literatureMode === "single_paper" && slides.length < 12) {
+      findings.push(issue("error", "group-meeting.single-paper.page-minimum", "$/slides", "A production single-paper group meeting needs at least 12 visible slides. Reach the floor with evidence-bearing continuation pages, not agenda, divider, or filler slides."));
+    }
     if (literatureMode === "single_paper" && agendaSlides.length > 0) {
       findings.push(issue("error", "group-meeting.single-paper.agenda", "$/slides", "A single-paper group meeting must not contain an agenda slide. Start the substantive deck at 1.1 文献基本信息."));
     }
@@ -414,7 +417,7 @@ function groupMeetingStructureIssues(deck, slides) {
 
   const singlePaperAuto = deck.literature?.mode === "single_paper" && deck.timing?.page_policy === "auto";
   if (singlePaperAuto && slides.length > 16) {
-    findings.push(issue("warning", "group-meeting.single-paper.page-budget", "$/slides", `An automatic single-paper deck has ${slides.length} visible slides; 10–14 is the normal target and 16 is the soft ceiling. Keep extra pages only when distinct evidence requires them.`, { strictExempt: true }));
+    findings.push(issue("warning", "group-meeting.single-paper.page-budget", "$/slides", `An automatic single-paper deck has ${slides.length} visible slides. Review whether every page has an independent evidence, explanation, or discussion role; this is a redundancy check, not an upper limit.`, { strictExempt: true }));
   }
   if (singlePaperAuto) {
     const navigationFillers = positioned.filter(({ slide }) => ["agenda", "section"].includes(slide?.kind));

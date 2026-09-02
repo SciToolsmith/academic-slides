@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runSkillEvals } from "../scripts/run-skill-evals.mjs";
 import { validateDeckSpecFile, validateJsonValue } from "../scripts/validate-deck-spec.mjs";
+import { validateProject } from "../scripts/validate-project.mjs";
 
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(TEST_DIR, "..");
@@ -123,6 +124,19 @@ try {
   );
   fixedConfig.presentation.page_policy.target_slide_count = 18;
   assert.deepEqual(schemaErrors(fixedConfig, projectSchema), [], "fixed page policy with target N must validate without duration");
+
+  const shortFixedProject = structuredClone(fixedConfig);
+  shortFixedProject.presentation.page_policy.target_slide_count = 11;
+  const shortFixedProjectDir = path.join(tempDir, "single-paper-under-floor");
+  await mkdir(shortFixedProjectDir, { recursive: true });
+  await writeFile(path.join(shortFixedProjectDir, "project-config.json"), `${JSON.stringify(shortFixedProject, null, 2)}\n`, "utf8");
+  const shortFixedResult = await validateProject(shortFixedProjectDir, { stage: "config", requireSchemas: true });
+  assert(shortFixedResult.issues.some((item) => item.code === "config.single-paper.page-minimum"), "a fixed production single-paper target below 12 must fail before the build stage");
+
+  shortFixedProject.presentation.page_policy.target_slide_count = 12;
+  await writeFile(path.join(shortFixedProjectDir, "project-config.json"), `${JSON.stringify(shortFixedProject, null, 2)}\n`, "utf8");
+  const floorFixedResult = await validateProject(shortFixedProjectDir, { stage: "config", requireSchemas: true });
+  assert.equal(floorFixedResult.issues.some((item) => item.code === "config.single-paper.page-minimum"), false, "a 12-slide fixed production single-paper target must pass the page-floor guard");
 
   const autoDeck = structuredClone(sampleDeck);
   delete autoDeck.timing.duration_minutes;

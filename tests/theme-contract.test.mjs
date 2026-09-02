@@ -142,21 +142,36 @@ async function main() {
   try {
     const sample = await readJson(path.join(SKILL_DIR, "assets", "group-meeting-literature-universal", "sample-deck-spec.json"));
     const sections = [
-      { id: "problem", order: 1, title: "研究问题与证据", short_title: "研究问题", role: "problem", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
-      { id: "method", order: 2, title: "研究方法与分析", short_title: "研究方法", role: "method", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
-      { id: "result", order: 3, title: "研究结果与边界", short_title: "研究结果", role: "results", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
+      { id: "paper-1-info", order: 1, title: "1.1 文献基本信息", short_title: "文献基本信息", role: "publication", audience_role: "main", show_in_agenda: false, show_in_navigation: true },
+      { id: "paper-1-background", order: 2, title: "1.2 研究背景与意义", short_title: "研究背景", role: "problem", audience_role: "main", show_in_agenda: false, show_in_navigation: true },
+      { id: "paper-1-method", order: 3, title: "1.3 研究设计与方法", short_title: "研究方法", role: "method", audience_role: "main", show_in_agenda: false, show_in_navigation: true },
+      { id: "paper-1-result", order: 4, title: "1.4 主要结果与结论", short_title: "主要结果", role: "results", audience_role: "main", show_in_agenda: false, show_in_navigation: true },
     ];
     sample.theme.preset = "blue";
     sample.artifact_purpose = "production";
+    sample.literature = { ...sample.literature, mode: "single_paper", focal_paper_ids: ["paper-1"] };
     sample.structure = { section_transition_mode: "integrated", section_transition_reason: "主题契约使用精简集成过渡。", appendix_policy: "none" };
     sample.sections = sections;
     sample.sources = sample.sources.map((source) => ({ ...source, citation: "本项目规范", path: null }));
     const cover = structuredClone(sample.slides.find((slide) => slide.kind === "title"));
-    const agenda = structuredClone(sample.slides.find((slide) => slide.kind === "agenda"));
-    const bodies = ["sample-claim-evidence-boundary", "sample-critical-appraisal", "sample-paper-conclusion"].map((id, index) => {
-      const slide = structuredClone(sample.slides.find((item) => item.id === id));
+    const bodyPlans = [
+      { id: "sample-claim-evidence-boundary", title: "1.1 文献基本信息", sectionId: "paper-1-info" },
+      { id: "sample-known-gap-question", title: "1.1 文献基本信息", sectionId: "paper-1-info" },
+      { id: "sample-known-gap-question", title: "1.2 研究背景与意义", sectionId: "paper-1-background" },
+      { id: "sample-critical-appraisal", title: "1.2 研究背景与意义", sectionId: "paper-1-background" },
+      { id: "sample-critical-appraisal", title: "1.3 研究设计与方法", sectionId: "paper-1-method" },
+      { id: "sample-claim-evidence-boundary", title: "1.3 研究设计与方法", sectionId: "paper-1-method" },
+      { id: "sample-paper-conclusion", title: "1.3 研究设计与方法", sectionId: "paper-1-method" },
+      { id: "sample-claim-evidence-boundary", title: "1.4 主要结果与结论", sectionId: "paper-1-result" },
+      { id: "sample-paper-conclusion", title: "1.4 主要结果与结论", sectionId: "paper-1-result" },
+      { id: "sample-critical-appraisal", title: "1.4 主要结果与结论", sectionId: "paper-1-result" },
+    ];
+    const bodies = bodyPlans.map((plan, index) => {
+      const slide = structuredClone(sample.slides.find((item) => item.id === plan.id));
       slide.id = `theme-body-${index + 1}`;
-      slide.section_id = sections[index].id;
+      slide.section_id = plan.sectionId;
+      slide.content.title = plan.title;
+      slide.render_data = { ...slide.render_data, paper_no: 1 };
       slide.priority = index === 0 ? "core" : "supporting";
       if (index === 0) slide.relationship_topology = "none";
       slide.evidence_refs = slide.speaker_notes.sources.map((source) => source.source_id);
@@ -165,13 +180,12 @@ async function main() {
     const closing = structuredClone(sample.slides.find((slide) => slide.kind === "closing"));
     cover.id = "theme-cover";
     cover.section_id = sections[0].id;
-    agenda.id = "theme-agenda";
-    agenda.section_id = sections[0].id;
-    agenda.render_data.sections = sections.map((section, index) => ({ number: String(index + 1).padStart(2, "0"), title: section.title }));
-    agenda.content.body = sections.map((section, index) => `${String(index + 1).padStart(2, "0")} ${section.title}`);
+    cover.content.title = "主题契约文献汇报";
+    cover.content.subtitle = "单篇论文组会汇报";
+    cover.render_data = { ...cover.render_data, subtitle: "单篇论文组会汇报" };
     closing.id = "theme-closing";
     closing.section_id = sections.at(-1).id;
-    sample.slides = [cover, agenda, ...bodies, closing].map((slide, index) => ({ ...slide, order: index + 1 }));
+    sample.slides = [cover, ...bodies, closing].map((slide, index) => ({ ...slide, order: index + 1 }));
     const seconds = sample.slides.reduce((sum, slide) => sum + Number(slide.speaker_notes?.estimated_seconds ?? 0), 0);
     sample.timing = {
       ...sample.timing,

@@ -18,11 +18,11 @@ QA 同时覆盖学术内容、证据、叙事、视觉和技术。结构检查�
 1. 校验 `project-config.json`、`paper-assets.json`、`paper-index.json`、`evidence-index.json` 和 `deck-spec.json` 的 JSON Schema。
 2. 执行跨文件与跨字段语义检查。
 3. 对正式项目执行 `node scripts/validate-project.mjs <project-dir> --stage deck --require-schemas`；它同时调用布局/渲染真实性检查和组会科学内容合同。布局画廊显式使用 `artifact_purpose: "layout_gallery"` 豁免生产叙事。
-4. 构建 PPTX、Word 发言稿和项目 MJS。
-5. 渲染所有幻灯片和联系表一次；使用 `node scripts/render-word-qa.mjs --input <发言稿.docx> --output-dir <内部QA目录>` 将 Word 渲染为逐页 PNG 一次。该包装器继续调用 Documents Skill 的 `render_docx.py`，并为 bundled LibreOffice 显式加载其 `fontconfig/fonts.conf`，避免 macOS 中文字体被错误替换为空白。
-6. 先看全稿联系表和节奏，再对核心结果、公式、表格、复杂科研图、自由画布、自动风险页、封面和结束页做全尺寸复核；普通单篇组会通常最多检查 8 张全尺寸风险页，简单过渡页不必逐张像素级检查。检查 Word 标题、分页、逐页编号和讲稿顺序；来源继续在 PPT 备注中核对。
+4. 冻结 deck spec 与入选资产后，构建 PPTX、Word 发言稿和项目 MJS。
+5. 将规格稳定后的完整渲染和联系表作为计划中的全稿检查；使用 `node scripts/render-word-qa.mjs --input <发言稿.docx> --output-dir <内部QA目录>` 将 Word 渲染为逐页 PNG。该包装器继续调用 Documents Skill 的 `render_docx.py`，并为 bundled LibreOffice 显式加载其 `fontconfig/fonts.conf`，避免 macOS 中文字体被错误替换为空白。
+6. 先看全稿联系表和节奏，再对核心结果、公式、表格、复杂科研图、自由画布、自动风险页、封面和结束页做全尺寸复核。先从这些风险页开始，而不是按固定张数逐页像素审查；发现全局问题或未解决的材料缺口时扩大范围。检查 Word 标题、分页、逐页编号和讲稿顺序；来源继续在 PPT 备注中核对。
 7. 检查 PPT 备注、Word、媒体、字体、公式、MJS 可复现性和可编辑性。
-8. 修复后只复查受影响页面；主题、字体、母版、全局间距、导航或渲染器变更才触发全稿复查。
+8. 局部修复后默认复查受影响页面；主题、字体、母版、全局间距、导航、渲染器、入选资产或 deck spec 变更触发全稿复查。若 build signature 和 preview 完整性未变，不传 <code>--force</code>，也不重新栅格化全稿。
 
 ## 学术与证据 QA
 
@@ -129,9 +129,9 @@ JSON Schema 之外至少检查：
 
 ### 默认回修边界
 
-默认执行一轮完整检查和一轮针对性修复。硬失败必须继续处理；其余问题只有在明显改善学术准确性、叙事、投影可读性或兼容性时才继续。像素级相似度、无害元数据、边缘留白和轻微字距不构成继续返工的理由。
+默认先执行一次完整检查，再按发现的问题做针对性修复。硬失败必须继续处理；其余问题只有在明显改善学术准确性、叙事、投影可读性或兼容性时才继续。像素级相似度、无害元数据、边缘留白和轻微字距不构成继续返工的理由。
 
-局部页面修改后只复查受影响页及其前后衔接页。只有全局设计或生成逻辑变化才重新做一次全稿检查。
+局部页面修改后优先复查受影响页及其前后衔接页。全局设计、核心素材或生成逻辑变化时重新做全稿检查。
 
 ## 最终报告
 
