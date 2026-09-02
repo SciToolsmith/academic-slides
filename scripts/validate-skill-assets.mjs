@@ -50,7 +50,7 @@ const REQUIRED_TESTS = [
   "group-meeting-shell-contract.test.mjs",
 ];
 const PROFILE_REGISTRY_PATH = path.join("assets", "profile-registry.json");
-const PROFILE_ASSET_FIELDS = ["layoutLibrary", "layoutRegistry", "templateMap", "designTokens", "themePresets", "librarySpec", "preview"];
+const PROFILE_ASSET_FIELDS = ["layoutRegistry", "templateMap", "designTokens", "themePresets", "librarySpec"];
 
 function usage() {
   return [
@@ -307,30 +307,6 @@ async function requireRegisteredFile(filePath, findings, release, profileId) {
   return true;
 }
 
-async function inspectLayoutLibrary(pptxPath, sample, findings, profileId) {
-  if (!sample?.slides || !(await exists(pptxPath))) return;
-  try {
-    const { stdout: listing } = await execFileAsync("unzip", ["-Z1", pptxPath], { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
-    const files = listing.split(/\r?\n/);
-    const slideCount = files.filter((name) => /^ppt\/slides\/slide\d+\.xml$/.test(name)).length;
-    const notesCount = files.filter((name) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(name)).length;
-    if (slideCount !== sample.slides.length) findings.push(issue("error", "profile.slide.count", pptxPath, `${profileId}: PPTX has ${slideCount} slides but library spec has ${sample.slides.length}.`));
-    if (notesCount !== slideCount) findings.push(issue("error", "profile.notes.count", pptxPath, `${profileId}: PPTX has ${slideCount} slides but ${notesCount} notes slides.`));
-    const noteFiles = files.filter((name) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(name));
-    const noteXmlParts = await Promise.all(noteFiles.map(async (name) => ({
-      name,
-      xml: (await execFileAsync("unzip", ["-p", pptxPath, name], { encoding: "utf8", maxBuffer: 2 * 1024 * 1024 })).stdout,
-    })));
-    for (const note of noteXmlParts) {
-      const sourceOpen = (note.xml.match(/\[Sources\]/g) ?? []).length;
-      const sourceClose = (note.xml.match(/\[\/Sources\]/g) ?? []).length;
-      if (sourceOpen !== 1 || sourceClose !== 1) findings.push(issue("error", "profile.notes.sources", `${pptxPath}:${note.name}`, `${profileId}: expected exactly one [Sources] block; found ${sourceOpen} opening and ${sourceClose} closing markers.`));
-    }
-  } catch (error) {
-    findings.push(issue("error", "profile.pptx.inspect", pptxPath, `${profileId}: could not inspect PPTX parts: ${error.message}`));
-  }
-}
-
 async function checkRegisteredProfile(skillDir, profileId, profile, findings, release) {
   const registryFile = path.join(skillDir, PROFILE_REGISTRY_PATH);
   if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
@@ -360,8 +336,8 @@ async function checkRegisteredProfile(skillDir, profileId, profile, findings, re
     else if (path.extname(filePath).toLowerCase() === ".json") await checkJson(filePath, findings);
   }
 
-  if (!paths.layoutRegistry || !paths.templateMap || !paths.librarySpec || !paths.layoutLibrary) return;
-  const coreFiles = [paths.layoutRegistry, paths.templateMap, paths.librarySpec, paths.layoutLibrary];
+  if (!paths.layoutRegistry || !paths.templateMap || !paths.librarySpec) return;
+  const coreFiles = [paths.layoutRegistry, paths.templateMap, paths.librarySpec];
   const coreAvailable = await Promise.all(coreFiles.map(exists));
   if (!coreAvailable.every(Boolean)) return;
   const [layoutRegistry, templateMap, sample] = await Promise.all([
@@ -405,7 +381,6 @@ async function checkRegisteredProfile(skillDir, profileId, profile, findings, re
     if (missing.length || extra.length) findings.push(issue(severity, `profile.layout.${code}.mismatch`, file, `${profileId}: layout IDs differ from registry. Missing: ${missing.join(", ") || "none"}; extra: ${extra.join(", ") || "none"}.`));
     else if (ids.some((id, index) => id !== registryIds[index])) findings.push(issue(severity, `profile.layout.${code}.order`, file, `${profileId}: layout ID order differs from the layout registry.`));
   }
-  await inspectLayoutLibrary(paths.layoutLibrary, sample, findings, profileId);
 }
 
 async function checkProfiles(skillDir, findings, release) {

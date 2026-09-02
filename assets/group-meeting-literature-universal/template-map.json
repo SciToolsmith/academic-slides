@@ -4,7 +4,6 @@
   "profile": "group_meeting_literature",
   "displayName": "组会文献汇报·学术通用",
   "source": "clean-generated-layout-library",
-  "generatedAsset": "layout-library.pptx",
   "binding": {
     "strategy": "semantic-layout-id-and-slot",
     "stableKeys": [
@@ -293,5 +292,5 @@
       }
     ]
   },
-  "notes": "layout-library.pptx 将是一页一布局的30种语义画廊，而不是固定30页的组会成稿。单篇与多篇只改变叙事路由；每篇页数、目录章节和正文构图由研究问题与证据价值决定。通用外壳适合时优先，正文无自然匹配时允许遵守设计令牌的自由证据画布。"
+  "notes": "30 个注册布局构成语义设计词汇，而不是固定30页的组会成稿。单篇与多篇只改变叙事路由；每篇页数、目录章节和正文构图由研究问题与证据价值决定。通用外壳适合时优先，正文无自然匹配时允许遵守设计令牌的自由证据画布。"
 }
