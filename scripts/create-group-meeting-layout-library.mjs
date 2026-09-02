@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -10,8 +11,6 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
 const ASSET_DIR = path.join(SKILL_DIR, "assets", "group-meeting-literature-universal");
 const SPEC_PATH = path.join(ASSET_DIR, "sample-deck-spec.json");
-const LIBRARY_PATH = path.join(ASSET_DIR, "layout-library.pptx");
-const PREVIEW_PATH = path.join(ASSET_DIR, "preview.png");
 
 const SOURCE_IDS = ["layout-registry", "design-tokens", "template-heritage"];
 const SECTION_FOR_ORDER = (order) => order <= 6 ? "identity" : order <= 16 ? "method-evidence" : order <= 24 ? "judgment-synthesis" : "discussion-closing";
@@ -201,21 +200,26 @@ function createSpec() {
 export async function createGroupMeetingLayoutLibrary() {
   await fs.mkdir(ASSET_DIR, { recursive: true });
   await fs.writeFile(SPEC_PATH, `${JSON.stringify(createSpec(), null, 2)}\n`, "utf8");
-  const previewDir = path.join(ASSET_DIR, "previews");
-  const report = path.join(ASSET_DIR, "layout-library.build.json");
-  await fs.mkdir(previewDir, { recursive: true });
-  const result = await buildDeck({
-    spec: SPEC_PATH,
-    output: LIBRARY_PATH,
-    previewDir,
-    report,
-    theme: "blue",
-    allowPlaceholders: true,
-  });
-  if (result.montagePng && path.resolve(result.montagePng) !== path.resolve(PREVIEW_PATH)) {
-    await fs.copyFile(result.montagePng, PREVIEW_PATH);
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-layout-gallery-"));
+  try {
+    const result = await buildDeck({
+      spec: SPEC_PATH,
+      output: path.join(temporary, "layout-gallery-render.pptx"),
+      previewDir: path.join(temporary, "previews"),
+      report: path.join(temporary, "build.json"),
+      theme: "blue",
+      allowPlaceholders: true,
+    });
+    return {
+      profile: "group_meeting_literature",
+      slideCount: result.slideCount,
+      theme: result.theme,
+      generatedPptx: false,
+      generatedPreview: false,
+    };
+  } finally {
+    await fs.rm(temporary, { recursive: true, force: true });
   }
-  return { profile: "group_meeting_literature", ...result };
 }
 
 async function main() {

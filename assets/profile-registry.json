@@ -85,21 +85,17 @@
       },
       "assetDirectory": "assets/group-meeting-literature-universal",
       "modes": ["single_paper", "multi_paper"],
-      "layoutLibrary": "layout-library.pptx",
       "layoutRegistry": "layout-registry.json",
       "templateMap": "template-map.json",
       "designTokens": "design-tokens.json",
       "themePresets": "theme-presets.json",
       "librarySpec": "sample-deck-spec.json",
-      "preview": "preview.png",
       "requiredFiles": [
-        "layout-library.pptx",
         "layout-registry.json",
         "template-map.json",
         "sample-deck-spec.json",
         "design-tokens.json",
-        "theme-presets.json",
-        "preview.png"
+        "theme-presets.json"
       ],
       "expectedLayoutCount": 30
     }
