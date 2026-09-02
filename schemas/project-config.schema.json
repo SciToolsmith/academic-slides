@@ -78,8 +78,7 @@
         },
         "quality_budget": {
           "enum": ["lean_single_paper", "balanced_95", "strict_release"],
-          "default": "balanced_95",
-          "description": "Execution policy, not a numeric quality score. lean_single_paper is the default for ordinary single-paper group meetings; all policies keep scientific hard gates and stop optional polish after the declared QA budget."
+          "description": "Optional workflow preference, not a numeric quality score or a waiver of quality gates. When omitted, infer the mode default from the profile registry; ordinary single-paper group meetings use lean_single_paper."
         },
         "aspect_ratio": {
           "const": "16:9",

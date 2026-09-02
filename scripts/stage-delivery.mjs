@@ -24,6 +24,7 @@ const GENERAL_POSIX_PATH_PATTERN = /(?:^|[\s"'=(:;,])\/(?!\/|>)(?:[^\s"'<>\/]+\/
 const NETWORK_PATH_PATTERN = /(?:^|[\s"'=(:;,])(?:\/\/[^\/\s"'<>]+\/[^\s"'<>]+|\\\\[^\\\s"'<>]+\\[^\s"'<>]+)/m;
 const SAFE_PUBLIC_URL_PATTERN = /\b(?:https?|mailto):[^\s"'<>]+/gi;
 const SAFE_API_ROUTE_PATTERN = /\/api\/v\d+(?:\.\d+)?(?:\/[A-Za-z0-9._~{}:-]+)*/gi;
+const FORMULA_STRING_PATTERN = /"(?:latex|tex)"\s*:\s*"(?:\\.|[^"\\])*"/gi;
 const PATH_TRAVERSAL_PATTERN = /(?:^|[\\/])\.\.(?:[\\/]|$)/;
 const INTERNAL_FILE_PATTERN = /(?:project-config|deck-spec|evidence-index|source-manifest|paper-index|build-report|qa-report|inspect)\.(?:json|md|txt)/i;
 const SECRET_PATTERNS = [
@@ -129,6 +130,18 @@ function assetBlockReason(relativePath, isDirectory = false) {
   return "unsupported-asset-file";
 }
 
+function decodeFormulaStringLiterals(value) {
+  return value.replace(FORMULA_STRING_PATTERN, (entry) => {
+    const separator = entry.indexOf(":");
+    const literal = entry.slice(separator + 1).trim();
+    try {
+      return `${entry.slice(0, separator + 1)} ${JSON.parse(literal)}`;
+    } catch {
+      return entry;
+    }
+  });
+}
+
 async function copyAssets(source, target) {
   if (!source) return [];
   const root = path.resolve(source);
@@ -180,9 +193,13 @@ function scanText(value, location, options = {}) {
   const decoded = value.replaceAll("&amp;", "&").replaceAll("&#38;", "&");
   if (PATH_TRAVERSAL_PATTERN.test(decoded)) throw new Error(`Path traversal leaked into ${location}.`);
   const withoutPublicUrls = decoded.replace(SAFE_PUBLIC_URL_PATTERN, "").replace(SAFE_API_ROUTE_PATTERN, "");
-  const generalPosixLeak = !options.packageXml && GENERAL_POSIX_PATH_PATTERN.test(withoutPublicUrls);
-  if (LOCAL_PATH_PATTERN.test(withoutPublicUrls) || generalPosixLeak || NETWORK_PATH_PATTERN.test(withoutPublicUrls)) {
-    throw new Error(`Local absolute path leaked into ${location}.`);
+  const pathScanValue = options.sourceCode ? decodeFormulaStringLiterals(withoutPublicUrls) : withoutPublicUrls;
+  const localPathMatch = LOCAL_PATH_PATTERN.exec(pathScanValue);
+  const generalPosixMatch = !options.packageXml ? GENERAL_POSIX_PATH_PATTERN.exec(pathScanValue) : null;
+  const networkPathMatch = NETWORK_PATH_PATTERN.exec(pathScanValue);
+  const leakedPath = localPathMatch ?? generalPosixMatch ?? networkPathMatch;
+  if (leakedPath) {
+    throw new Error(`Local absolute path leaked into ${location}: ${JSON.stringify(leakedPath[0])}.`);
   }
   if (INTERNAL_FILE_PATTERN.test(withoutPublicUrls)) throw new Error(`Internal work-product filename leaked into ${location}.`);
   for (const pattern of SECRET_PATTERNS) if (pattern.test(decoded)) throw new Error(`Credential or signed secret leaked into ${location}.`);
@@ -420,7 +437,9 @@ async function scanDelivery(directory) {
       if (entry.isDirectory()) await visit(absolute);
       else if (entry.isFile()) {
         const extension = path.extname(entry.name).toLowerCase();
-        if (TEXT_EXTENSIONS.has(extension)) scanText(await fs.readFile(absolute, "utf8"), path.relative(directory, absolute));
+        if (TEXT_EXTENSIONS.has(extension)) scanText(await fs.readFile(absolute, "utf8"), path.relative(directory, absolute), {
+          sourceCode: [".mjs", ".js"].includes(extension),
+        });
         if ([".pptx", ".docx", ".xlsx"].includes(extension)) await scanArchive(absolute);
         if ([".png", ".jpg", ".jpeg", ".webp"].includes(extension)) {
           const metadataText = (await fs.readFile(absolute)).toString("latin1");
@@ -535,6 +554,8 @@ async function createAndVerifyCanonicalBuilder(inputMjs, payload, directory, ste
 }
 
 export async function stageDelivery(args) {
+  const startedAt = performance.now();
+  const metrics = {};
   if (!args.output || !args.mjs) throw new Error("--output and --mjs are required.");
   const output = assertSafeOutput(args.output);
   const stem = validateDeliveryStem(path.basename(output), args.forbiddenTerms);
@@ -553,15 +574,23 @@ export async function stageDelivery(args) {
   try {
     const assetsTarget = path.join(temporary, "assets");
     await fs.mkdir(assetsTarget, { recursive: true });
+    let stepStartedAt = performance.now();
     const assets = await copyAssets(args.assets, assetsTarget);
+    metrics.copy_assets_ms = Math.round(performance.now() - stepStartedAt);
+    stepStartedAt = performance.now();
     const stagedMjs = await createAndVerifyCanonicalBuilder(mjs, payload, temporary, stem);
+    metrics.canonical_builder_ms = Math.round(performance.now() - stepStartedAt);
+    stepStartedAt = performance.now();
     await runProjectBuilder(stagedMjs, temporary);
+    metrics.clean_rebuild_ms = Math.round(performance.now() - stepStartedAt);
+    stepStartedAt = performance.now();
     const pptx = await requireRegularFile(path.join(temporary, `${stem}.pptx`), ".pptx");
     const docx = await requireRegularFile(path.join(temporary, `${stem}_发言稿.docx`), ".docx");
     await validateAssetTree(assetsTarget);
     await assertRootContract(temporary, stem);
     const parity = await validatePresentationScriptParity(pptx, docx, payload.spec);
     await scanDelivery(temporary);
+    metrics.verify_ms = Math.round(performance.now() - stepStartedAt);
 
     if (outputExists) {
       await fs.rename(output, previous);
@@ -574,7 +603,14 @@ export async function stageDelivery(args) {
       throw error;
     }
     if (previousMoved) await fs.rm(previous, { recursive: true, force: true });
-    return { output, stem, files: [`${stem}.pptx`, `${stem}.mjs`, `${stem}_发言稿.docx`, "assets/"], assets, parity };
+    return {
+      output,
+      stem,
+      files: [`${stem}.pptx`, `${stem}.mjs`, `${stem}_发言稿.docx`, "assets/"],
+      assets,
+      parity,
+      metrics: { ...metrics, total_ms: Math.round(performance.now() - startedAt) },
+    };
   } catch (error) {
     if (await exists(temporary)) await fs.rm(temporary, { recursive: true, force: true });
     if (previousMoved && !(await exists(output)) && await exists(previous)) await fs.rename(previous, output);

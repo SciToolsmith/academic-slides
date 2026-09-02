@@ -29,7 +29,7 @@ Read [references/intake.md](references/intake.md).
 
 ## Follow the evidence-first workflow
 
-At the start of production, read [references/workflow.md](references/workflow.md) and [references/group-meeting-literature.md](references/group-meeting-literature.md). Load the other references only when their phase begins.
+At the start of production, read [references/operating-defaults.md](references/operating-defaults.md), [references/workflow.md](references/workflow.md), and [references/group-meeting-literature.md](references/group-meeting-literature.md). Load the other references only when their phase begins.
 
 1. Preflight the runtime and save <code>project-config.json</code>.
 2. Parse each focal paper once and establish publication metadata, claims, locators, evidence logic, and method formality.
@@ -37,9 +37,9 @@ At the start of production, read [references/workflow.md](references/workflow.md
 4. Create <code>paper-index.json</code> and <code>evidence-index.json</code>.
 5. Create <code>deck-spec.json</code> and derive <code>PPT内容与设计大纲.md</code>.
 6. Select core evidence automatically, materialize and deep-read only candidate assets, then build the editable PPTX, synchronized Word script, and project MJS.
-7. Render the complete deck once, inspect the contact sheet and risk pages, repair material defects once, and stage the minimal delivery package.
+7. Freeze the selected assets and specification, then make a planned complete render and review. Recheck affected pages after local repairs; repeat the full review when a global change or an unresolved material issue warrants it.
 
-An ordinary born-digital single-paper task uses <code>lean_single_paper</code>: normally 10–14 visible slides, no more than eight deep-read parent visuals, one complete render, and one concentrated repair pass. Multi-paper tasks and genuinely complex sources use <code>balanced_95</code>. Both budgets retain the same scientific, evidence, security, and file-integrity gates.
+An ordinary born-digital single-paper task uses <code>lean_single_paper</code>. A production deck never has fewer than 12 visible slides, and reaches that floor with evidence-bearing continuation pages—not an agenda, divider, or filler. Use the operating defaults to begin with a focused evidence set and a planned review cycle, then expand either when it closes a real evidence, explanation, or readability gap. Multi-paper tasks and genuinely complex sources use <code>balanced_95</code>. Both workflows retain the same scientific, evidence, security, and file-integrity gates.
 
 When the user asks to review the outline first, stop after the outline. Otherwise save it and continue.
 
@@ -50,7 +50,7 @@ When asset work begins, read [references/asset-preparation.md](references/asset-
 - Prefer original embedded figures or vector content. Use high-resolution crops only when necessary.
 - Crop the figure or table body without surrounding prose or the external caption; preserve the caption and locator in the manifest.
 - Keep originals separate from crops, annotations, splits, zooms, redraws, OCR, and compatibility conversions.
-- Index every detectable caption, page, and crop box. Materialize all visuals only for genuinely small sets; otherwise select candidates from claims, comparison, robustness, limitations, and nearby text.
+- Index every detectable caption, page, and crop box. Start ordinary single-paper work from a focused candidate set (often 3–6 parent figures/tables) selected from claims, comparison, robustness, limitations, and nearby text; materialize more when it carries a distinct evidence role or the user asks for a complete figure set.
 - Keep author claims separate from presenter synthesis or critique. A presenter judgment must cite supporting evidence and appear in the visible deck.
 - Never fabricate publication metadata, values, sample sizes, formulas, figures, or source locators.
 

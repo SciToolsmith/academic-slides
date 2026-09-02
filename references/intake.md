@@ -74,7 +74,7 @@
 - 页数策略：推荐 <code>auto</code>，未指定时询问；
 - 主题：推荐 <code>blue</code>，未指定时询问；
 - 时长：无默认值，未提供时不询问；
-- 单篇预算：普通文本型论文使用 <code>lean_single_paper</code>；
+- 单篇预算：普通文本型论文使用 <code>lean_single_paper</code>；生产型单篇不少于 12 张可见页，常以 12–14 页和一组聚焦核心视觉开始，具体取舍遵循 <code>references/operating-defaults.md</code>；
 - 多篇或复杂任务：使用 <code>balanced_95</code>；
 - 目录和论文分隔页：单篇不使用目录，多篇必须使用目录并按焦点论文顺序设置分隔页；
 - 附录：默认关闭，学生结束页必须是最后一张可见页；
@@ -97,6 +97,6 @@
 - 用户未提供时省略 <code>duration_minutes</code>；
 - 输出目录不会覆盖源文件；
 - 文件名使用“短题名_组会汇报”，不加入姓名、日期、版本、final 或“最终版”；
-- 普通单篇使用 <code>lean_single_paper</code> 且 <code>include_appendix=false</code>；
+- 普通单篇使用 <code>lean_single_paper</code> 且 <code>include_appendix=false</code>；固定页数的生产型单篇目标不得低于 12；
 - 汇报人身份与论文作者身份没有混淆；
 - 用户明示要求已写入 <code>constraints</code>，并优先于推断。

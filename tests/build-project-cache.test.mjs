@@ -147,6 +147,11 @@ async function main() {
     assert.equal(rendered.cached, false);
     assert.deepEqual(calls, { deck: 2, word: 2, builder: 2 });
     assert.ok((await fs.readdir(rendered.previewDir)).includes("slide-01.png"));
+    const renderedState = JSON.parse(await fs.readFile(path.join(outputDir, ".paper-club-ppt-build-state.json"), "utf8"));
+    assert.equal(renderedState.metrics.cache_hit, false);
+    for (const key of ["signature_ms", "project_builder_ms", "deck_and_preview_ms", "word_ms", "publish_ms", "total_ms"]) {
+      assert.equal(Number.isFinite(renderedState.metrics[key]), true, `state should persist ${key}`);
+    }
     const renderedAgain = await buildProject({ ...options, render: true }, builders);
     assert.equal(renderedAgain.cached, true);
     assert.deepEqual(calls, { deck: 2, word: 2, builder: 2 });

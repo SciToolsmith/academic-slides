@@ -22,17 +22,30 @@ const STEM = "客机侧开式登机门优化设计_组会汇报";
 
 function threeSlideSpec(sample) {
   const sections = [
-    { id: "problem", order: 1, title: "研究问题与证据", short_title: "研究问题", role: "problem", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
-    { id: "method", order: 2, title: "研究方法与分析", short_title: "研究方法", role: "method", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
-    { id: "result", order: 3, title: "研究结果与边界", short_title: "研究结果", role: "results", audience_role: "main", show_in_agenda: true, show_in_navigation: true },
+    { id: "paper-1-info", order: 1, title: "1.1 文献基本信息", short_title: "文献基本信息", role: "publication", audience_role: "main", show_in_agenda: false, show_in_navigation: true },
+    { id: "paper-1-background", order: 2, title: "1.2 研究背景与意义", short_title: "研究背景", role: "problem", audience_role: "main", show_in_agenda: false, show_in_navigation: true },
+    { id: "paper-1-method", order: 3, title: "1.3 研究设计与方法", short_title: "研究方法", role: "method", audience_role: "main", show_in_agenda: false, show_in_navigation: true },
+    { id: "paper-1-result", order: 4, title: "1.4 主要结果与结论", short_title: "主要结果", role: "results", audience_role: "main", show_in_agenda: false, show_in_navigation: true },
   ];
   const cover = structuredClone(sample.slides.find((slide) => slide.kind === "title"));
-  const agenda = structuredClone(sample.slides.find((slide) => slide.kind === "agenda"));
-  const bodyIds = ["sample-claim-evidence-boundary", "sample-critical-appraisal", "sample-paper-conclusion"];
-  const bodies = bodyIds.map((id, index) => {
-    const slide = structuredClone(sample.slides.find((item) => item.id === id));
+  const bodyPlans = [
+    { id: "sample-claim-evidence-boundary", title: "1.1 文献基本信息", sectionId: "paper-1-info" },
+    { id: "sample-known-gap-question", title: "1.1 文献基本信息", sectionId: "paper-1-info" },
+    { id: "sample-known-gap-question", title: "1.2 研究背景与意义", sectionId: "paper-1-background" },
+    { id: "sample-critical-appraisal", title: "1.2 研究背景与意义", sectionId: "paper-1-background" },
+    { id: "sample-critical-appraisal", title: "1.3 研究设计与方法", sectionId: "paper-1-method" },
+    { id: "sample-claim-evidence-boundary", title: "1.3 研究设计与方法", sectionId: "paper-1-method" },
+    { id: "sample-paper-conclusion", title: "1.3 研究设计与方法", sectionId: "paper-1-method" },
+    { id: "sample-claim-evidence-boundary", title: "1.4 主要结果与结论", sectionId: "paper-1-result" },
+    { id: "sample-paper-conclusion", title: "1.4 主要结果与结论", sectionId: "paper-1-result" },
+    { id: "sample-critical-appraisal", title: "1.4 主要结果与结论", sectionId: "paper-1-result" },
+  ];
+  const bodies = bodyPlans.map((plan, index) => {
+    const slide = structuredClone(sample.slides.find((item) => item.id === plan.id));
     slide.id = `delivery-body-${index + 1}`;
-    slide.section_id = sections[index].id;
+    slide.section_id = plan.sectionId;
+    slide.content.title = plan.title;
+    slide.render_data = { ...slide.render_data, paper_no: 1 };
     slide.priority = index === 0 ? "core" : "supporting";
     if (index === 0) slide.relationship_topology = "none";
     slide.evidence_refs = slide.speaker_notes.sources.map((source) => source.source_id);
@@ -41,13 +54,12 @@ function threeSlideSpec(sample) {
   const closing = structuredClone(sample.slides.find((slide) => slide.kind === "closing"));
   cover.id = "delivery-cover";
   cover.section_id = sections[0].id;
-  agenda.id = "delivery-agenda";
-  agenda.section_id = sections[0].id;
-  agenda.render_data.sections = sections.map((section, index) => ({ number: String(index + 1).padStart(2, "0"), title: section.title }));
-  agenda.content.body = sections.map((section, index) => `${String(index + 1).padStart(2, "0")} ${section.title}`);
+  cover.content.title = "客机侧开式登机门优化设计";
+  cover.content.subtitle = "单篇论文组会汇报";
+  cover.render_data = { ...cover.render_data, subtitle: "单篇论文组会汇报" };
   closing.id = "delivery-closing";
   closing.section_id = sections.at(-1).id;
-  const slides = [cover, agenda, ...bodies, closing].map((slide, index) => ({ ...slide, order: index + 1 }));
+  const slides = [cover, ...bodies, closing].map((slide, index) => ({ ...slide, order: index + 1 }));
   const seconds = slides.reduce((sum, slide) => sum + slide.speaker_notes.estimated_seconds, 0);
   return {
     ...sample,
@@ -59,6 +71,11 @@ function threeSlideSpec(sample) {
     },
     project_id: "delivery-contract-fixture",
     title: "客机侧开式登机门优化设计",
+    literature: {
+      ...sample.literature,
+      mode: "single_paper",
+      focal_paper_ids: ["paper-1"],
+    },
     sections,
     timing: {
       ...sample.timing,
@@ -338,8 +355,17 @@ async function main() {
     await fs.writeFile(path.join(assetSource, "figures", "original", "图1.1 示例图.png"), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
     await fs.writeFile(path.join(assetSource, "figures", "论文图片说明.md"), "# 论文图片说明\n", "utf8");
     const delivery = path.join(temporary, STEM);
+    const fixtureSlideCount = threeSlideSpec(sample).slides.length;
     const staged = await stageDelivery({ output: delivery, mjs: mjsPath, assets: assetSource });
-    assert.deepEqual(staged.parity, { slideCount: 6, notesCount: 6, wordPageCount: 6, specSlideCount: 6 });
+    assert.deepEqual(staged.parity, {
+      slideCount: fixtureSlideCount,
+      notesCount: fixtureSlideCount,
+      wordPageCount: fixtureSlideCount,
+      specSlideCount: fixtureSlideCount,
+    });
+    for (const key of ["copy_assets_ms", "canonical_builder_ms", "clean_rebuild_ms", "verify_ms", "total_ms"]) {
+      assert.equal(Number.isFinite(staged.metrics[key]), true, `staging should report ${key}`);
+    }
     assert.deepEqual((await fs.readdir(delivery)).sort(), [`${STEM}.mjs`, `${STEM}.pptx`, `${STEM}_发言稿.docx`, "assets"].sort());
     assert.equal(await fs.access(path.join(delivery, "assets", "formulas")).then(() => true).catch(() => false), false);
 
@@ -411,7 +437,7 @@ async function main() {
     ), "utf8");
     await assert.rejects(
       () => validatePresentationScriptParity(deliveredPptx, shortDocx, threeSlideSpec(sample)),
-      /Word must contain one title plus 6 page paragraphs; found 6/,
+      new RegExp(`Word must contain one title plus ${fixtureSlideCount} page paragraphs; found ${fixtureSlideCount}`),
     );
     await assert.rejects(() => stageDelivery({
       output: path.join(temporary, shortStem),

@@ -428,6 +428,14 @@ export async function validateProject(projectPath, options = {}) {
   if (profileRegistry && !profileRegistry.profiles[profileId]) findings.push(finding("error", "profile.unregistered", PROFILE_REGISTRY_PATH, `Presentation profile ${profileId} is not registered.`));
   const literatureMode = config.literature_profile?.mode;
   if (profileId === GROUP_MEETING_PROFILE && !["single_paper", "multi_paper"].includes(literatureMode)) findings.push(finding("error", "profile.literature-mode", configPath, "Group-meeting projects require literature_profile.mode=single_paper or multi_paper."));
+  const requestedPagePolicy = config.presentation?.page_policy;
+  if (profileId === GROUP_MEETING_PROFILE
+    && literatureMode === "single_paper"
+    && requestedPagePolicy?.mode === "fixed"
+    && Number.isInteger(requestedPagePolicy.target_slide_count)
+    && requestedPagePolicy.target_slide_count < 12) {
+    findings.push(finding("error", "config.single-paper.page-minimum", configPath, "A production single-paper group meeting must target at least 12 visible slides. Use evidence-bearing continuation pages rather than filler."));
+  }
   const paths = resolveProjectPaths(projectDir, config);
   const targetStage = options.stage === "auto" || !options.stage ? await inferStage(paths) : options.stage;
   let sourceManifest = null;

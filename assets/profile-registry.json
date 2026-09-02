@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "skillVersion": "1.1.0",
+  "skillVersion": "1.2.0",
   "defaultProfile": "group_meeting_literature",
   "backwardCompatibility": {
     "missingDeckProfile": "group_meeting_literature"
@@ -9,7 +9,7 @@
     "phases": ["intake", "source", "assets", "outline", "build", "qa", "delivery"],
     "phaseReferences": {
       "intake": ["references/intake.md"],
-      "source": ["references/workflow.md", "references/group-meeting-literature.md", "references/evidence-and-notes.md"],
+      "source": ["references/operating-defaults.md", "references/workflow.md", "references/group-meeting-literature.md", "references/evidence-and-notes.md"],
       "assets": ["references/asset-preparation.md"],
       "outline": ["references/paper-structure.md", "references/layout-selection.md"],
       "build": ["references/workflow.md"],
@@ -17,28 +17,20 @@
       "delivery": ["references/delivery.md"]
     },
     "qualityBudgets": {
-      "default": "balanced_95",
       "balanced_95": {
-        "fullDeckQaPasses": 1,
-        "targetedRepairPasses": 1,
+        "reviewStrategy": "adaptive",
         "promoteAdvisoryWarnings": false
       },
       "lean_single_paper": {
         "appliesTo": "group_meeting_literature.single_paper",
-        "targetVisibleSlides": [10, 14],
-        "softVisibleSlideLimit": 16,
-        "maxDeepReadParentVisuals": 8,
-        "typicalRenderedParentVisuals": [3, 6],
-        "fullDeckQaPasses": 1,
-        "targetedRepairPasses": 1,
-        "diagnosticMinutes": 18,
-        "stopOptionalPolishMinutes": 25,
-        "activeContextTargetTokens": [20000, 30000],
+        "minimumVisibleSlides": 12,
+        "typicalVisibleSlides": [12, 14],
+        "typicalCoreParentVisuals": [3, 6],
+        "reviewStrategy": "planned_complete_then_targeted",
         "promoteAdvisoryWarnings": false
       },
       "strict_release": {
-        "fullDeckQaPasses": 1,
-        "targetedRepairPasses": 1,
+        "reviewStrategy": "release_validation",
         "promoteAdvisoryWarnings": true
       }
     }
