@@ -17,17 +17,28 @@ function issueCodes(result, severity = "error") {
 async function fixture() {
   const sample = JSON.parse(await readFile(SAMPLE_PATH, "utf8"));
   const cover = structuredClone(sample.slides.find((slide) => slide.id === "sample-group-cover"));
-  const body = structuredClone(sample.slides.find((slide) => slide.id === "sample-known-gap-question"));
+  const bodySource = structuredClone(sample.slides.find((slide) => slide.id === "sample-known-gap-question"));
   const closing = structuredClone(sample.slides.find((slide) => slide.id === "sample-group-closing"));
   cover.id = "group-cover";
   cover.content.title = "A focal paper and what I learned from it";
   cover.content.subtitle = "Author et al. · Journal · 2026";
   cover.render_data = { subtitle: cover.content.subtitle, presenter: "Student A", research_group: "Lab A", date: "2026-09-01" };
-  body.id = "group-body";
+  const bodyTitles = [
+    "1.1 文献基本信息",
+    "1.2 研究背景与意义",
+    "1.3 研究设计与方法",
+    "1.4 主要结果与结论",
+  ];
+  const bodies = bodyTitles.map((title, index) => ({
+    ...structuredClone(bodySource),
+    id: `group-body-${index + 1}`,
+    content: { ...structuredClone(bodySource.content), title },
+    render_data: { ...structuredClone(bodySource.render_data), paper_no: "1" },
+  }));
   closing.id = "group-closing";
   closing.content.title = "谢谢老师，请批评指正";
   closing.render_data = { presenter: "Student A" };
-  const slides = [cover, body, closing].map((slide, index) => {
+  const slides = [cover, ...bodies, closing].map((slide, index) => {
     const noteIds = new Set((slide.speaker_notes?.sources ?? []).map((source) => source.source_id));
     return {
       ...slide,
@@ -63,9 +74,9 @@ assert(issueCodes(await validate(coverNotFirst)).includes("group-meeting.cover.o
 const afterClosing = structuredClone(baseline);
 const extra = structuredClone(afterClosing.slides[1]);
 extra.id = "after-closing";
-extra.order = 4;
+extra.order = afterClosing.slides.length + 1;
 afterClosing.slides.push(extra);
-afterClosing.timing.target_slide_count = 4;
+afterClosing.timing.target_slide_count = afterClosing.slides.length;
 afterClosing.timing.estimated_seconds += extra.speaker_notes.estimated_seconds;
 assert(issueCodes(await validate(afterClosing)).includes("group-meeting.closing.order"));
 
@@ -115,9 +126,9 @@ const legacyAppendix = structuredClone(legacyCompatible.slides[1]);
 legacyAppendix.id = "legacy-appendix";
 legacyAppendix.kind = "appendix";
 legacyAppendix.priority = "appendix";
-legacyAppendix.order = 4;
+legacyAppendix.order = legacyCompatible.slides.length + 1;
 legacyCompatible.slides.push(legacyAppendix);
-legacyCompatible.timing.target_slide_count = 4;
+legacyCompatible.timing.target_slide_count = legacyCompatible.slides.length;
 legacyCompatible.timing.estimated_seconds += legacyAppendix.speaker_notes.estimated_seconds;
 const legacyCodes = issueCodes(await validate(legacyCompatible));
 assert(!legacyCodes.some((code) => code.startsWith("group-meeting.cover.")

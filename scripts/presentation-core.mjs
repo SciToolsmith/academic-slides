@@ -1159,7 +1159,17 @@ async function addGroupContentChrome(slide, slideSpec, context, slideNumber) {
   const sectionRecord = context.sectionIndex?.get(slideSpec.section_id);
   const paperNo = cleanText(first(data.paper_no, data.paperNo, slideSpec.paper_no, slideSpec.paperNo, ""));
   const section = cleanText(first(sectionRecord?.short_title, sectionRecord?.title, slideSpec.section_title, slideSpec.sectionTitle, ""));
-  const tag = cleanText(first(data.chrome_label, data.chromeLabel, paperNo && `PAPER ${paperNo}`, section, ""));
+  const continuation = isObject(data.continuation) ? data.continuation : {};
+  const continuationIndex = Number(continuation.index);
+  const continuationTotal = Number(continuation.total);
+  const continuationLabel = Number.isInteger(continuationIndex)
+    && Number.isInteger(continuationTotal)
+    && continuationIndex >= 1
+    && continuationTotal > 1
+    && continuationIndex <= continuationTotal
+    ? `第 ${continuationIndex}/${continuationTotal} 页`
+    : "";
+  const tag = cleanText(first(data.chrome_label, data.chromeLabel, continuationLabel, paperNo && `PAPER ${paperNo}`, section, ""));
   if (tag) addPill(slide, tag, { left: 1010, top: 19, width: 204, height: 34 }, colors, tokens, {
     name: "group-context-tag",
     fill: colors.primaryLight,

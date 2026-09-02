@@ -38,6 +38,8 @@
     "allowsFreeEvidenceCanvas": true,
     "fixedPaperCount": false,
     "fixedSectionCount": false,
+    "fixedCorePaperSectionSequence": true,
+    "repeatSectionNumberOnContinuation": true,
     "equalSlidesPerPaper": false
   },
   "referenceHeritage": {
@@ -65,7 +67,7 @@
           2
         ],
         "origin": "reference-adapted-clean-generated",
-        "heritage": "编号目录的扫描路径；重构为自适应分析章节，不固定论文或章节数量。"
+        "heritage": "编号目录的扫描路径；单篇省略，多篇按焦点论文顺序生成。"
       },
       {
         "layoutId": "paper-divider",
@@ -76,7 +78,7 @@
           20
         ],
         "origin": "reference-adapted-clean-generated",
-        "heritage": "章节编号与当前项强调；删除全目录重复和固定逐篇分隔。"
+        "heritage": "论文编号与当前项强调；多篇模式中按目录顺序为每篇焦点论文建立分隔。"
       },
       {
         "layoutId": "paper-profile",
@@ -292,5 +294,5 @@
       }
     ]
   },
-  "notes": "30 个注册布局构成语义设计词汇，而不是固定30页的组会成稿。单篇与多篇只改变叙事路由；每篇页数、目录章节和正文构图由研究问题与证据价值决定。通用外壳适合时优先，正文无自然匹配时允许遵守设计令牌的自由证据画布。"
+  "notes": "注册布局构成语义设计词汇，而不是固定页序。单篇省略目录，多篇按论文顺序生成目录与分隔页；每篇论文使用 X.1–X.4 固定核心标题，但页数和正文构图仍由研究问题与证据价值决定。正文无自然匹配时允许使用遵守设计令牌的自由证据画布。"
 }
