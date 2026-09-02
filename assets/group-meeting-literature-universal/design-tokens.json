@@ -85,8 +85,8 @@
     "contentHeader": "compact-section-label-plus-claim-title",
     "titleMarker": "small-leading-triangle-or-rule",
     "pageNumberPosition": "bottom-right",
-    "agendaMode": "adaptive-analytical-sections",
-    "sectionDividerMode": "optional-question-led",
+    "agendaMode": "omit-for-single-require-for-multiple",
+    "sectionDividerMode": "multi-paper-per-paper",
     "officialLogoKeepsOriginalColor": true,
     "logoOptional": true,
     "paperBreadcrumbOptional": true
@@ -110,7 +110,14 @@
     "strongTopologyRequiresSemanticMatch": true,
     "neverSelectLayoutByItemCountAlone": true,
     "neverFixPaperCount": true,
-    "neverFixSectionCount": true,
+    "fixedCorePaperSections": [
+      "X.1 文献基本信息",
+      "X.2 研究背景与意义",
+      "X.3 研究设计与方法",
+      "X.4 主要结果与结论"
+    ],
+    "optionalPaperSection": "X.5 批判性思考与启示",
+    "repeatSectionNumberOnContinuation": true,
     "neverAllocateEqualSlidesPerPaper": true,
     "preferEvidenceDensityOverTextDensity": true,
     "visibleContentMustServeAudience": true

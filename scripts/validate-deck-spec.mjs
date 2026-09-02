@@ -237,6 +237,35 @@ function slidePosition(slide, index) {
   return Number.isInteger(slide?.order) ? slide.order : index + 1;
 }
 
+const PAPER_SECTION_TITLES = new Map([
+  [1, "文献基本信息"],
+  [2, "研究背景与意义"],
+  [3, "研究设计与方法"],
+  [4, "主要结果与结论"],
+  [5, "批判性思考与启示"],
+]);
+
+function normalizedSlideTitle(slide) {
+  return String(slide?.content?.title ?? slide?.title ?? "").trim().replace(/\s+/g, " ");
+}
+
+function numberedPaperSection(title) {
+  const match = String(title).match(/^(\d+)\.(\d+)\s+(.+)$/);
+  if (!match) return null;
+  return {
+    paperIndex: Number(match[1]),
+    sectionIndex: Number(match[2]),
+    sectionTitle: match[3].trim(),
+  };
+}
+
+function renderedPaperNumber(slide) {
+  const raw = slide?.render_data?.paper_no ?? slide?.render_data?.paperNo ?? slide?.paper_no ?? slide?.paperNo;
+  if (raw === undefined || raw === null || raw === "") return null;
+  const value = Number.parseInt(String(raw), 10);
+  return Number.isInteger(value) && value >= 1 ? value : null;
+}
+
  function groupMeetingContract(deck) {
   return deck?.literature?.scientific_contract ?? "group_meeting_v1";
 }
@@ -250,6 +279,8 @@ function groupMeetingStructureIssues(deck, slides) {
 
   const positioned = slides.map((slide, index) => ({ slide, index, position: slidePosition(slide, index) }));
   const coverSlides = positioned.filter(({ slide }) => slide?.kind === "title");
+  const agendaSlides = positioned.filter(({ slide }) => slide?.kind === "agenda");
+  const dividerSlides = positioned.filter(({ slide }) => slide?.kind === "section");
   const closingSlides = positioned.filter(({ slide }) => slide?.kind === "closing");
   const appendixSectionIds = new Set((deck.sections ?? [])
     .filter((section) => effectiveSectionAudienceRole(section) === "appendix")
@@ -282,6 +313,69 @@ function groupMeetingStructureIssues(deck, slides) {
     }
     if (appendixSlides.length > 0 || appendixSectionIds.size > 0) {
       findings.push(issue("error", "group-meeting.appendix.visible", "$/slides", "Visible appendix/backup material is not allowed in a production group-meeting deck; the closing must remain the final slide."));
+    }
+
+    const literatureMode = deck.literature?.mode;
+    const focalPaperIds = Array.isArray(deck.literature?.focal_paper_ids) ? deck.literature.focal_paper_ids : [];
+    const paperCount = focalPaperIds.length;
+    if (literatureMode === "single_paper" && agendaSlides.length > 0) {
+      findings.push(issue("error", "group-meeting.single-paper.agenda", "$/slides", "A single-paper group meeting must not contain an agenda slide. Start the substantive deck at 1.1 文献基本信息."));
+    }
+    if (literatureMode === "multi_paper" && agendaSlides.length === 0) {
+      findings.push(issue("error", "group-meeting.multi-paper.agenda", "$/slides", "A multi-paper group meeting requires an agenda that lists the focal papers in order."));
+    }
+    if (literatureMode === "multi_paper") {
+      const dividerNumbers = new Set(dividerSlides.map(({ slide }) => renderedPaperNumber(slide)).filter(Number.isInteger));
+      for (let paperIndex = 1; paperIndex <= paperCount; paperIndex += 1) {
+        if (!dividerNumbers.has(paperIndex)) {
+          findings.push(issue("error", "group-meeting.multi-paper.divider", "$/slides", `Focal paper ${paperIndex} needs a numbered paper-divider slide before its substantive content.`));
+        }
+      }
+
+      const agendaNumbers = new Set(agendaSlides.flatMap(({ slide }) => {
+        const entries = Array.isArray(slide?.render_data?.papers) ? slide.render_data.papers : [];
+        return entries
+          .filter((entry) => !/^(?:Q|问)$/i.test(String(entry?.number ?? "").trim()))
+          .map((entry) => Number.parseInt(String(entry?.number ?? ""), 10))
+          .filter(Number.isInteger);
+      }));
+      for (let paperIndex = 1; paperIndex <= paperCount; paperIndex += 1) {
+        if (!agendaNumbers.has(paperIndex)) {
+          findings.push(issue("error", "group-meeting.multi-paper.agenda-entry", "$/slides", `The paper agenda is missing focal paper ${paperIndex}.`));
+        }
+      }
+    }
+
+    const numberedSlides = positioned.map((entry) => ({
+      ...entry,
+      title: normalizedSlideTitle(entry.slide),
+      numbered: numberedPaperSection(normalizedSlideTitle(entry.slide)),
+    })).filter((entry) => entry.numbered);
+    for (let paperIndex = 1; paperIndex <= paperCount; paperIndex += 1) {
+      const paperSlides = numberedSlides.filter((entry) => entry.numbered.paperIndex === paperIndex);
+      const firstPositionBySection = new Map();
+      for (const entry of paperSlides) {
+        const expectedTitle = PAPER_SECTION_TITLES.get(entry.numbered.sectionIndex);
+        if (expectedTitle && entry.numbered.sectionTitle !== expectedTitle) {
+          findings.push(issue("error", "group-meeting.paper-section.title", `$/slides/${entry.index}/content/title`, `Section ${paperIndex}.${entry.numbered.sectionIndex} must be titled “${expectedTitle}”.`));
+        }
+        if (expectedTitle && !firstPositionBySection.has(entry.numbered.sectionIndex)) {
+          firstPositionBySection.set(entry.numbered.sectionIndex, entry.position);
+        }
+        const renderedNumber = renderedPaperNumber(entry.slide);
+        if (renderedNumber !== null && renderedNumber !== paperIndex) {
+          findings.push(issue("error", "group-meeting.paper-section.paper-number", `$/slides/${entry.index}/render_data/paper_no`, `The rendered paper number ${renderedNumber} does not match the title prefix ${paperIndex}.`));
+        }
+      }
+      for (let sectionIndex = 1; sectionIndex <= 4; sectionIndex += 1) {
+        if (!firstPositionBySection.has(sectionIndex)) {
+          findings.push(issue("error", "group-meeting.paper-section.missing", "$/slides", `Focal paper ${paperIndex} is missing ${paperIndex}.${sectionIndex} ${PAPER_SECTION_TITLES.get(sectionIndex)}.`));
+        }
+      }
+      const orderedPositions = [1, 2, 3, 4].map((sectionIndex) => firstPositionBySection.get(sectionIndex));
+      if (orderedPositions.every(Number.isFinite) && orderedPositions.some((position, index) => index > 0 && position <= orderedPositions[index - 1])) {
+        findings.push(issue("error", "group-meeting.paper-section.order", "$/slides", `Focal paper ${paperIndex} must present sections ${paperIndex}.1 through ${paperIndex}.4 in order.`));
+      }
     }
 
     if (coverSlides.length === 1) {

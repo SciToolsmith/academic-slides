@@ -54,11 +54,22 @@ When asset work begins, read [references/asset-preparation.md](references/asset-
 - Keep author claims separate from presenter synthesis or critique. A presenter judgment must cite supporting evidence and appear in the visible deck.
 - Never fabricate publication metadata, values, sample sizes, formulas, figures, or source locators.
 
+## Apply the paper structure contract
+
+When storyboarding begins, read [references/paper-structure.md](references/paper-structure.md) before selecting layouts.
+
+- Exactly one focal paper produces no agenda slide. Start its substantive content at `1.1 文献基本信息`.
+- Two or more focal papers require an agenda listing the papers in `literature.focal_paper_ids` order and a numbered divider for each paper.
+- Every focal paper uses the fixed core sequence `X.1 文献基本信息` → `X.2 研究背景与意义` → `X.3 研究设计与方法` → `X.4 主要结果与结论`; add `X.5 批判性思考与启示` only when it merits a separate page.
+- Put the complete numbered section title in `content.title`; the renderer shows it at the upper left. Put the slide-specific claim in `takeaway` or the evidence area.
+- When one semantic section spans several slides, repeat the same `X.Y` title on every continuation slide. A continuation counter may change, but the section number must not.
+- Keep evidence volume and layout selection adaptive. The fixed headings do not require equal pages per paper or one page per heading.
+
 ## Plan before choosing layouts
 
 When storyboarding begins, read [references/layout-selection.md](references/layout-selection.md).
 
-The bundled 30-layout library is a semantic design vocabulary, not a fixed slide order or a whitelist. Choose a layout only after identifying the evidence relationship, topology, density, and slot count. Use an editable free-evidence canvas when no registered layout fits naturally.
+The bundled layout registry is a semantic design vocabulary, not a fixed slide order or a whitelist. Choose a layout only after identifying the evidence relationship, topology, density, and slot count. Use an editable free-evidence canvas when no registered layout fits naturally.
 
 The main deck must make these learning outcomes visible:
 
@@ -81,7 +92,7 @@ Core finding slides must render the actual supporting figure, table, result, for
 
 ## Build with the bundled system
 
-Use <code>assets/group-meeting-literature-universal/</code> for layouts, design tokens, themes, and the sample gallery.
+Use <code>assets/group-meeting-literature-universal/</code> for layouts, design tokens, themes, and the sample deck specification.
 
 - A production deck starts with exactly one <code>group-cover</code> and ends with exactly one <code>group-closing</code>.
 - The default cover identifies the paper, presenter, research group, and date without generator labels.
