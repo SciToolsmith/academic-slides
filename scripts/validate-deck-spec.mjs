@@ -228,6 +228,16 @@ function effectiveSectionAudienceRole(section) {
   return section?.role === "appendix" ? "appendix" : "main";
 }
 
+export function countedDeckSlides(deck, includeAppendix = deck?.timing?.include_appendix_in_count === true) {
+  const slides = Array.isArray(deck?.slides) ? deck.slides : [];
+  if (includeAppendix) return slides;
+  const appendixSections = new Set((deck.sections ?? [])
+    .filter((section) => effectiveSectionAudienceRole(section) === "appendix")
+    .map((section) => section.id));
+  return slides.filter((slide) => slide?.kind !== "appendix" && slide?.priority !== "appendix"
+    && !appendixSections.has(slide?.section_id));
+}
+
 function sectionVisibility(section, field) {
   if (typeof section?.[field] === "boolean") return section[field];
   return effectiveSectionAudienceRole(section) === "main";
@@ -270,6 +280,48 @@ function renderedPaperNumber(slide) {
   return deck?.literature?.scientific_contract ?? "group_meeting_v1";
 }
 
+// Shared with the renderer so content fallbacks and validation consume exactly
+// the same text. Equivalent duplicated fields are harmless; competing copies
+// cannot silently hide a presenter judgment or discussion question.
+export function discussionClosingPayload(slide) {
+  const data = slide?.render_data ?? {};
+  const problems = [];
+  const normalize = (value) => value.normalize("NFKC").replace(/\s+/gu, " ").trim();
+  function textList(value, field, allowTextObjects) {
+    if (value === undefined || value === null) return [];
+    if (!Array.isArray(value)) {
+      problems.push({ code: "group-meeting.closing.payload-shape", field, message: `${field} must be an array of ${allowTextObjects ? "strings or text objects" : "strings"}.` });
+      return [];
+    }
+    return value.map((item, index) => {
+      const text = allowTextObjects && item && typeof item === "object" && !Array.isArray(item) ? item.text : item;
+      if (typeof text !== "string") {
+        problems.push({ code: "group-meeting.closing.payload-shape", field: `${field}/${index}`, message: `${field}/${index} has no supported text value.` });
+        return "";
+      }
+      return text.trim();
+    }).filter(Boolean);
+  }
+  if (data.synthesis != null && typeof data.synthesis !== "string") {
+    problems.push({ code: "group-meeting.closing.payload-shape", field: "render_data/synthesis", message: "render_data.synthesis must be a string." });
+  }
+  const synthesis = typeof data.synthesis === "string" ? data.synthesis.trim() : "";
+  const body = textList(slide?.content?.body, "content/body", false).join(" ");
+  const prompts = textList(data.prompts, "render_data/prompts", true);
+  const bullets = textList(slide?.content?.bullets, "content/bullets", true);
+  if (synthesis && body && normalize(synthesis) !== normalize(body)) {
+    problems.push({ code: "group-meeting.closing.payload-conflict", field: "content/body", message: "render_data.synthesis and content.body contain different non-empty text. Keep one canonical synthesis or make both copies equivalent." });
+  }
+  if (prompts.length && bullets.length && JSON.stringify(prompts.map(normalize)) !== JSON.stringify(bullets.map(normalize))) {
+    problems.push({ code: "group-meeting.closing.payload-conflict", field: "content/bullets", message: "render_data.prompts and content.bullets contain different non-empty questions. Keep one canonical prompt list or make both copies equivalent." });
+  }
+  const selectedPrompts = prompts.length ? prompts : bullets;
+  if (selectedPrompts.length > 3) {
+    problems.push({ code: "group-meeting.closing.prompts-capacity", field: "render_data/prompts", message: "The discussion closing renders at most three prompts. Split additional discussion into a preceding content slide." });
+  }
+  return { synthesis: synthesis || body, prompts: selectedPrompts, problems };
+}
+
 function groupMeetingStructureIssues(deck, slides) {
   const findings = [];
   if (deck.profile !== "group_meeting_literature") return findings;
@@ -291,6 +343,11 @@ function groupMeetingStructureIssues(deck, slides) {
     || slide?.priority === "appendix"
     || appendixSectionIds.has(slide?.section_id)
   ));
+  const appendixIds = new Set(appendixSlides.map(({ slide }) => slide.id));
+  const mainPositioned = positioned.filter(({ slide }) => !appendixIds.has(slide.id));
+  const narrativeMode = deck.structure?.narrative_mode ?? "paper_walkthrough";
+  const titlePolicy = deck.structure?.title_policy ?? "section";
+  const appendixPolicy = deck.structure?.appendix_policy ?? "none";
 
   if (v2Enabled) {
     if (coverSlides.length !== 1) {
@@ -301,30 +358,41 @@ function groupMeetingStructureIssues(deck, slides) {
     if (closingSlides.length !== 1) {
       findings.push(issue("error", "group-meeting.closing.count", "$/slides", `Production group-meeting decks need exactly one closing slide; found ${closingSlides.length}.`));
     } else {
-      const finalPosition = Math.max(...positioned.map(({ position }) => position));
+      const finalPosition = Math.max(...mainPositioned.map(({ position }) => position));
       if (closingSlides[0].position !== finalPosition) {
-        findings.push(issue("error", "group-meeting.closing.order", `$/slides/${closingSlides[0].index}`, "The student-facing closing must be the final visible slide; discussion and next actions belong before it."));
+        findings.push(issue("error", "group-meeting.closing.order", `$/slides/${closingSlides[0].index}`, "The closing must be the final main slide. Only explicitly enabled appendix material may follow it."));
       }
     }
 
-    const appendixPolicy = deck.structure?.appendix_policy ?? "none";
-    if (appendixPolicy !== "none") {
-      findings.push(issue("error", "group-meeting.appendix.policy", "$/structure/appendix_policy", "Production group-meeting decks default to appendix_policy=none. Keep audit/reproduction material in notes or internal Markdown instead of placing visible slides after the closing."));
+    if (appendixPolicy === "none" && (appendixSlides.length > 0 || appendixSectionIds.size > 0)) {
+      findings.push(issue("error", "group-meeting.appendix.visible", "$/slides", "Appendix material requires explicit structure.appendix_policy=after_closing_unlisted; the default remains none."));
     }
-    if (appendixSlides.length > 0 || appendixSectionIds.size > 0) {
-      findings.push(issue("error", "group-meeting.appendix.visible", "$/slides", "Visible appendix/backup material is not allowed in a production group-meeting deck; the closing must remain the final slide."));
+    if (appendixPolicy === "after_closing_unlisted") {
+      for (const entry of appendixSlides) {
+        if (closingSlides.length === 1 && entry.position <= closingSlides[0].position) {
+          findings.push(issue("error", "group-meeting.appendix.order", `$/slides/${entry.index}`, "Backup material must follow the closing, outside the main narrative."));
+        }
+        if (["title", "agenda", "section", "closing"].includes(entry.slide.kind)) {
+          findings.push(issue("error", "group-meeting.appendix.shell", `$/slides/${entry.index}`, "A main cover, agenda, divider, or closing cannot be relabeled as appendix to bypass narrative checks."));
+        }
+      }
+      for (const [index, section] of (deck.sections ?? []).entries()) {
+        if (appendixSectionIds.has(section.id) && (sectionVisibility(section, "show_in_agenda") || sectionVisibility(section, "show_in_navigation"))) {
+          findings.push(issue("error", "group-meeting.appendix.navigation", `$/sections/${index}`, "Unlisted backup sections must stay out of the main agenda and persistent navigation."));
+        }
+      }
     }
 
     const literatureMode = deck.literature?.mode;
     const focalPaperIds = Array.isArray(deck.literature?.focal_paper_ids) ? deck.literature.focal_paper_ids : [];
     const paperCount = focalPaperIds.length;
-    if (literatureMode === "single_paper" && agendaSlides.length > 0) {
+    if (narrativeMode === "paper_walkthrough" && literatureMode === "single_paper" && agendaSlides.length > 0) {
       findings.push(issue("error", "group-meeting.single-paper.agenda", "$/slides", "A single-paper group meeting must not contain an agenda slide. Start the substantive deck at 1.1 文献基本信息."));
     }
-    if (literatureMode === "multi_paper" && agendaSlides.length === 0) {
+    if (narrativeMode === "paper_walkthrough" && literatureMode === "multi_paper" && agendaSlides.length === 0) {
       findings.push(issue("error", "group-meeting.multi-paper.agenda", "$/slides", "A multi-paper group meeting requires an agenda that lists the focal papers in order."));
     }
-    if (literatureMode === "multi_paper") {
+    if (narrativeMode === "paper_walkthrough" && literatureMode === "multi_paper") {
       const dividerNumbers = new Set(dividerSlides.map(({ slide }) => renderedPaperNumber(slide)).filter(Number.isInteger));
       for (let paperIndex = 1; paperIndex <= paperCount; paperIndex += 1) {
         if (!dividerNumbers.has(paperIndex)) {
@@ -346,17 +414,18 @@ function groupMeetingStructureIssues(deck, slides) {
       }
     }
 
-    const numberedSlides = positioned.map((entry) => ({
+    const numberedSlides = mainPositioned.map((entry) => ({
       ...entry,
-      title: normalizedSlideTitle(entry.slide),
-      numbered: numberedPaperSection(normalizedSlideTitle(entry.slide)),
+      numbered: numberedPaperSection(titlePolicy === "claim"
+        ? String(entry.slide?.content?.section_label ?? "").trim()
+        : normalizedSlideTitle(entry.slide)),
     })).filter((entry) => entry.numbered);
-    for (let paperIndex = 1; paperIndex <= paperCount; paperIndex += 1) {
+    for (let paperIndex = 1; narrativeMode === "paper_walkthrough" && paperIndex <= paperCount; paperIndex += 1) {
       const paperSlides = numberedSlides.filter((entry) => entry.numbered.paperIndex === paperIndex);
       const firstPositionBySection = new Map();
       for (const entry of paperSlides) {
         const expectedTitle = PAPER_SECTION_TITLES.get(entry.numbered.sectionIndex);
-        if (expectedTitle && entry.numbered.sectionTitle !== expectedTitle) {
+        if (titlePolicy === "section" && expectedTitle && entry.numbered.sectionTitle !== expectedTitle) {
           findings.push(issue("error", "group-meeting.paper-section.title", `$/slides/${entry.index}/content/title`, `Section ${paperIndex}.${entry.numbered.sectionIndex} must be titled “${expectedTitle}”.`));
         }
         if (expectedTitle && !firstPositionBySection.has(entry.numbered.sectionIndex)) {
@@ -369,7 +438,7 @@ function groupMeetingStructureIssues(deck, slides) {
       }
       for (let sectionIndex = 1; sectionIndex <= 4; sectionIndex += 1) {
         if (!firstPositionBySection.has(sectionIndex)) {
-          findings.push(issue("error", "group-meeting.paper-section.missing", "$/slides", `Focal paper ${paperIndex} is missing ${paperIndex}.${sectionIndex} ${PAPER_SECTION_TITLES.get(sectionIndex)}.`));
+          findings.push(issue("error", "group-meeting.paper-section.missing", "$/slides", `Focal paper ${paperIndex} is missing ${paperIndex}.${sectionIndex} ${PAPER_SECTION_TITLES.get(sectionIndex)} in ${titlePolicy === "claim" ? "content.section_label" : "content.title"}.`));
         }
       }
       const orderedPositions = [1, 2, 3, 4].map((sectionIndex) => firstPositionBySection.get(sectionIndex));
@@ -377,25 +446,21 @@ function groupMeetingStructureIssues(deck, slides) {
         findings.push(issue("error", "group-meeting.paper-section.order", "$/slides", `Focal paper ${paperIndex} must present sections ${paperIndex}.1 through ${paperIndex}.4 in order.`));
       }
     }
-
-    if (coverSlides.length === 1) {
-      const coverData = coverSlides[0].slide?.render_data ?? {};
-      if (!isNonEmptyString(coverData.presenter)) {
-        findings.push(issue("error", "group-meeting.cover.presenter", `$/slides/${coverSlides[0].index}/render_data/presenter`, "A student group-meeting cover must identify the presenter."));
-      }
-      if (!isNonEmptyString(coverData.date)) {
-        findings.push(issue("error", "group-meeting.cover.date", `$/slides/${coverSlides[0].index}/render_data/date`, "A student group-meeting cover must identify the meeting date."));
+    for (const entry of mainPositioned) {
+      for (const paperId of entry.slide.paper_ids ?? []) {
+        if (!focalPaperIds.includes(paperId)) {
+          findings.push(issue("error", "group-meeting.paper-reference.unknown", `$/slides/${entry.index}/paper_ids`, `Page references unknown focal paper ${paperId}.`));
+        }
       }
     }
+
+    // Presenter and meeting date are user metadata, not facts recoverable from a paper.
+    // Omit unknown values instead of forcing placeholders or invented identities.
     if (closingSlides.length === 1) {
       const closing = closingSlides[0].slide;
-      const title = String(closing?.content?.title ?? "").trim();
       const shellSource = closing?.render_data?.shell_source ?? "profile_default";
       if (!["profile_default", "user_locked"].includes(shellSource)) {
         findings.push(issue("error", "group-meeting.closing.shell-source", `$/slides/${closingSlides[0].index}/render_data/shell_source`, "render_data.shell_source must be profile_default or user_locked for a v2 group-meeting closing."));
-      }
-      if (shellSource !== "user_locked" && title !== "谢谢老师，请批评指正") {
-        findings.push(issue("error", "group-meeting.closing.student-shell", `$/slides/${closingSlides[0].index}/content/title`, "Use the fixed student closing “谢谢老师，请批评指正”, or mark a genuinely user-supplied shell with render_data.shell_source=user_locked."));
       }
       const analysisPayload = collectTextValues([
         closing?.render_data?.synthesis,
@@ -406,8 +471,14 @@ function groupMeetingStructureIssues(deck, slides) {
         closing?.content?.quote,
         closing?.content?.callout,
       ]);
-      if (analysisPayload.length > 0) {
-        findings.push(issue("error", "group-meeting.closing.analysis-payload", `$/slides/${closingSlides[0].index}`, "The final student closing is a shell only. Move synthesis, prompts, evidence, and next actions to the preceding slide."));
+      if ((deck.structure?.closing_mode ?? "thanks") === "thanks" && analysisPayload.length > 0) {
+        findings.push(issue("error", "group-meeting.closing.analysis-payload", `$/slides/${closingSlides[0].index}`, "A thanks closing contains only a title/subtitle and presenter. Use closing_mode=discussion for an analytical closing or move analysis to the preceding slide."));
+      }
+      if (deck.structure?.closing_mode === "discussion") {
+        for (const problem of discussionClosingPayload(closing).problems) findings.push(issue("error", problem.code, `$/slides/${closingSlides[0].index}/${problem.field}`, problem.message));
+        if (collectTextValues([closing?.content?.metrics, closing?.content?.quote, closing?.content?.callout]).length > 0) {
+          findings.push(issue("error", "group-meeting.closing.unrendered-content", `$/slides/${closingSlides[0].index}/content`, "The discussion closing consumes synthesis/body and prompts/bullets. Put metrics, quotations, or evidence callouts on a content slide."));
+        }
       }
     }
   }
@@ -666,7 +737,8 @@ function semanticDeckIssues(deck, strict = false) {
     }
 
     const kind = String(slide.kind ?? "").toLowerCase();
-    const substantive = !NON_SUBSTANTIVE_SLIDE_KINDS.has(kind);
+    const substantive = !NON_SUBSTANTIVE_SLIDE_KINDS.has(kind)
+      || (kind === "closing" && deck.structure?.closing_mode === "discussion");
     const noteScript = slide.speaker_notes?.script;
     const noteTransition = slide.speaker_notes?.transition;
     if (substantive && !isNonEmptyString(noteScript)) {
@@ -746,10 +818,11 @@ function semanticDeckIssues(deck, strict = false) {
       findings.push(issue(soft, "timing.target.mismatch", "$/timing/target_seconds", `Expected approximately ${calculatedTarget} seconds from duration_minutes × usable_fraction.`));
     }
     if (deck.timing.page_policy === "fixed") {
+      const counted = countedDeckSlides(deck);
       if (!Number.isInteger(deck.timing.target_slide_count) || deck.timing.target_slide_count < 3) {
         findings.push(issue("error", "timing.slide-count.invalid", "$/timing/target_slide_count", "Fixed page policy requires an integer target_slide_count of at least 3."));
-      } else if (slides.length !== deck.timing.target_slide_count) {
-        findings.push(issue("error", "timing.slide-count.mismatch", "$/timing/target_slide_count", `Fixed target is ${deck.timing.target_slide_count} slides; deck contains ${slides.length}.`));
+      } else if (counted.length !== deck.timing.target_slide_count) {
+        findings.push(issue("error", "timing.slide-count.mismatch", "$/timing/target_slide_count", `Fixed target is ${deck.timing.target_slide_count} counted slides; deck contains ${counted.length} under include_appendix_in_count=${deck.timing.include_appendix_in_count === true}.`));
       }
     }
   }

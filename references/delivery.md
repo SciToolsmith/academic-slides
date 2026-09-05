@@ -1,54 +1,39 @@
-# 最小客户交付标准
+# 按需交付与重建
 
-内部工作区保留证据、规划、QA 和缓存；客户包只保留使用或重建本次组会 PPT 必需的内容。
+内部项目保留源论文、索引、规划、QA 与缓存。交付范围由用户请求决定，并显式记录 `output.delivery_mode`；无此字段的旧配置继续按 `rebuildable_pack` 处理。
 
-## 唯一目录结构
+## 三种交付模式
 
-    短题名_组会汇报/
-    ├── 短题名_组会汇报.pptx
-    ├── 短题名_组会汇报.mjs
-    ├── 短题名_组会汇报_发言稿.docx
-    └── assets/
-        ├── papers/
-        ├── formulas/
-        └── data/
+| mode | 客户包内容 | 使用场景 |
+| --- | --- | --- |
+| `pptx_with_notes` | 同名 PPTX | 新任务默认，只需要可编辑 PPT 与备注 |
+| `presenter_pack` | PPTX + `_发言稿.docx` | 用户要独立 Word 讲稿 |
+| `rebuildable_pack` | PPTX + Word + 同名 MJS + `assets/` | 用户要可重建项目或源码 |
 
-<code>assets/</code> 必须存在；子目录只在实际包含交付文件时创建。论文素材目录只保留本稿实际使用的忠实提取图和派生版本。入选公式按需保留 <code>.tex</code>、<code>.svg</code> 或 <code>.png</code>；不保留编译日志和临时 PDF。<code>data/</code> 只放可编辑图表真正依赖的数据文件。
+PPT 的 Sources 与讲稿备注始终保留。只在需要 Word 的模式同步生成 Word；只在重建包中交付 MJS 和被引用的资产。内部构建入口可以生成 MJS 供安全暂存验证，这不扩大客户交付范围。
 
-## 命名
+默认 basename 为“短题名_组会汇报”，用户明确的安全命名优先。拒绝路径越界与敏感内容，而不把日期或版本号本身当作科学错误。实际内容须满足所选 mode 的白名单。
 
-文件夹、PPTX 和 MJS 使用同一 basename：<code>短题名_组会汇报</code>。
+## 同源与编辑边界
 
-不在名称中加入姓名、日期、版本号、v1、final、“最终版”、“终稿”或“最新版”。题名过长时提取不改变含义的短题名，不为命名另行询问用户。
+PPT 备注来自 `speaker_notes`，需要 Word 时从同一数据生成，保证页序、讲稿和过渡一致。Sources 留在 PPT 备注中，Word 默认只保留口头讲稿。
 
-## 三个文件的契约
+文字、表格、支持的图表与简单图形为原生可编辑；论文原图和复杂公式以忠实图片呈现。公式 TeX 是可编辑重建源，不承诺所有符号能直接在 PowerPoint 中修改。
 
-- PPTX 保持可编辑，并在每页备注中写入发言稿、过渡和唯一 <code>[Sources]</code> 区块。
-- Word 发言稿与 PPT 备注从同一份 <code>speaker_notes</code> 生成。正文按“第 N 页：讲稿”紧凑排版，不输出 Sources。
-- MJS 嵌入最终项目规格，只使用 <code>assets/</code> 内的相对路径，不读取未交付的 <code>deck-spec.json</code>，默认重建同名 PPTX 与 DOCX。
-- MJS 可以依赖已安装的 <code>paper-club-ppt</code> Skill，但不得写入 Skill 或本机的绝对路径。
+## 重建包
 
-## 不交付
+MJS 内嵌最终规格、包内相对资产和构建 manifest。manifest 记录生成实现、schema、模板及 runtime 等可核验信息；有 Git 仓库时记录提交。哈希比较防止升级 skill 后静默换 renderer，不代表不同操作系统能像素级一致。
 
-不要复制以下内容：
+“按原环境重建”须通过兼容性检查。“迁移到当前版本”必须明确执行，生成新入口并重新检查产物。旧交付缺少版本锁时如实提示，不伪造过去使用的版本。嵌入规格和完整性校验属于封存快照；修改内容应回到内部规格或受支持的迁移入口重新生成，不随意去掉哈希检查。
 
-- 原始论文 PDF；
-- <code>project-config.json</code>、<code>deck-spec.json</code> 和大纲；
-- paper/evidence/asset 索引；
-- QA 报告、构建报告、预览图、联系表和逐页渲染图；
-- OCR 文本、日志、缓存、<code>node_modules</code> 和测试文件；
-- 内部布局库、未使用素材、越界路径或密钥。
+`assets/` 只保留实际依赖的源图、派生图、公式和数据。用于验证处理溯源的原图/元数据也属于真实构建依赖。不要保留空素材子目录、未使用素材或外部绝对路径。
 
-多篇任务默认只交付入选和重点分析图片；完整图表提取仅在用户明确要求时交付。
+## 暂存与检查
 
-## 构建与交付
+1. 用 `scripts/build-project.mjs --render` 按配置构建内部产物；显式 `--delivery-mode` 可覆盖配置。
+2. 检查 PPT 证据与渲染；需要 Word 时再运行 `render-word-qa.mjs`。
+3. 用 `scripts/stage-delivery.mjs --output <客户包目录> --mjs <内部项目.mjs> --delivery-mode <mode>` 从干净目录重建所选格式；需要资产时提供 `--assets`。
+4. 验证页面、备注、已请求的 Word、manifest 与输出范围。已知敏感词用 `--forbidden-term` 指定。
+5. 新包完整通过后原子替换旧包；失败时保留旧包。
 
-客户交付只接受 <code>artifact_purpose: production</code>。正常交付包括一次内部构建和一次空白暂存重建：
-
-1. 使用 <code>scripts/build-project.mjs --render</code> 生成并检查内部 PPTX、Word 与项目 MJS。
-2. 使用 <code>scripts/render-word-qa.mjs</code> 检查 Word 可读性、页数和讲稿同步。
-3. 使用 <code>scripts/stage-delivery.mjs --output &lt;短题名_组会汇报&gt; --mjs &lt;项目.mjs&gt; [--assets &lt;已筛选素材目录&gt;]</code> 在空白目录重建一次。
-4. 暂存脚本校验 canonical MJS、页面顺序、PPT 备注、Word 讲稿和白名单内容。
-5. 已知姓名、学号或其他敏感词通过重复的 <code>--forbidden-term</code> 传入。
-6. 旧交付目录只在新暂存包完整通过后原子替换；失败时保留旧包。
-7. 最终只向用户展示交付目录，不罗列内部中间产物。
+最终展示所选包和必要限制。源 PDF、project/deck spec、paper/evidence/asset 索引、QA、预览、OCR、日志、缓存及 `node_modules` 留在内部工作区，除非用户另有明确要求。

@@ -236,8 +236,13 @@ function detectCaptions(pages) {
         if (splitTitle) captionLines.push(splitTitle);
       }
       let previous = line;
-      for (let cursor = index + 1; cursor < page.lines.length && captionLines.length < 3; cursor += 1) {
-        const candidate = page.lines[cursor];
+      // A full caption can contain the uncertainty, sample size and panel key.
+      // Keep every contiguous line in its text block, even when another column
+      // interleaves with it in the page's reading order.
+      const continuations = page.lines.filter((candidate) => candidate !== line
+        && candidate.blockIndex === line.blockIndex && candidate.yMin >= line.yMin)
+        .sort((left, right) => left.yMin - right.yMin || left.xMin - right.xMin);
+      for (const candidate of continuations) {
         if (captionLines.includes(candidate)) continue;
         if (captionMatch(candidate.text)) break;
         const gap = candidate.yMin - previous.yMax;
@@ -403,8 +408,13 @@ function planCrop(detection, detectionsOnPage) {
   const captionExcluded = side === "above"
     ? bbox.y + bbox.height <= captionTop - CAPTION_GAP_PT + 0.01
     : bbox.y >= captionBottom + CAPTION_GAP_PT - 0.01;
-  let confidence = degradedOnce ? "low" : "high";
-  if (!degradedOnce && (horizontal.inferredColumn || bbox.height > detection.page.height * 0.5)) confidence = "medium";
+  // Caption geometry is a proposal, not evidence that the complete figure body
+  // was found. No unreviewed spatial guess earns high confidence.
+  const confidence = degradedOnce ? "low" : "unverified";
+  warnings.push("Caption geometry only: verify the selected crop against the source page for complete panels, axes, legends and neighboring text before use.");
+  if (!horizontal.inferredColumn && detection.captionBbox.width < detection.page.width * 0.24) {
+    warnings.push("Short caption does not establish figure width or column; the proposed full-width crop requires inspection.");
+  }
   if (horizontal.inferredColumn) warnings.push("A two-column crop was inferred from caption geometry; verify only if this asset becomes presentation-critical.");
   if (!captionExcluded) warnings.push("Computed crop geometry may intersect the caption.");
   return {
@@ -602,6 +612,7 @@ async function materializeCrops(pdfPath, outputDir, detections, dpi) {
           const outputStat = await stat(outputPath);
           if (outputStat.size < 64) throw new Error("Crop output is unexpectedly small.");
           detection.outputFile = toPosix(path.relative(outputDir, outputPath));
+          detection.outputSha256 = createHash("sha256").update(await readFile(outputPath)).digest("hex");
         } catch (error) {
           detection.renderError = `Crop failed after one attempt: ${error.message}`;
         }
@@ -646,11 +657,13 @@ function manifestAsset(detection) {
     crop: {
       status,
       file: detection.outputFile ?? null,
+      sha256: detection.outputSha256 ?? null,
       bbox: detection.cropPlan.bbox,
       caption_excluded: detection.cropPlan.captionExcluded,
       method: detection.shouldMaterialize ? detection.cropPlan.method : "not_materialized",
       confidence: detection.shouldMaterialize ? detection.cropPlan.confidence : "not_assessed",
       degraded_once: detection.shouldMaterialize ? detection.cropPlan.degradedOnce : false,
+      verification: { status: "unverified", checks: [], asset_sha256: detection.outputSha256 ?? null },
       warnings,
     },
   };
@@ -666,7 +679,7 @@ function markdownFor(manifest) {
     `- 已物化：${manifest.summary.materialized_count}｜仅索引：${manifest.summary.indexed_only_count}｜失败：${manifest.summary.failed_count}`,
     `- 策略：${manifest.policy.requested_materialization} → ${manifest.policy.effective_materialization}（自动阈值 ${manifest.policy.auto_materialize_limit}）`,
     "",
-    "> 本文档由 `paper-assets.json` 生成。JSON 是机器真相；本 MD 只是给后续 PPT 选材的简短阅读层。裁图排除 caption，但仍应在 PPT 备注中保留来源定位。",
+    "> 本文档由 `paper-assets.json` 生成。裁框是基于图注几何的待核验候选；生成 PNG 或排除图注均不证明图体完整。只对入选证据核对面板、坐标轴、图例及相邻正文，记录核验后再用于 PPT。",
     "",
   ];
   if (!manifest.assets.length) {
@@ -804,6 +817,7 @@ export async function extractPaperAssets(options) {
     notes: [
       "Captions are indexed from the PDF text layer; image-only papers require upstream OCR or supplied locations.",
       "Figure bodies are expected above captions and table bodies below captions; a too-small region is reversed once and marked low-confidence.",
+      "All automatic crops remain unverified. Confidence is not a substitute for inspecting the selected crop alongside its source page; keep the full caption for interpretation.",
       "Table assets remain faithful source crops. Bulk OCR and CSV reconstruction are intentionally outside this low-cost pass.",
     ],
   };

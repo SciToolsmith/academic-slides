@@ -9,6 +9,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { buildDeck } from "../scripts/build.mjs";
 import { createProjectBuilder } from "../scripts/create-project-builder.mjs";
+import { validateDeckSpecFile } from "../scripts/validate-deck-spec.mjs";
 import { internal } from "../scripts/presentation-core.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -148,7 +149,8 @@ async function main() {
     ];
     sample.theme.preset = "blue";
     sample.artifact_purpose = "production";
-    sample.structure = { section_transition_mode: "integrated", section_transition_reason: "主题契约使用精简集成过渡。", appendix_policy: "none" };
+    // This fixture compares shared questions across papers; it is not a numbered paper walkthrough.
+    sample.structure = { narrative_mode: "question_comparison", title_policy: "claim", section_transition_mode: "integrated", section_transition_reason: "主题契约使用精简集成过渡。", appendix_policy: "none" };
     sample.sections = sections;
     sample.sources = sample.sources.map((source) => ({ ...source, citation: "本项目规范", path: null }));
     const cover = structuredClone(sample.slides.find((slide) => slide.kind === "title"));
@@ -183,6 +185,8 @@ async function main() {
     sample.claim_evidence_map = [];
     const sampleSpec = path.join(temporary, "deck-spec.json");
     await fs.writeFile(sampleSpec, `${JSON.stringify(sample, null, 2)}\n`, "utf8");
+    const fixtureValidation = await validateDeckSpecFile(sampleSpec, { strict: true, requireSchema: true });
+    assert.deepEqual(fixtureValidation.issues, [], "The theme rebuild fixture must satisfy the production deck contract.");
     const stem = "主题契约_组会汇报";
     const builderPath = path.join(temporary, `${stem}.mjs`);
     const result = await createProjectBuilder({

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -94,12 +95,46 @@ function transformationText(visual) {
   return list(visual?.transformations).map((item) => typeof item === "string" ? item : JSON.stringify(item)).join(" ");
 }
 
-function readyDerivedAssetIds(deck, availableAssetIds) {
-  return new Set(list(deck?.assets)
-    .filter((asset) => /(?:^|\/)ready(?:\/|$)/i.test(clean(asset?.path).replaceAll("\\", "/")))
-    .filter((asset) => !availableAssetIds || availableAssetIds.has(clean(asset?.id)))
-    .map((asset) => clean(asset?.id))
-    .filter(Boolean));
+function assetTransforms(slide) {
+  const value = slide?.asset_transform;
+  return Array.isArray(value) ? value : value && typeof value === "object" ? [value] : [];
+}
+
+function presentationTreatmentIds(slide, assetIds, availableAssetIds, assetHashes, findings, pointer) {
+  const accepted = new Set();
+  for (const [index, treatment] of assetTransforms(slide).entries()) {
+    const output = clean(treatment?.asset_ref);
+    const input = clean(treatment?.input_asset_ref);
+    const mode = clean(treatment?.mode);
+    const outputHash = clean(treatment?.output_sha256).toLowerCase();
+    if (!assetIds.has(output) || !clean(treatment?.reason)) continue;
+    if (availableAssetIds && !availableAssetIds.has(output)) continue;
+    // This is an explicit review at the intended slide size, not automatic
+    // image-quality inference. A clear original does not need decoration.
+    if (mode === "original" && treatment?.readability_verified === true) {
+      if (!/^[a-f0-9]{64}$/.test(outputHash) || assetHashes && assetHashes.get(output) !== outputHash) {
+        findings.push(issue("error", "scientific.visuals.readability_review_invalid", `${pointer}/asset_transform/${index}`, "Bind the readability review to the current asset bytes with output_sha256. A missing or stale hash invalidates the review; a matching hash binds the review to this file but does not prove readability.", slideOptions(slide)));
+      } else {
+        accepted.add(output);
+      }
+      continue;
+    }
+    if (!["annotate", "split", "zoom", "redraw", "crop"].includes(mode)) continue;
+    const inputHash = clean(treatment?.input_sha256).toLowerCase();
+    let problem = "";
+    if (!input || input === output || !assetIds.has(input)) problem = "Declare a distinct, retained input_asset_ref for this derived output.";
+    else if (!/^[a-f0-9]{64}$/.test(inputHash) || !/^[a-f0-9]{64}$/.test(outputHash)) problem = "Record the input_sha256 and output_sha256 for the actual processing result.";
+    else if (inputHash === outputHash) problem = "Input and output bytes are identical; copying or renaming an asset is not a presentation treatment.";
+    else if (assetHashes && (assetHashes.get(input) !== inputHash || assetHashes.get(output) !== outputHash)) problem = "Declared processing hashes do not match the readable input/output files.";
+    if (problem) {
+      findings.push(issue("error", "scientific.visuals.processing_proof_invalid", `${pointer}/asset_transform/${index}`, problem, slideOptions(slide)));
+    } else {
+      // Hashes establish provenance and a byte change, not scientific fidelity
+      // or readability. The file entry point verifies these declarations.
+      accepted.add(output);
+    }
+  }
+  return accepted;
 }
 
 function declaredAssetIds(deck) {
@@ -113,9 +148,9 @@ function declaredEvidenceIds(deck) {
   ].filter(Boolean));
 }
 
-function hasPresentationTreatment(visual, readyAssetIds) {
+function hasPresentationTreatment(visual, acceptedVisualAssetIds) {
   const assetRef = clean(visual?.asset_ref ?? visual?.assetRef);
-  return Boolean(assetRef && readyAssetIds.has(assetRef));
+  return Boolean(assetRef && acceptedVisualAssetIds.has(assetRef));
 }
 
 function firstDeclared(...values) {
@@ -199,10 +234,10 @@ export function rendererVisualConsumption(slide, requestedLayoutId = null) {
   };
 }
 
-function hasVisualFocus(slide, readyAssetIds, assetIds, evidenceIds) {
+function hasVisualFocus(slide, acceptedVisualAssetIds, assetIds, evidenceIds) {
   const visualConsumption = rendererVisualConsumption(slide);
   return list(slide?.text_emphasis).length > 0
-    || visualConsumption.consumed.some((visual) => hasPresentationTreatment(visual, readyAssetIds))
+    || visualConsumption.consumed.some((visual) => hasPresentationTreatment(visual, acceptedVisualAssetIds))
     || hasRenderedCanvasTreatment(slide, assetIds, evidenceIds);
 }
 
@@ -551,7 +586,6 @@ export function validateScientificDesign(deck, options = {}) {
   const assetIds = declaredAssetIds(deck);
   const evidenceIds = declaredEvidenceIds(deck);
   const availableAssetIds = options.availableAssetIds instanceof Set ? options.availableAssetIds : null;
-  const readyAssetIds = readyDerivedAssetIds(deck, availableAssetIds);
   const profile = clean(deck.profile).toLowerCase() || "group_meeting_literature";
   const allowedLayouts = PROFILE_LAYOUT_IDS[profile];
 
@@ -561,6 +595,7 @@ export function validateScientificDesign(deck, options = {}) {
   for (const { slide, index } of slides) {
     if (!slide || typeof slide !== "object") continue;
     const pointer = slidePointer(index);
+    const acceptedVisualAssetIds = presentationTreatmentIds(slide, assetIds, availableAssetIds, options.assetHashes, findings, pointer);
     const optionsForSlide = slideOptions(slide);
     const layoutId = effectiveLayoutId(slide);
     const customEscape = layoutId === "free-evidence" && isCustomFreeCanvas(slide);
@@ -727,22 +762,22 @@ export function validateScientificDesign(deck, options = {}) {
         optionsForSlide,
       ));
     }
-    if (!gallery && visualConsumption.supported && treatmentCandidates.length > 0 && treatmentCandidates.every((visual) => !hasPresentationTreatment(visual, readyAssetIds)) && !hasRenderedCanvasTreatment(slide, assetIds, evidenceIds)) {
+    if (!gallery && visualConsumption.supported && treatmentCandidates.length > 0 && treatmentCandidates.every((visual) => !hasPresentationTreatment(visual, acceptedVisualAssetIds)) && !hasRenderedCanvasTreatment(slide, assetIds, evidenceIds)) {
       findings.push(issue(
         "warning",
         "scientific.visuals.unprocessed",
         `${pointer}/visuals`,
-        "All scientific visuals actually consumed by the renderer are only contained/cropped or have no presentation treatment. Add an evidence-directed annotation, split, zoom, inset, or faithful redraw where it improves reading.",
+        "Rendered scientific visuals have neither a reviewed readable original nor a documented derived output. Record asset_transform with mode=original, readability_verified=true, output_sha256 and a size-specific reason when no processing is needed; otherwise retain input/output processing proof or render a direct annotation. Folder names and transformation plans are not proof.",
         { ...optionsForSlide, strictExempt: !isCoreResultOrValidation(slide) },
       ));
     }
 
-    if (!gallery && isDualColumnLayout(slide, treatmentCandidates) && treatmentCandidates.some((visual) => isComplexVisual(visual) && !hasPresentationTreatment(visual, readyAssetIds))) {
+    if (!gallery && isDualColumnLayout(slide, treatmentCandidates) && treatmentCandidates.some((visual) => isComplexVisual(visual) && !hasPresentationTreatment(visual, acceptedVisualAssetIds))) {
       findings.push(issue(
         "warning",
         "scientific.visuals.complex_dual_column_unannotated",
         `${pointer}/layout`,
-        "A complex chart/diagram is placed in a dual-column comparison without an applied per-visual treatment. Prepare an annotated/zoomed/split asset or use a custom scientific canvas; metadata-only annotation plans do not alter the rendered slide.",
+        "A complex visual in a dual-column comparison has no per-visual readability review or documented processing output. Check the actual target size; retain a clear original or prepare an evidence-directed zoom/split/annotation as needed.",
         { ...optionsForSlide, strictExempt: clean(slide?.priority).toLowerCase() !== "core" },
       ));
     }
@@ -758,12 +793,12 @@ export function validateScientificDesign(deck, options = {}) {
       ));
     }
 
-    if (!gallery && isCoreResultOrValidation(slide) && !hasVisualFocus(slide, readyAssetIds, assetIds, evidenceIds)) {
+    if (!gallery && isCoreResultOrValidation(slide) && !hasVisualFocus(slide, acceptedVisualAssetIds, assetIds, evidenceIds)) {
       findings.push(issue(
         "error",
         "scientific.core_result.visual_focus_missing",
         pointer,
-        "Core result/validation slide has no rendered focal treatment. Planning-only visual_focus/annotation_plan metadata does not alter the slide; apply text_emphasis, select a prepared ready asset, or render a direct annotation/highlight.",
+        "Core result/validation slide has no reviewed readable evidence or rendered focal treatment. Planning-only visual_focus/annotation_plan metadata does not alter the slide; review the source visual, document a derived output, or render a direct focal annotation as appropriate.",
         optionsForSlide,
       ));
     }
@@ -922,6 +957,8 @@ function finalize(findings, strict, galleryExempt) {
     ok: counts.error === 0,
     strict,
     library_gallery_exempt: galleryExempt,
+    scope: "structure_and_declared_provenance",
+    disclaimer: "These checks do not establish scientific fidelity or visual quality; inspect source evidence and rendered slides.",
     summary: { errors: counts.error, warnings: counts.warning, total: issues.length },
     issues,
   };
@@ -930,8 +967,17 @@ function finalize(findings, strict, galleryExempt) {
 export async function validateScientificDesignFile(specPath, options = {}) {
   const absolute = path.resolve(specPath);
   const deck = JSON.parse(await fs.readFile(absolute, "utf8"));
-  const baseDir = path.dirname(absolute);
+  return { spec: absolute, ...await validateScientificDesignAssets(deck, { ...options, baseDir: path.dirname(absolute) }) };
+}
+
+// Rebuild snapshots already embed their specification. Verify its asset files
+// without writing a temporary deck-spec into the customer's package.
+export async function validateScientificDesignAssets(deck, options = {}) {
+  const baseDir = path.resolve(options.baseDir ?? ".");
   const availableAssetIds = new Set();
+  const assetHashes = new Map();
+  const processingAssetIds = new Set(list(deck.slides).flatMap(assetTransforms)
+    .flatMap((treatment) => [clean(treatment?.asset_ref), clean(treatment?.input_asset_ref)]).filter(Boolean));
   await Promise.all(list(deck.assets).map(async (asset) => {
     const id = clean(asset?.id);
     const rawPath = clean(asset?.path ?? asset?.file ?? asset?.src);
@@ -939,14 +985,17 @@ export async function validateScientificDesignFile(specPath, options = {}) {
     const resolved = path.isAbsolute(rawPath) ? rawPath : path.resolve(baseDir, rawPath);
     try {
       const stats = await fs.stat(resolved);
-      if (stats.isFile()) availableAssetIds.add(id);
+      if (stats.isFile()) {
+        availableAssetIds.add(id);
+        if (processingAssetIds.has(id)) assetHashes.set(id, createHash("sha256").update(await fs.readFile(resolved)).digest("hex"));
+      }
     } catch {
-      // The validator reports unavailable formula/ready assets through the
+      // The validator reports unavailable formula/derived assets through the
       // same scientific contract; missing generic assets still fail when the
       // renderer attempts to consume them.
     }
   }));
-  return { spec: absolute, ...validateScientificDesign(deck, { ...options, availableAssetIds }) };
+  return { ...validateScientificDesign(deck, { ...options, availableAssetIds, assetHashes }), scope: "structure_and_file_provenance" };
 }
 
 function usage() {

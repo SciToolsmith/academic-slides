@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { detectCaptions, extractPaperAssets } from "../scripts/extract-paper-assets.mjs";
+import { detectCaptions, extractPaperAssets, planCrop } from "../scripts/extract-paper-assets.mjs";
 
 function pdfEscape(value) {
   return String(value).replace(/([\\()])/g, "\\$1");
@@ -85,6 +86,23 @@ assert.equal(captionDetections[0].title, "Autocorrelation spectrum", "prose refe
 assert.equal(captionDetections[1].title, "FAULT CHARACTER FREQUENCY", "Roman-numbered table headings must retain the title line");
 assert.equal(captionDetections[2].title, "Measured vibration signal.", "a split same-line caption title must be joined across text blocks");
 
+const longCaptionPage = {
+  number: 1, width: 612, height: 792,
+  lines: ["Figure 5: Main effect", "Panels A and B show the response.", "The control uses the same assay.", "Error bars represent SEM.", "n=3 independent experiments."].map((text, index) => ({
+    blockIndex: 1, blockLineCount: 5, text, xMin: 54, xMax: 250, yMin: 300 + index * 12, yMax: 310 + index * 12,
+  })),
+};
+longCaptionPage.lines.splice(2, 0, { blockIndex: 2, blockLineCount: 1, text: "Unrelated right column prose", xMin: 330, xMax: 570, yMin: 315, yMax: 325 });
+const longCaption = detectCaptions([longCaptionPage])[0];
+assert.match(longCaption.captionText, /Error bars represent SEM/);
+assert.match(longCaption.captionText, /n=3 independent experiments/);
+assert.doesNotMatch(longCaption.captionText, /Unrelated right column/);
+assert.equal(longCaption.captionBbox.height, 58, "the whole caption must stay outside the crop");
+const shortCaption = { kind: "figure", page: { number: 1, width: 612, height: 792 }, captionBbox: { x: 54, y: 300, width: 90, height: 10 } };
+const shortPlan = planCrop(shortCaption, [shortCaption]);
+assert.equal(shortPlan.confidence, "unverified", "a short caption cannot establish a full-width figure body");
+assert(shortPlan.warnings.some((message) => /Short caption/.test(message)));
+
 const fixtureDir = await mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-paper-assets-test-"));
 try {
   const pdfPath = path.join(fixtureDir, "synthetic-paper.pdf");
@@ -117,6 +135,10 @@ try {
     assert.equal(cropExcludesCaption(asset), true, `${asset.id} crop geometry must not overlap its caption`);
     const outputPath = path.join(path.dirname(allResult.manifestPath), asset.crop.file);
     const data = await readFile(outputPath);
+    assert.equal(asset.crop.sha256, createHash("sha256").update(data).digest("hex"));
+    assert.equal(asset.crop.verification.status, "unverified", "rasterization is not a visual review");
+    assert.equal(asset.crop.verification.asset_sha256, asset.crop.sha256);
+    assert.notEqual(asset.crop.confidence, "high", "a geometry-only crop must not claim visual confidence");
     assert.deepEqual([...data.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
     assert.ok((await stat(outputPath)).size > 100, `${asset.id} crop should be a non-empty PNG`);
   }

@@ -2,4 +2,4 @@ interface:
   display_name: "Paper Club PPT"
   short_description: "把单篇或多篇论文制作成证据可追溯的组会PPT"
   brand_color: "#364A7C"
-  default_prompt: "使用 $paper-club-ppt 根据我上传的研究论文制作组会汇报PPT，并交付可编辑PPTX、同步Word讲稿和项目MJS。"
+  default_prompt: "使用 $paper-club-ppt 根据我上传的研究论文制作组会汇报PPT，讲清研究问题、核心证据和边界，保留讲稿备注与来源。"

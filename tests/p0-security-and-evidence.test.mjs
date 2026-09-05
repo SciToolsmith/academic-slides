@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { latexCompilerArgs, validateMathExpression } from "../scripts/render-formula.mjs";
-import { validateDeckSpec } from "../scripts/validate-deck-spec.mjs";
+import { validateDeckSpec, validateJsonValue } from "../scripts/validate-deck-spec.mjs";
 import { validateProject } from "../scripts/validate-project.mjs";
 
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -112,6 +112,46 @@ async function testEvidenceClosure() {
     await createSelfContainedFixture(tempDir);
     const baseline = await validateProject(tempDir, { stage: "deck", strict: true, requireSchemas: true });
     assert.equal(baseline.ok, true, JSON.stringify(baseline.issues, null, 2));
+
+    const paperPath = path.join(tempDir, "paper-index.json");
+    const originalPaperIndex = JSON.parse(await readFile(paperPath, "utf8"));
+    const paperSchema = JSON.parse(await readFile(path.join(SKILL_DIR, "schemas", "paper-index.schema.json"), "utf8"));
+    const unknownAuthors = structuredClone(originalPaperIndex);
+    unknownAuthors.papers[0].bibliography.authors = [];
+    unknownAuthors.papers[0].metadata_verification = { status: "partial", verified_fields: ["title"], sources: [{ citation: "Provided excerpt", locator: "Heading 1" }] };
+    unknownAuthors.papers[0].notes = "The provided excerpt does not contain an author list; authors remain unknown.";
+    assert.deepEqual(validateJsonValue(unknownAuthors, paperSchema), [], "The schema must permit honest unknown authors without a placeholder name.");
+    await writeFile(paperPath, JSON.stringify(unknownAuthors));
+    const unknownAuthorsResult = await validateProject(tempDir, { stage: "deck", strict: true, requireSchemas: true });
+    assert.equal(unknownAuthorsResult.ok, true, JSON.stringify(unknownAuthorsResult.issues, null, 2));
+    for (const invalidCase of [
+      { code: "paper-index.authors.unverified", mutate(paper) { paper.metadata_verification.status = "verified"; } },
+      { code: "paper-index.authors.verified-field", mutate(paper) { paper.metadata_verification.verified_fields.push("authors"); } },
+      { code: "paper-index.authors.verified-field", mutate(paper) { paper.metadata_verification.verified_fields.push("bibliography.authors"); } },
+      { code: "paper-index.authors.missing-note", mutate(paper) { delete paper.notes; } },
+      { code: "paper-index.authors.missing-note", mutate(paper) { paper.notes = "  "; } },
+    ]) {
+      const invalidIndex = structuredClone(unknownAuthors);
+      invalidCase.mutate(invalidIndex.papers[0]);
+      assert.ok(validateJsonValue(invalidIndex, paperSchema).length > 0, `${invalidCase.code} must also fail standalone schema validation.`);
+      await writeFile(paperPath, JSON.stringify(invalidIndex));
+      const rejected = await validateProject(tempDir, { stage: "deck", strict: true, requireSchemas: true });
+      assert.equal(rejected.ok, false);
+      assert.ok(rejected.issues.some((item) => item.code === invalidCase.code), `${invalidCase.code}: ${JSON.stringify(rejected.issues)}`);
+    }
+    await writeFile(paperPath, JSON.stringify(originalPaperIndex));
+
+    const deckPath = path.join(tempDir, "deck-spec.json");
+    const originalDeck = JSON.parse(await readFile(deckPath, "utf8"));
+    const appendixDeck = structuredClone(originalDeck);
+    appendixDeck.slides.at(-1).priority = "appendix";
+    await writeFile(deckPath, JSON.stringify(appendixDeck));
+    const appendixMismatch = await validateProject(tempDir, { stage: "deck", strict: true, requireSchemas: true });
+    assert.ok(appendixMismatch.issues.some((item) => item.code === "deck.appendix-count-policy"));
+    appendixDeck.timing.include_appendix_in_count = true;
+    await writeFile(deckPath, JSON.stringify(appendixDeck));
+    assert.equal((await validateProject(tempDir, { stage: "deck", strict: true, requireSchemas: true })).ok, true);
+    await writeFile(deckPath, JSON.stringify(originalDeck));
 
     const evidencePath = path.join(tempDir, "evidence-index.json");
     const original = JSON.parse(await readFile(evidencePath, "utf8"));

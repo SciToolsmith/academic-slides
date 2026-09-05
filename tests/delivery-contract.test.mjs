@@ -8,10 +8,11 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import { createProjectBuilder } from "../scripts/create-project-builder.mjs";
+import { captureBuildManifest, createProjectBuilder, verifyBuildManifest } from "../scripts/create-project-builder.mjs";
+import { runPreflight } from "../scripts/preflight.mjs";
 import { buildSpeakerScriptFromSpec } from "../scripts/build-speaker-script.mjs";
 import { normalizeSpeakerNotes, serializeSpeakerNotes } from "../scripts/speaker-notes.mjs";
-import { stageDelivery, validateAssetTree, validateDeliveryStem, validatePresentationScriptParity } from "../scripts/stage-delivery.mjs";
+import { copyAssets, readBuilderPayload, referencedDeliveryAssets, stageDelivery, validateAssetTree, validateDeliveryStem, validatePresentationScriptParity } from "../scripts/stage-delivery.mjs";
 import { validateDeckSpec, validateDeckSpecFile } from "../scripts/validate-deck-spec.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -53,6 +54,8 @@ function threeSlideSpec(sample) {
     ...sample,
     artifact_purpose: "production",
     structure: {
+      narrative_mode: "question_comparison",
+      title_policy: "claim",
       section_transition_mode: "integrated",
       section_transition_reason: "精简交付契约测试使用集成过渡。",
       appendix_policy: "none",
@@ -132,25 +135,12 @@ async function main() {
   for (const valid of ["IPv6网络测量方法_组会汇报", "V2X协同感知方法_组会汇报", "HIV1感染机制_组会汇报", "V1视觉皮层机制_组会汇报"]) {
     assert.equal(validateDeliveryStem(valid), valid);
   }
-  for (const invalid of [
-    `${STEM}_叶梯`,
-    "客机侧开式登机门优化设计_2026-08-16_组会汇报",
-    "客机侧开式登机门优化设计_2026_组会汇报",
-    "2026客机侧开式登机门优化设计_组会汇报",
-    "客机侧开式登机门优化设计20260816_组会汇报",
-    "客机侧开式登机门优化设计v1_组会汇报",
-    "客机侧开式登机门优化设计_版本2_组会汇报",
-    "客机侧开式登机门优化设计_rev2_组会汇报",
-    "客机侧开式登机门优化设计_定稿_组会汇报",
-    "客机侧开式登机门优化设计_latest_组会汇报",
-    "客机侧开式登机门优化设计_终版_组会汇报",
-    "客机侧开式登机门优化设计_修订版_组会汇报",
-    "客机侧开式登机门优化设计_v 2_组会汇报",
-    "客机侧开式登机门优化设计v1版_组会汇报",
-    "客机侧开式登机门优化设计v1修改_组会汇报",
-    "客机侧开式登机门优化设计_final",
-    ` ${STEM}`,
-  ]) assert.throws(() => validateDeliveryStem(invalid));
+  for (const requested of ["研究报告_2026-08-16", "客机设计_v1_组会汇报", "叶梯项目_final", "论文讲解"]) {
+    assert.equal(validateDeliveryStem(requested), requested, "Safe explicit names override naming preferences.");
+  }
+  for (const invalid of [` ${STEM}`, "../outside", ".hidden", "a/b", "a\\b", "name\ncontrol", ""]) {
+    assert.throws(() => validateDeliveryStem(invalid));
+  }
   assert.throws(() => validateDeliveryStem("叶梯项目_组会汇报", ["叶梯"]));
 
   const note = serializeSpeakerNotes({
@@ -225,7 +215,7 @@ async function main() {
     assert.match(generated, /^\/\/ paper-club-ppt-delivery:/m);
     assert.match(generated, /"artifact_purpose":"production"/);
     assert.match(generated, /validate-scientific-design\.mjs/);
-    assert.match(generated, /validateScientificDesign\(deckSpec, \{ strict: true \}\)/);
+    assert.match(generated, /validateScientificDesignAssets\(deckSpec, \{ strict: true, baseDir: PROJECT_DIR \}\)/);
     assert.doesNotMatch(generated, /"qa"\s*:/, "internal QA records must not be embedded in the customer MJS");
     assert.doesNotMatch(generated, /not_checked/, "stale not_checked QA placeholders must not leak into the customer MJS");
     await assert.rejects(() => createProjectBuilder({
@@ -341,6 +331,96 @@ async function main() {
     const staged = await stageDelivery({ output: delivery, mjs: mjsPath, assets: assetSource });
     assert.deepEqual(staged.parity, { slideCount: 6, notesCount: 6, wordPageCount: 6, specSlideCount: 6 });
     assert.deepEqual((await fs.readdir(delivery)).sort(), [`${STEM}.mjs`, `${STEM}.pptx`, `${STEM}_发言稿.docx`, "assets"].sort());
+
+    const environment = {
+      ...process.env,
+      PAPER_CLUB_PPT_SKILL_DIR: SKILL_DIR,
+      RUNTIME_NODE_MODULES: process.env.RUNTIME_NODE_MODULES,
+    };
+    const payload = await readBuilderPayload(mjsPath);
+    assert.equal(payload.contract.contract_version, 3);
+    const manifest = payload.contract.build_manifest;
+    assert.match(manifest.files["scripts/presentation-core.mjs"], /^[a-f0-9]{64}$/);
+    assert.match(manifest.files["schemas/deck-spec.schema.json"], /^[a-f0-9]{64}$/);
+    assert.ok(manifest.runtime.packages["@oai/artifact-tool"]);
+    assert.equal((await verifyBuildManifest(manifest)).ok, true);
+    await assert.rejects(() => verifyBuildManifest(null), /legacy snapshots do not pin/);
+    const changedRuntime = structuredClone(manifest);
+    changedRuntime.runtime.node = "0.0.0";
+    await assert.rejects(() => verifyBuildManifest(changedRuntime), /BUILD_ENVIRONMENT_DRIFT.*runtime/);
+    const changedWord = structuredClone(manifest);
+    changedWord.runtime.packages.docx = "unavailable-on-target";
+    changedWord.files["scripts/build-speaker-script.mjs"] = "0".repeat(64);
+    await assert.rejects(() => verifyBuildManifest(changedWord), /BUILD_ENVIRONMENT_DRIFT/);
+    assert.equal((await verifyBuildManifest(changedWord, { deliveryMode: "pptx_with_notes" })).ok, true, "Explicit PPT-only staging does not check an unused Word renderer or package.");
+
+    const exportPath = path.join(temporary, "editable-spec.json");
+    await execFileAsync(process.execPath, [mjsPath, "--export-spec", exportPath], { env: environment });
+    assert.deepEqual(JSON.parse(await fs.readFile(exportPath, "utf8")), payload.spec);
+    await assert.rejects(() => execFileAsync(process.execPath, [mjsPath, "--export-spec", exportPath], { env: environment }), /EEXIST/);
+    await execFileAsync(process.execPath, [mjsPath, "--check-environment"], { env: environment });
+    const driftSkill = path.join(temporary, "changed-skill");
+    for (const relative of Object.keys(manifest.files)) {
+      await fs.mkdir(path.dirname(path.join(driftSkill, relative)), { recursive: true });
+      await fs.copyFile(path.join(SKILL_DIR, relative), path.join(driftSkill, relative));
+    }
+    const driftSideEffect = path.join(temporary, "changed-renderer-executed.txt");
+    await fs.appendFile(path.join(driftSkill, "scripts", "presentation-core.mjs"), `\nawait fs.writeFile(${JSON.stringify(driftSideEffect)}, "should not execute");\n`);
+    await assert.rejects(() => execFileAsync(process.execPath, [mjsPath, "--check-environment"], { env: { ...environment, PAPER_CLUB_PPT_SKILL_DIR: driftSkill } }), /BUILD_ENVIRONMENT_DRIFT/);
+    assert.equal(await fs.access(driftSideEffect).then(() => true).catch(() => false), false, "Changed renderer code must be rejected before import.");
+
+    const pptModeMjs = path.join(temporary, "ppt-only-input", `${STEM}.mjs`);
+    await createProjectBuilder({ spec: specPath, output: pptModeMjs, pptxName: `${STEM}.pptx`, docxName: `${STEM}_发言稿.docx`, deliveryMode: "pptx_with_notes" });
+    const pptManifest = (await readBuilderPayload(pptModeMjs)).contract.build_manifest;
+    assert.equal(pptManifest.runtime.packages.docx, undefined);
+    assert.equal(pptManifest.files["scripts/build-speaker-script.mjs"], undefined);
+    const pptOnlyDir = path.join(temporary, "ppt-only-output", STEM);
+    const pptOnly = await stageDelivery({ output: pptOnlyDir, mjs: pptModeMjs });
+    assert.deepEqual(await fs.readdir(pptOnlyDir), [`${STEM}.pptx`]);
+    assert.deepEqual(pptOnly.parity, { slideCount: 6, notesCount: 6, specSlideCount: 6 });
+    const presenterDir = path.join(temporary, "presenter-output", STEM);
+    const presenter = await stageDelivery({ output: presenterDir, mjs: mjsPath, deliveryMode: "presenter_pack" });
+    assert.deepEqual((await fs.readdir(presenterDir)).sort(), [`${STEM}.pptx`, `${STEM}_发言稿.docx`].sort());
+    assert.equal(presenter.parity.wordPageCount, 6);
+
+    const legacyMjs = path.join(temporary, "legacy-input", `${STEM}.mjs`);
+    await fs.mkdir(path.dirname(legacyMjs));
+    const legacySideEffect = path.join(temporary, "legacy-source-executed.txt");
+    await fs.writeFile(legacyMjs, embeddedArtifactBuilder(STEM, payload.spec, Buffer.from("unused-ppt"), Buffer.from("unused-doc")) + `\nfs.writeFileSync(${JSON.stringify(legacySideEffect)}, "must not execute");\n`);
+    await assert.rejects(() => stageDelivery({ output: path.join(temporary, "legacy-no-migration", STEM), mjs: legacyMjs }), /legacy snapshot did not lock/);
+    const migratedDir = path.join(temporary, "legacy-migrated", STEM);
+    const migrated = await stageDelivery({ output: migratedDir, mjs: legacyMjs, deliveryMode: "pptx_with_notes", migrate: true });
+    assert.equal(migrated.environment_reproduced, false);
+    assert.equal(migrated.requires_visual_qa, true);
+    assert.deepEqual(await fs.readdir(migratedDir), [`${STEM}.pptx`]);
+    assert.equal(await fs.access(legacySideEffect).then(() => true).catch(() => false), false, "Legacy migration extracts and validates data, never runs the old executable.");
+
+    const pptPreflight = await runPreflight({ skillDir: SKILL_DIR, deliveryMode: "pptx_with_notes" });
+    assert.equal(pptPreflight.checks.some((check) => check.id === "pdftotext" && check.required), true);
+    assert.equal(pptPreflight.checks.some((check) => check.id === "docx" || check.id.startsWith("word-qa-")), false);
+    const presenterPreflight = await runPreflight({ skillDir: SKILL_DIR, deliveryMode: "presenter_pack" });
+    assert.equal(presenterPreflight.checks.some((check) => check.id === "docx" && check.required), true);
+    assert.equal(presenterPreflight.checks.some((check) => check.id === "word-qa-renderer" && check.required), true);
+    const paperAssetSource = path.join(temporary, "paper-assets-source");
+    for (const relative of ["papers/paper-a/original/figure.png", "papers/paper-a/ready/detail.png", "papers/paper-a/ready/unused.png"]) {
+      await fs.mkdir(path.dirname(path.join(paperAssetSource, relative)), { recursive: true });
+      await fs.writeFile(path.join(paperAssetSource, relative), "asset bytes");
+    }
+    const retained = referencedDeliveryAssets({
+      assets: [
+        { id: "original", path: "assets/papers/paper-a/original/figure.png" },
+        { id: "detail", path: "assets/papers/paper-a/ready/detail.png" },
+        { id: "unused", path: "assets/papers/paper-a/ready/unused.png" },
+      ],
+      slides: [{ visuals: [{ asset_ref: "detail" }], asset_treatments: [{ asset_ref: "detail", input_asset_ref: "original" }] }],
+    });
+    assert.deepEqual([...retained].sort(), ["papers/paper-a/original/figure.png", "papers/paper-a/ready/detail.png"]);
+    const paperAssetTarget = path.join(temporary, "paper-assets-target");
+    await fs.mkdir(paperAssetTarget);
+    assert.deepEqual(await copyAssets(paperAssetSource, paperAssetTarget, retained), [...retained].sort());
+    await validateAssetTree(paperAssetTarget);
+    await fs.writeFile(path.join(paperAssetTarget, "papers", "paper-a", "paper-assets.json"), "{}");
+    await assert.rejects(() => validateAssetTree(paperAssetTarget), /unsupported-paper-file/);
     assert.equal(await fs.access(path.join(delivery, "assets", "formulas")).then(() => true).catch(() => false), false);
 
     const tamperedRoot = path.join(temporary, "tampered-builder");
@@ -431,11 +511,6 @@ async function main() {
     await fs.mkdir(path.join(emptyAssets, "formulas"), { recursive: true });
     await assert.rejects(() => validateAssetTree(emptyAssets));
 
-    const environment = {
-      ...process.env,
-      PAPER_CLUB_PPT_SKILL_DIR: SKILL_DIR,
-      RUNTIME_NODE_MODULES: process.env.RUNTIME_NODE_MODULES,
-    };
     await execFileAsync(process.execPath, [path.join(delivery, `${STEM}.mjs`), "--all"], {
       cwd: delivery,
       env: environment,

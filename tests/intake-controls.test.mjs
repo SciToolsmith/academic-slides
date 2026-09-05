@@ -43,21 +43,21 @@ assert.equal(baseline.coverage.intake_controls, 4, "all four missing/provided in
 const tempDir = await mkdtemp(path.join(os.tmpdir(), "paper-club-ppt-intake-test-"));
 try {
   const incompleteThemeList = await runFixtureMutation(tempDir, fixture, (candidate) => {
-    const testCase = candidate.cases.find((item) => item.id === "ask-page-and-theme-once");
+    const testCase = candidate.cases.find((item) => item.id === "default-page-and-theme");
     testCase.expected.availableThemePresets = ["blue", "red", "cyan"];
   });
   assert.equal(incompleteThemeList.ok, false, "omitting a built-in theme must fail the contract eval");
   assert(incompleteThemeList.findings.some((item) => item.code === "case.theme-presets"));
 
   const repeatedQuestion = await runFixtureMutation(tempDir, fixture, (candidate) => {
-    const testCase = candidate.cases.find((item) => item.id === "ask-page-only");
+    const testCase = candidate.cases.find((item) => item.id === "default-page-only");
     testCase.expected.askControls.push("theme_policy");
   });
   assert.equal(repeatedQuestion.ok, false, "asking a supplied control again must fail the contract eval");
   assert(repeatedQuestion.findings.some((item) => item.code === "case.intake-ask-exact"));
 
   const durationQuestion = await runFixtureMutation(tempDir, fixture, (candidate) => {
-    const testCase = candidate.cases.find((item) => item.id === "ask-page-and-theme-once");
+    const testCase = candidate.cases.find((item) => item.id === "default-page-and-theme");
     testCase.expected.mustNotAsk = [];
   });
   assert.equal(durationQuestion.ok, false, "duration must remain outside the intake question");
@@ -188,4 +188,4 @@ try {
   await rm(tempDir, { recursive: true, force: true });
 }
 
-console.log("PASS intake controls: one-shot missing-control intake, four themes, optional duration, and fixed N enforcement.");
+console.log("PASS intake controls: nonblocking default-control intake, four themes, optional duration, and fixed N enforcement.");

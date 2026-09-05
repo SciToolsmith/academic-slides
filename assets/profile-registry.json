@@ -1,45 +1,81 @@
 {
   "schemaVersion": "1.1",
-  "skillVersion": "1.1.0",
+  "skillVersion": "1.2.0",
   "defaultProfile": "group_meeting_literature",
   "backwardCompatibility": {
     "missingDeckProfile": "group_meeting_literature"
   },
   "workflow": {
-    "phases": ["intake", "source", "assets", "outline", "build", "qa", "delivery"],
+    "phases": [
+      "intake",
+      "source",
+      "assets",
+      "outline",
+      "build",
+      "qa",
+      "delivery"
+    ],
     "phaseReferences": {
-      "intake": ["references/intake.md"],
-      "source": ["references/workflow.md", "references/group-meeting-literature.md", "references/evidence-and-notes.md"],
-      "assets": ["references/asset-preparation.md"],
-      "outline": ["references/paper-structure.md", "references/layout-selection.md"],
-      "build": ["references/workflow.md"],
-      "qa": ["references/qa.md"],
-      "delivery": ["references/delivery.md"]
+      "intake": [
+        "references/intake.md"
+      ],
+      "source": [
+        "references/workflow.md",
+        "references/group-meeting-literature.md",
+        "references/evidence-and-notes.md"
+      ],
+      "assets": [
+        "references/asset-preparation.md"
+      ],
+      "outline": [
+        "references/paper-structure.md",
+        "references/layout-selection.md"
+      ],
+      "build": [
+        "references/workflow.md"
+      ],
+      "qa": [
+        "references/qa.md"
+      ],
+      "delivery": [
+        "references/delivery.md"
+      ]
     },
     "qualityBudgets": {
       "default": "balanced_95",
       "balanced_95": {
         "fullDeckQaPasses": 1,
         "targetedRepairPasses": 1,
-        "promoteAdvisoryWarnings": false
+        "promoteAdvisoryWarnings": false,
+        "expandForMaterialDefects": true
       },
       "lean_single_paper": {
         "appliesTo": "group_meeting_literature.single_paper",
-        "targetVisibleSlides": [10, 14],
+        "targetVisibleSlides": [
+          10,
+          14
+        ],
         "softVisibleSlideLimit": 16,
-        "maxDeepReadParentVisuals": 8,
-        "typicalRenderedParentVisuals": [3, 6],
+        "typicalRenderedParentVisuals": [
+          3,
+          6
+        ],
         "fullDeckQaPasses": 1,
         "targetedRepairPasses": 1,
         "diagnosticMinutes": 18,
-        "stopOptionalPolishMinutes": 25,
-        "activeContextTargetTokens": [20000, 30000],
-        "promoteAdvisoryWarnings": false
+        "activeContextTargetTokens": [
+          20000,
+          30000
+        ],
+        "promoteAdvisoryWarnings": false,
+        "expandForMaterialDefects": true,
+        "initialDeepReadParentVisuals": 8
       },
       "strict_release": {
         "fullDeckQaPasses": 1,
         "targetedRepairPasses": 1,
-        "promoteAdvisoryWarnings": true
+        "promoteAdvisoryWarnings": true,
+        "expandForMaterialDefects": true
       }
     }
   },
@@ -75,20 +111,24 @@
         "multi_paper": {
           "qualityBudget": "balanced_95",
           "appendixPolicy": "none",
-          "agendaPolicy": "required",
-          "sectionTransitionPolicy": "paper_divider_required",
-          "paperSectionPolicy": "fixed_core_x_1_to_x_4"
+          "agendaPolicy": "narrative_dependent",
+          "sectionTransitionPolicy": "narrative_dependent",
+          "paperSectionPolicy": "paper_walkthrough_only"
         }
       },
       "shellPolicy": {
         "coverLayoutId": "group-cover",
         "closingLayoutId": "group-closing",
-        "closingMustBeLast": true,
+        "closingMustBeLast": false,
         "defaultAppendixPolicy": "none",
-        "generatorLabels": false
+        "generatorLabels": false,
+        "closingEndsMainTalk": true
       },
       "assetDirectory": "assets/group-meeting-literature-universal",
-      "modes": ["single_paper", "multi_paper"],
+      "modes": [
+        "single_paper",
+        "multi_paper"
+      ],
       "layoutRegistry": "layout-registry.json",
       "templateMap": "template-map.json",
       "designTokens": "design-tokens.json",
@@ -101,7 +141,12 @@
         "design-tokens.json",
         "theme-presets.json"
       ],
-      "expectedLayoutCount": 30
+      "expectedLayoutCount": 30,
+      "narrativeModes": [
+        "paper_walkthrough",
+        "question_comparison"
+      ],
+      "defaultDeliveryMode": "pptx_with_notes"
     }
   }
 }

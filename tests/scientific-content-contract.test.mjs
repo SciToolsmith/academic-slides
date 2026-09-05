@@ -163,6 +163,85 @@ const independentlyCompared = structuredClone(backgroundOnlySuperiority);
 independentlyCompared.evidenceIndex.evidence[0].evidence_role = "comparison";
 assert(!codes(validateScientificContent(independentlyCompared), "error").includes("scientific-content.superiority.independent-evidence-missing"), "comparison evidence may support a bounded superiority claim");
 
+for (const claim of [
+  "The proposed method outperforms the baseline.",
+  "The proposed method achieves the best accuracy across all baselines.",
+  "The proposed method has the highest precision among tested methods.",
+  "本方法优于所测试的基线。",
+  "本方法在所有基线中具有最佳性能。",
+  "不优于基线A，但优于基线B。",
+  "The method not only outperforms the baseline but also uses less memory.",
+  "The method does not improve runtime, but achieves the best accuracy across all baselines.",
+]) {
+  const candidate = structuredClone(v2Complete);
+  candidate.deck.claim_evidence_map[0].claim = claim;
+  candidate.evidenceIndex.evidence[0].evidence_role = "objective";
+  assert(codes(validateScientificContent(candidate, { strict: true })).includes("scientific-content.superiority.independent-evidence-missing"), `affirmative comparison requires comparison evidence: ${claim}`);
+  candidate.evidenceIndex.evidence[0].evidence_role = "comparison";
+  assert.equal(validateScientificContent(candidate, { strict: true }).ok, true, `same wording with comparison evidence satisfies the structural screen: ${claim}`);
+}
+for (const claim of [
+  "This evidence does not establish that the method outperforms any baseline.",
+  "No evidence establishes that this method achieves the best accuracy.",
+  "The method is not better than the baseline.",
+  "现有证据未证明本方法优于基线。",
+  "这些结果不足以证明本方法具有最佳性能。",
+  "不优于基线方法。",
+  "未优于基线方法。",
+  "本方法并不优于所测基线。",
+]) {
+  const candidate = structuredClone(v2Complete);
+  candidate.deck.claim_evidence_map[0].claim = claim;
+  candidate.evidenceIndex.evidence[0].evidence_role = "objective";
+  assert.equal(validateScientificContent(candidate, { strict: true }).ok, true, `cautious wording must not be treated as affirmative superiority: ${claim}`);
+}
+const explicitComparison = structuredClone(v2Complete);
+explicitComparison.deck.claim_evidence_map[0].claim = "The method dominates the tested baseline.";
+explicitComparison.deck.claim_evidence_map[0].comparison_assertion = "affirmed";
+explicitComparison.deck.claim_evidence_map[0].comparison_review_reason = "This sentence asserts dominance over the named baseline; verify its held-out comparison.";
+explicitComparison.evidenceIndex.evidence[0].evidence_role = "objective";
+assert(codes(validateScientificContent(explicitComparison)).includes("scientific-content.superiority.independent-evidence-missing"), "an explicit reviewed comparison works outside the bounded language vocabulary");
+explicitComparison.deck.claim_evidence_map[0].comparison_assertion = "not_applicable";
+delete explicitComparison.deck.claim_evidence_map[0].comparison_review_reason;
+assert(codes(validateScientificContent(explicitComparison)).includes("scientific-content.comparison.review-incomplete"), "an override requires a review reason");
+const conflictingReview = structuredClone(selfProvingSuperiority);
+conflictingReview.deck.claim_evidence_map[0].comparison_assertion = "not_established";
+conflictingReview.deck.claim_evidence_map[0].comparison_review_reason = "The source does not support the comparison.";
+assert(codes(validateScientificContent(conflictingReview)).includes("scientific-content.comparison.review-language-conflict"), "a metadata override cannot silently erase an affirmative language cue");
+assert.equal(validateScientificContent(v2Complete).scope, "structure_and_language_risk_checks");
+
+const sharedComparison = structuredClone(v2Complete);
+sharedComparison.deck.structure = { narrative_mode: "question_comparison" };
+sharedComparison.paperIndex.mode = sharedComparison.deck.literature.mode = "multi_paper";
+sharedComparison.paperIndex.focal_paper_ids.push("paper-2");
+const secondPaper = structuredClone(sharedComparison.paperIndex.papers[0]);
+secondPaper.paper_id = "paper-2";
+secondPaper.analysis.key_findings = [{ id: "finding-2", claim_id: "claim-2", presentation_priority: "core", evidence_refs: ["evidence-figure-2"] }];
+sharedComparison.paperIndex.papers.push(secondPaper);
+sharedComparison.evidenceIndex.evidence.push({ id: "evidence-figure-2", paper_id: "paper-2", asset_id: "figure-2", modality: "figure" });
+sharedComparison.deck.sources.push({ id: "evidence-figure-2", paper_id: "paper-2", asset_id: "figure-2" });
+sharedComparison.deck.claim_evidence_map.push({ claim_id: "claim-2", claim: "The second controlled observation replicates the direction.", voice: "source_author_claim", evidence_refs: ["evidence-figure-2"], slide_ids: ["finding-slide"] });
+sharedComparison.deck.slides[0].layout = { family: "comparison", variant: "result-compare" };
+sharedComparison.deck.slides[0].paper_ids = ["paper-1", "paper-2"];
+sharedComparison.deck.slides[0].visuals.push({ include: true, type: "figure", role: "evidence", asset_ref: "figure-2", source_refs: ["evidence-figure-2"] });
+sharedComparison.assetManifests = [1, 2].map((id) => ({ paper_id: `paper-${id}`, manifest: { assets: [{ id: `figure-${id}`, kind: "figure" }] } }));
+assert.equal(validateScientificContent(sharedComparison, { strict: true }).ok, true, "a source-linked shared comparison page can cover both focal papers without duplicating their sequence");
+const missingSecondSource = structuredClone(sharedComparison);
+missingSecondSource.deck.slides[0].visuals.pop();
+assert(codes(validateScientificContent(missingSecondSource)).includes("scientific-content.comparison.paper-source-missing"), "paper_ids alone cannot replace a source link");
+assert(codes(validateScientificContent(missingSecondSource)).includes("scientific-content.comparison.paper-role-missing"), "the second paper cannot borrow the first paper's coverage");
+
+const appendixEvidence = structuredClone(v2Complete);
+appendixEvidence.deck.sections = [{ id: "backup", audience_role: "appendix" }];
+appendixEvidence.deck.slides[0].section_id = "backup";
+assert(codes(validateScientificContent(appendixEvidence)).includes("scientific-content.core-finding.visible-evidence-missing"), "backup evidence cannot satisfy a core finding in the main deck");
+const discussionClosing = structuredClone(v2Complete);
+discussionClosing.deck.structure = { closing_mode: "discussion" };
+discussionClosing.deck.slides[0].kind = "closing";
+assert.equal(validateScientificContent(discussionClosing, { strict: true }).ok, true, "an explicitly substantive discussion closing contributes main-deck evidence coverage");
+discussionClosing.deck.structure.closing_mode = "thanks";
+assert(codes(validateScientificContent(discussionClosing)).includes("scientific-content.core-finding.visible-evidence-missing"), "a thanks closing cannot conceal required main-deck evidence");
+
 const legacy = fixture();
 legacy.deck.literature.scientific_contract = "legacy";
 legacy.paperIndex.papers[0].analysis = {};

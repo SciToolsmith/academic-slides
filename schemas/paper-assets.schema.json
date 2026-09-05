@@ -143,7 +143,54 @@
         },
         "caption_excluded": {"type": "boolean"},
         "method": {"enum": ["caption_spatial_crop", "caption_spatial_fallback", "not_materialized"]},
-        "confidence": {"enum": ["high", "medium", "low", "not_assessed"]},
+        "confidence": {"enum": ["high", "medium", "low", "not_assessed", "unverified"]},
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "checks"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "unverified",
+                "verified",
+                "rejected"
+              ]
+            },
+            "checks": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "body_complete",
+                  "axes_legends_complete",
+                  "caption_interpreted",
+                  "no_neighboring_text"
+                ]
+              }
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1
+            },
+            "asset_sha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[A-Fa-f0-9]{64}$"
+            }
+          }
+        },
         "degraded_once": {"type": "boolean"},
         "warnings": {
           "type": "array",

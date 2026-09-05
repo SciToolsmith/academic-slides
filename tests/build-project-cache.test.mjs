@@ -11,6 +11,7 @@ import {
   projectLockPath,
   publishArtifactsTransactionally,
 } from "../scripts/build-project.mjs";
+import { resolveDeliveryMode } from "../scripts/create-project-builder.mjs";
 
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(TEST_DIR, "..");
@@ -279,6 +280,34 @@ async function main() {
     ], transactionBackup));
     assert.equal(await fs.readFile(oldA, "utf8"), "old-a");
     assert.equal(await fs.readFile(oldB, "utf8"), "old-b");
+
+    const modeOutputDir = path.join(temporary, "delivery-modes");
+    const modeCalls = { deck: 0, word: 0, builder: 0 };
+    const modeBuilders = {
+      async createProjectBuilder(args) { modeCalls.builder += 1; await fs.writeFile(args.output, args.deliveryMode); return {}; },
+      async buildDeck(args) { modeCalls.deck += 1; await fs.writeFile(args.output, "PPT with notes"); return {}; },
+      async buildSpeakerScriptFromFile(_spec, output) { modeCalls.word += 1; await fs.writeFile(output, "Word script"); return {}; },
+    };
+    const modeOptions = { ...options, outputDir: modeOutputDir };
+    const presenter = await buildProject({ ...modeOptions, deliveryMode: "presenter_pack" }, modeBuilders);
+    assert.equal(presenter.deliveryMode, "presenter_pack");
+    assert.ok(presenter.outputs.docx);
+    const pptOnly = await buildProject({ ...modeOptions, deliveryMode: "pptx_with_notes" }, modeBuilders);
+    assert.notEqual(pptOnly.signature, presenter.signature, "Delivery mode must invalidate a cached package.");
+    assert.equal(pptOnly.outputs.docx, undefined);
+    assert.deepEqual(modeCalls, { deck: 2, word: 1, builder: 2 }, "PPT-only builds must not call the Word builder.");
+    assert.equal(await fs.access(presenter.outputs.docx).then(() => true).catch(() => false), false, "Changing mode removes stale Word output transactionally.");
+    assert.equal((await buildProject({ ...modeOptions, deliveryMode: "pptx_with_notes" }, modeBuilders)).cached, true);
+    assert.deepEqual(modeCalls, { deck: 2, word: 1, builder: 2 });
+    const legacyMode = await buildProject(modeOptions, modeBuilders);
+    assert.equal(legacyMode.deliveryMode, "rebuildable_pack", "Missing mode preserves old callers' full package.");
+    assert.equal(modeCalls.word, 2);
+    const configDir = path.join(temporary, "mode-config");
+    await fs.mkdir(configDir);
+    await fs.writeFile(path.join(configDir, "project-config.json"), JSON.stringify({ output: { delivery_mode: "pptx_with_notes" } }));
+    assert.equal(await resolveDeliveryMode({}, configDir), "pptx_with_notes");
+    assert.equal(await resolveDeliveryMode({ deliveryMode: "presenter_pack" }, configDir), "presenter_pack");
+    await assert.rejects(() => resolveDeliveryMode({ deliveryMode: "unknown" }), /Unknown delivery mode/);
   } finally {
     if (originalRuntimeModules === undefined) delete process.env.RUNTIME_NODE_MODULES;
     else process.env.RUNTIME_NODE_MODULES = originalRuntimeModules;

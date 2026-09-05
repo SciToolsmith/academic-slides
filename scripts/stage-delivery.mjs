@@ -8,7 +8,7 @@ import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { createProjectBuilder } from "./create-project-builder.mjs";
+import { createProjectBuilder, deliveryNeedsWord, normalizeDeliveryMode, resolveDeliveryMode } from "./create-project-builder.mjs";
 import { normalizeSpeakerNotes } from "./speaker-notes.mjs";
 import { validateDeckSpec } from "./validate-deck-spec.mjs";
 import { validateScientificDesign } from "./validate-scientific-design.mjs";
@@ -16,9 +16,6 @@ import { validateScientificDesign } from "./validate-scientific-design.mjs";
 const execFileAsync = promisify(execFile);
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
-const DELIVERY_TYPES = ["组会汇报"];
-const DATE_NAME_PATTERN = /(?:19|20)\d{2}(?:(?:[-_.\/年])\d{1,2}(?:(?:[-_.\/月])\d{1,2}日?)?|\d{4})?/;
-const REVISION_NAME_PATTERN = /(?:最终|终版|终稿|定稿|最新版|修订版|final|latest|version|版本\s*\d*|rev(?:ision)?\s*\d+|v\s*\d+(?:\.\d+)*(?=$|[_\-\s]|版|修改|修订|更新|稿))/i;
 const LOCAL_PATH_PATTERN = /(?:^|[\s"'=(:])(?:\/(?:Users|Volumes|home|tmp|private(?:\/var|\/tmp)?|var\/folders|root|mnt|media|workspace|etc|opt|usr|Applications|Library)\/|~[\\/]|\$HOME[\\/]|[A-Za-z]:[\\/]|\\\\[^\\\s]+\\[^\\\s]+|(?:file|smb):\/{2,3})/im;
 const GENERAL_POSIX_PATH_PATTERN = /(?:^|[\s"'=(:;,])\/(?!\/|>)(?:[^\s"'<>\/]+\/)*[^\s"'<>\/]+\.[A-Za-z0-9]{1,10}/m;
 const NETWORK_PATH_PATTERN = /(?:^|[\s"'=(:;,])(?:\/\/[^\/\s"'<>]+\/[^\s"'<>]+|\\\\[^\\\s"'<>]+\\[^\s"'<>]+)/m;
@@ -34,7 +31,7 @@ const SECRET_PATTERNS = [
   /\b(?:api[_-]?key|access[_-]?token|client[_-]?secret|password)\s*[:=]\s*["']?[A-Za-z0-9._~+\/-]{12,}/i,
   /[?&](?:X-Amz-Signature|Signature|sig|token|access_token)=[^&#\s]{12,}/i,
 ];
-const ALLOWED_ASSET_ROOTS = new Set(["figures", "formulas", "branding", "data"]);
+const ALLOWED_ASSET_ROOTS = new Set(["papers", "figures", "formulas", "branding", "data"]);
 const FORBIDDEN_SEGMENTS = new Set(["node_modules", "qa", "tmp", "cache", "previews", "preview", "source", "working", ".git"]);
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".svg"]);
 const FORMULA_EXTENSIONS = new Set([".tex", ".svg", ".png"]);
@@ -45,9 +42,9 @@ const FORBIDDEN_ARCHIVE_ENTRY = /(?:^|\/)(?:vbaProject\.bin|activeX\/|embeddings
 
 function usage() {
   return [
-    "Usage: node stage-delivery.mjs --output <短题名_汇报类型> --mjs <项目.mjs> [--assets <已筛选素材目录>] [--forbidden-term <姓名或学号>] [--force]",
+    "Usage: node stage-delivery.mjs --output <短题名_汇报类型> --mjs <项目.mjs> [--assets <已筛选素材目录>] [--delivery-mode <mode>] [--project-dir <dir>] [--migrate] [--force]",
     "",
-    "The project MJS is executed inside a clean staging directory so PPTX and Word are guaranteed to share one source.",
+    "Only the requested formats are rebuilt. --migrate validates embedded data and creates a new snapshot with the current environment; it never executes the supplied legacy source and requires fresh visual QA.",
   ].join("\n");
 }
 
@@ -56,12 +53,13 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "--force") result.force = true;
+    else if (token === "--migrate") result.migrate = true;
     else if (token === "-h" || token === "--help") result.help = true;
-    else if (["--output", "--mjs", "--assets", "--forbidden-term"].includes(token)) {
+    else if (["--output", "--mjs", "--assets", "--forbidden-term", "--delivery-mode", "--project-dir"].includes(token)) {
       const value = argv[++index];
       if (!value || value.startsWith("--")) throw new Error(`${token} requires a value.`);
       if (token === "--forbidden-term") result.forbiddenTerms.push(value);
-      else result[token.slice(2)] = value;
+      else result[token.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
     } else throw new Error(`Unknown option: ${token}`);
   }
   return result;
@@ -73,14 +71,10 @@ export function validateDeliveryStem(stem, forbiddenTerms = []) {
   if (!value || value.length > 80) throw new Error("Delivery name must contain a concise short title and report type.");
   if (raw !== value || /[\u0000-\u001F\u007F]/.test(value)) throw new Error("Delivery name must not contain surrounding whitespace or control characters.");
   if (/[\\/:*?"<>|]/.test(value) || value.startsWith(".") || value.endsWith(".")) throw new Error(`Unsafe delivery name: ${value}`);
-  if (DATE_NAME_PATTERN.test(value) || REVISION_NAME_PATTERN.test(value)) {
-    throw new Error("Delivery name must not contain a date, version, final/latest marker, or revision marker.");
-  }
   for (const term of forbiddenTerms.map((item) => String(item).trim()).filter(Boolean)) {
     if (value.toLocaleLowerCase().includes(term.toLocaleLowerCase())) throw new Error(`Delivery name contains a forbidden identity term: ${term}`);
   }
-  const type = DELIVERY_TYPES.find((item) => value.endsWith(`_${item}`));
-  if (!type || value === type || value === `_${type}`) throw new Error(`Delivery name must end with one supported type: ${DELIVERY_TYPES.join("、")}`);
+  // Naming conventions are defaults, not a reason to reject an explicit safe user filename.
   return value;
 }
 
@@ -112,12 +106,16 @@ function assetBlockReason(relativePath, isDirectory = false) {
   if (!segments.length || !ALLOWED_ASSET_ROOTS.has(root)) return "unsupported-asset-root";
   if (lowerSegments.some((segment) => FORBIDDEN_SEGMENTS.has(segment))) return "internal-directory";
   if (isDirectory) {
+    if (root === "papers") return segments.length <= 2 || (segments.length === 3 && ["original", "ready"].includes(lowerSegments[2])) ? null : "unsupported-paper-directory";
     if (root === "figures") return segments.length === 1 || (segments.length === 2 && ["original", "ready"].includes(lowerSegments[1])) ? null : "unsupported-figure-directory";
     return segments.length === 1 ? null : "nested-asset-directory";
   }
   const basename = segments.at(-1);
   const extension = path.extname(basename).toLocaleLowerCase();
   if (INTERNAL_ASSET_NAME.test(basename) || basename === ".DS_Store") return "internal-file";
+  if (root === "papers") {
+    return segments.length === 4 && ["original", "ready"].includes(lowerSegments[2]) && IMAGE_EXTENSIONS.has(extension) ? null : "unsupported-paper-file";
+  }
   if (root === "figures") {
     if (segments.length === 2 && basename === "论文图片说明.md") return null;
     if (segments.length !== 3 || !["original", "ready"].includes(lowerSegments[1]) || !IMAGE_EXTENSIONS.has(extension)) return "unsupported-figure-file";
@@ -129,7 +127,23 @@ function assetBlockReason(relativePath, isDirectory = false) {
   return "unsupported-asset-file";
 }
 
-async function copyAssets(source, target) {
+export function referencedDeliveryAssets(spec) {
+  const definitions = new Map([...(spec.assets ?? []), ...(spec.sources ?? [])].filter((item) => item?.id).map((item) => [item.id, item]));
+  const files = new Set();
+  const visited = new Set();
+  function visit(value) {
+    if (typeof value === "string") {
+      if (value.startsWith("assets/")) files.add(value.slice("assets/".length));
+      if (definitions.has(value) && !visited.has(value)) { visited.add(value); visit(definitions.get(value)); }
+    } else if (Array.isArray(value)) value.forEach(visit);
+    else if (value && typeof value === "object") Object.values(value).forEach(visit);
+  }
+  // Slide processing records include input_asset_ref, preserving original provenance inputs.
+  visit({ slides: spec.slides, theme: spec.theme, brand: spec.brand });
+  return files;
+}
+
+async function copyAssets(source, target, referencedFiles = null) {
   if (!source) return [];
   const root = path.resolve(source);
   const rootInfo = await fs.lstat(root).catch(() => null);
@@ -144,6 +158,7 @@ async function copyAssets(source, target) {
       if (reason) throw new Error(`Asset is not allowed in the customer package (${reason}): ${relative}`);
       if (entry.isDirectory()) await visit(absolute);
       else if (entry.isFile()) {
+        if (referencedFiles && !referencedFiles.has(relative.split(path.sep).join("/"))) continue;
         const destination = path.join(target, relative);
         await fs.mkdir(path.dirname(destination), { recursive: true });
         await fs.copyFile(absolute, destination);
@@ -338,7 +353,7 @@ function wordPageScripts(documentXml, slideCount) {
 
 export async function validatePresentationScriptParity(pptxPath, docxPath, deckSpec = null) {
   const pptx = await requireRegularFile(pptxPath, ".pptx");
-  const docx = await requireRegularFile(docxPath, ".docx");
+  const docx = docxPath ? await requireRegularFile(docxPath, ".docx") : null;
   const pptEntries = await archiveEntries(pptx);
   const slideExpression = /^ppt\/slides\/slide(\d+)\.xml$/;
   const noteExpression = /^ppt\/notesSlides\/notesSlide(\d+)\.xml$/;
@@ -368,8 +383,7 @@ export async function validatePresentationScriptParity(pptxPath, docxPath, deckS
     pptScripts.push(compactNotesScript(notesBodyText(await archiveText(pptx, notesEntry), index + 1), index + 1));
   }
 
-  const documentXml = await archiveText(docx, "word/document.xml");
-  const wordScripts = wordPageScripts(documentXml, slides.length);
+  const wordScripts = docx ? wordPageScripts(await archiveText(docx, "word/document.xml"), slides.length) : null;
   const specScripts = deckSpec ? deckSpec.slides.map((slide) => {
     const notes = normalizeSpeakerNotes(slide);
     const transition = notes.transition && !notes.script.includes(notes.transition) ? ` ${notes.transition}` : "";
@@ -379,7 +393,7 @@ export async function validatePresentationScriptParity(pptxPath, docxPath, deckS
     throw new Error(`Delivery source parity failed: embedded specification has ${specScripts.length} slides but PowerPoint has ${slides.length}.`);
   }
   for (const [index, script] of pptScripts.entries()) {
-    if (script !== wordScripts[index]) {
+    if (wordScripts && script !== wordScripts[index]) {
       throw new Error(`Delivery PPTX/DOCX parity failed: slide ${index + 1} speaker script differs between PowerPoint notes and Word.`);
     }
     if (specScripts && script !== specScripts[index]) {
@@ -389,7 +403,7 @@ export async function validatePresentationScriptParity(pptxPath, docxPath, deckS
   return {
     slideCount: slides.length,
     notesCount: notes.length,
-    wordPageCount: wordScripts.length,
+    ...(wordScripts ? { wordPageCount: wordScripts.length } : {}),
     ...(specScripts ? { specSlideCount: specScripts.length } : {}),
   };
 }
@@ -462,7 +476,7 @@ function assertBuilderContract(contract, stem, spec = null) {
   if (contract.artifact_purpose !== "production") {
     throw new Error("Only artifact_purpose=production project builders may be staged as customer deliveries; layout galleries and legacy builders without an explicit production contract are rejected.");
   }
-  if (contract.contract_version !== 2 || contract.generator !== "paper-club-ppt/create-project-builder") {
+  if (![2, 3].includes(contract.contract_version) || contract.generator !== "paper-club-ppt/create-project-builder") {
     throw new Error("Project MJS is not a current paper-club-ppt generated customer builder.");
   }
   if (!spec || (spec.artifact_purpose ?? "production") !== "production") {
@@ -470,6 +484,10 @@ function assertBuilderContract(contract, stem, spec = null) {
   }
   if (!/^[a-f0-9]{64}$/i.test(String(contract.spec_sha256 ?? "")) || canonicalSpecHash(spec) !== contract.spec_sha256) {
     throw new Error("Project MJS embedded specification does not match its delivery contract hash.");
+  }
+  if (contract.contract_version === 3) {
+    normalizeDeliveryMode(contract.delivery_mode);
+    if (!contract.build_manifest || contract.build_manifest.delivery_mode !== contract.delivery_mode) throw new Error("Project MJS has a missing or inconsistent build_manifest.");
   }
 }
 
@@ -485,13 +503,17 @@ async function validateEmbeddedProductionSpec(spec) {
   }
 }
 
-async function assertRootContract(directory, stem) {
+function deliveryFiles(stem, mode) {
+  return [`${stem}.pptx`, ...(deliveryNeedsWord(mode) ? [`${stem}_发言稿.docx`] : []), ...(mode === "rebuildable_pack" ? [`${stem}.mjs`, "assets"] : [])];
+}
+
+async function assertRootContract(directory, stem, mode) {
   const actual = (await fs.readdir(directory)).sort();
-  const expected = [`${stem}.mjs`, `${stem}.pptx`, `${stem}_发言稿.docx`, "assets"].sort();
+  const expected = deliveryFiles(stem, mode).sort();
   if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`Delivery root contract failed. Expected ${expected.join(", ")}; found ${actual.join(", ")}.`);
 }
 
-async function runProjectBuilder(mjsPath, directory) {
+async function runProjectBuilder(mjsPath, directory, mode) {
   const inheritedKeys = [
     "PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "LC_CTYPE",
     "RUNTIME_NODE_MODULES", "PAPER_CLUB_PPT_CJK_FONT", "FONTCONFIG_FILE", "SYSTEMROOT", "WINDIR",
@@ -500,7 +522,7 @@ async function runProjectBuilder(mjsPath, directory) {
     .filter((key) => process.env[key] !== undefined)
     .map((key) => [key, process.env[key]]));
   environment.PAPER_CLUB_PPT_SKILL_DIR = SKILL_DIR;
-  await execFileAsync(process.execPath, [mjsPath, "--all"], {
+  await execFileAsync(process.execPath, [mjsPath, deliveryNeedsWord(mode) ? "--all" : "--pptx"], {
     cwd: directory,
     env: environment,
     encoding: "utf8",
@@ -509,7 +531,10 @@ async function runProjectBuilder(mjsPath, directory) {
   });
 }
 
-async function createAndVerifyCanonicalBuilder(inputMjs, payload, directory, stem) {
+async function createAndVerifyCanonicalBuilder(inputMjs, payload, directory, stem, options = {}) {
+  if (payload.contract.contract_version === 2 && !options.migrate) {
+    throw new Error("Project MJS is not the canonical source for the current pinned contract. This legacy snapshot did not lock its environment. Use --migrate to validate its embedded data and create a new snapshot, then repeat visual QA.");
+  }
   const specPath = path.join(directory, ".delivery-deck-spec.json");
   const canonicalMjs = path.join(directory, `${stem}.mjs`);
   await fs.writeFile(specPath, `${JSON.stringify(payload.spec, null, 2)}\n`, "utf8");
@@ -520,6 +545,9 @@ async function createAndVerifyCanonicalBuilder(inputMjs, payload, directory, ste
       pptxName: `${stem}.pptx`,
       docxName: `${stem}_发言稿.docx`,
       theme: payload.contract.theme,
+      deliveryMode: payload.contract.delivery_mode ?? "rebuildable_pack",
+      verifyDeliveryMode: options.deliveryMode,
+      ...(!options.migrate ? { buildManifest: payload.contract.build_manifest } : {}),
     });
   } finally {
     await fs.rm(specPath, { force: true });
@@ -528,7 +556,7 @@ async function createAndVerifyCanonicalBuilder(inputMjs, payload, directory, ste
     fs.readFile(inputMjs),
     fs.readFile(canonicalMjs),
   ]);
-  if (!inputSource.equals(canonicalSource)) {
+  if (!options.migrate && !inputSource.equals(canonicalSource)) {
     throw new Error("Project MJS is not the canonical source generated by this installed paper-club-ppt Skill. Regenerate the project MJS before staging.");
   }
   return canonicalMjs;
@@ -541,6 +569,9 @@ export async function stageDelivery(args) {
   const mjs = await requireRegularFile(args.mjs, ".mjs");
   const payload = await readBuilderPayload(mjs);
   assertBuilderContract(payload.contract, stem, payload.spec);
+  const deliveryMode = args.deliveryMode != null || args.projectDir
+    ? await resolveDeliveryMode(args, args.projectDir ? path.resolve(args.projectDir) : null)
+    : normalizeDeliveryMode(payload.contract.delivery_mode ?? "rebuildable_pack");
   await validateEmbeddedProductionSpec(payload.spec);
   const parent = path.dirname(output);
   await fs.mkdir(parent, { recursive: true });
@@ -553,14 +584,29 @@ export async function stageDelivery(args) {
   try {
     const assetsTarget = path.join(temporary, "assets");
     await fs.mkdir(assetsTarget, { recursive: true });
-    const assets = await copyAssets(args.assets, assetsTarget);
-    const stagedMjs = await createAndVerifyCanonicalBuilder(mjs, payload, temporary, stem);
-    await runProjectBuilder(stagedMjs, temporary);
+    const referencedFiles = referencedDeliveryAssets(payload.spec);
+    const assets = await copyAssets(args.assets, assetsTarget, referencedFiles);
+    const missingAssets = [...referencedFiles].filter((file) => !assets.includes(file));
+    if (missingAssets.length) throw new Error(`Referenced delivery assets are missing: ${missingAssets.join(", ")}. Supply the selected assets directory, including original provenance inputs.`);
+    let stagedMjs = await createAndVerifyCanonicalBuilder(mjs, payload, temporary, stem, { ...args, deliveryMode });
+    if (deliveryMode !== (payload.contract.delivery_mode ?? "rebuildable_pack")) {
+      // Explicit format changes get their own pinned snapshot after the input source was verified.
+      const specPath = path.join(temporary, ".delivery-mode-spec.json");
+      await fs.writeFile(specPath, JSON.stringify(payload.spec));
+      try {
+        await createProjectBuilder({ spec: specPath, output: stagedMjs, pptxName: `${stem}.pptx`, docxName: `${stem}_发言稿.docx`, theme: payload.contract.theme, deliveryMode });
+      } finally { await fs.rm(specPath, { force: true }); }
+    }
+    await runProjectBuilder(stagedMjs, temporary, deliveryMode);
     const pptx = await requireRegularFile(path.join(temporary, `${stem}.pptx`), ".pptx");
-    const docx = await requireRegularFile(path.join(temporary, `${stem}_发言稿.docx`), ".docx");
+    const docx = deliveryNeedsWord(deliveryMode) ? await requireRegularFile(path.join(temporary, `${stem}_发言稿.docx`), ".docx") : null;
     await validateAssetTree(assetsTarget);
-    await assertRootContract(temporary, stem);
     const parity = await validatePresentationScriptParity(pptx, docx, payload.spec);
+    if (deliveryMode !== "rebuildable_pack") {
+      await fs.rm(stagedMjs);
+      await fs.rm(assetsTarget, { recursive: true });
+    }
+    await assertRootContract(temporary, stem, deliveryMode);
     await scanDelivery(temporary);
 
     if (outputExists) {
@@ -574,7 +620,7 @@ export async function stageDelivery(args) {
       throw error;
     }
     if (previousMoved) await fs.rm(previous, { recursive: true, force: true });
-    return { output, stem, files: [`${stem}.pptx`, `${stem}.mjs`, `${stem}_发言稿.docx`, "assets/"], assets, parity };
+    return { output, stem, deliveryMode, files: deliveryFiles(stem, deliveryMode).map((file) => file === "assets" ? "assets/" : file), assets: deliveryMode === "rebuildable_pack" ? assets : [], parity, ...(args.migrate ? { migrated: true, environment_reproduced: false, requires_visual_qa: true, warning: "Validated embedded data was rebuilt with the current environment. Review the new rendering before delivery." } : {}) };
   } catch (error) {
     if (await exists(temporary)) await fs.rm(temporary, { recursive: true, force: true });
     if (previousMoved && !(await exists(output)) && await exists(previous)) await fs.rename(previous, output);

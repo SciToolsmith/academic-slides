@@ -1,111 +1,40 @@
-# Paper Club PPT 精简工作流
+# Paper Club PPT 工作流
 
-用固定信息流保证论文组会 PPT 的科学准确性、可编辑性和来源可追溯性，同时避免重复读取、全量视觉深读和多次整稿渲染。
+按科学证据组织工作，按用户要求选择制作范围。源材料、证据索引与 deck spec 保留在内部项目；用户拿到的格式由 `output.delivery_mode` 决定。
 
-## 总流程
+## 1. 确定设置和环境
 
-    一次预检
-    → 一次解析全部焦点论文
-    → 全量图表轻索引
-    → 主张、证据与出版信息索引
-    → 灵活大纲与逐页规格
-    → 只深加工入选资产
-    → PPTX / Word / MJS 同源构建
-    → 一次全稿检查 + 一次针对性修复
-    → 最小客户包
+加载 Codex bundled workspace dependencies。读取用户要求并写入 `project-config.json`：未指定页数/主题采用 `auto + blue`；新任务显式写入交付模式。需要了解阅读目的或听众基础时只问一次有价值的问题，同时继续材料解析。未知身份不虚构。
 
-普通、有文本层的单篇论文默认使用 <code>lean_single_paper</code>。多篇、扫描件、复杂公式或高保真任务使用 <code>balanced_95</code>。两者保留相同的科学、证据、安全、兼容和交付硬门禁。
+运行 `scripts/preflight.mjs` 检查实际要用的依赖；Word 只在相应交付模式中检查和构建。普通单篇采用 `lean_single_paper`，复杂或多篇采用 `balanced_95`。已解析且哈希未变的文件可复用。
 
-## 渐进披露与工作预算
+## 2. 建立证据底座
 
-开局只读 <code>SKILL.md</code>、<code>references/intake.md</code> 和 <code>references/group-meeting-literature.md</code>。进入证据、设计、QA 和交付阶段时再读取对应参考。把确认过的设置、来源哈希、证据定位和页面决策写入清单与 <code>deck-spec.json</code>，不要反复粘贴整篇论文或完整工具输出。
+一次解析焦点论文的出版信息、问题、数据/样本、方法、对照、指标、核心发现、限制与证据生成逻辑。用稳定 `paper_id` 建立 `paper-index.json`，用页码、图表/公式号和原文定位建立 `evidence-index.json`。
 
-正常任务包括一次环境预检、一次论文解析、一次叙事规格、一次内部完整构建与渲染、一轮针对性修复，以及一次干净交付重建。
+PDF 来源运行 `scripts/extract-paper-assets.mjs` 建立 caption/page/bbox 索引。Markdown/文本摘录使用原文标题、行号与已有数据，不调用 PDF 提取器；摘录不足以支撑正式结论时明确所缺原始证据。阈值内可以一次物化，其他情况先选候选；普通单篇从约 3–6 个父图开始，证据不足时扩展。候选选择同时考虑比较、稳健性、限制和可能反驳主结论的证据。
 
-- <code>lean_single_paper</code>：通常 10–14 张可见页，16 张软上限，最多深读 8 个父图。
-- <code>balanced_95</code>：用于多篇、扫描件、多源冲突、复杂公式、密集重绘或用户明确的高保真要求。
-- 硬失败为零且重要问题已修复后停止。边缘字距、轻微留白、像素相似度和无害元数据不触发额外整稿循环。
+非 PDF 文本的 `asset_manifest_path` 设为 `null`，用 `evidence-index` 保存原文位置，用 deck 的 `assets` 和处理记录追溯派生视觉；不要创建带虚构页码/裁框的 PDF 清单。摘录未给作者时 `bibliography.authors=[]` 并说明缺失，元数据保持待核验，不填占位作者或声称已验证。
 
-## 1. 预检与配置
+脚本只提议裁框。核对入选资产与源页面、完整图注，确认图体/面板、坐标轴、图例完整且无相邻正文；记录核验所针对的文件哈希。对未入选图无需做同等深度核验。不能用“文件存在”或 `ready/` 路径代替核验。
 
-1. 加载 Codex bundled workspace dependencies。
-2. 运行 <code>node scripts/preflight.mjs --skill-dir . --strict</code>。
-3. 复用用户已经给出的页数、主题、时长和约束。
-4. 只询问缺失的页数策略或主题。
-5. 建立源文件清单和 <code>project-config.json</code>。
-6. 为源文件计算稳定标识或哈希，输入未变时复用已完成的提取与分析。
+## 3. 形成叙事和规格
 
-焦点论文、单篇/多篇模式、页数策略和主题明确后即可继续。时长只在用户主动提供时作为近似软约束。
+每页按“听众的问题 → 一句话判断 → 支撑证据 → 表达形式 → 布局 → 上屏文字 → 讲稿与来源”决策。生成 `deck-spec.json`，再派生 `PPT内容与设计大纲.md`；不要分别维护两份事实源。
 
-## 2. 一次建立论文、证据与素材底座
+写规格前读取对应 schema 和所选布局的示例字段，不凭名称猜字段或 renderer。正文的 `takeaway` 仍需保存一句话判断，结论标题可复用同一判断；视觉上无需再重复显示。用 `build-outline.mjs <deck-spec.json> --strict` 生成大纲，先修复缺字段、引用与语义错误。大纲通过不等于资产和渲染已验收。
 
-一次读取全部焦点论文，至少识别：
+顺序精读用 `paper_walkthrough`；共同问题比较用 `question_comparison`。在后者先交代问题与比较口径，再组织多篇证据。每篇仍须覆盖问题、方法、核心证据和边界。章节导航与结论标题可分开。用户要求附录时按所选配置安排，不把默认无附录当禁令。
 
-- 标题、作者、发表来源、年份、DOI/URL 和文章类型；
-- 研究问题、知识缺口、假设和方法；
-- 数据、样本、对照、指标和证据生成逻辑；
-- 核心结果、作者主张、贡献、局限和适用边界；
-- 关键数字、单位、图、表、公式和补充材料定位。
+新项目采用 `group_meeting_v2`：核心发现绑定真实源证据，作者声音与 `presenter_synthesis` / `presenter_critique` 分离，至少有一项可见的证据绑定判断。未知本组方向时给通用的证据触发问题，不代造本组计划。
 
-为每篇焦点论文执行：
+用户要求 `outline_first` 才在大纲后暂停。其他情况继续构建。
 
-1. 在 <code>assets/papers/&lt;paper-id&gt;/</code> 运行 <code>scripts/extract-paper-assets.mjs</code>。
-2. 生成完整 caption/page/bbox 轻索引 <code>paper-assets.json</code>。
-3. 派生紧凑的 <code>论文图表资产说明.md</code>。
-4. 根据主张、方法、比较、稳健性和局限形成候选视觉。
-5. 只物化和深读候选视觉。
-6. 更新 <code>paper-index.json</code> 和 <code>evidence-index.json</code>。
+## 4. 准备资产并构建
 
-只有不超过自动阈值 12 的极小图表集合才默认全部物化。普通单篇主稿通常使用 3–6 个承担不同证据角色的父图。只有入选资产才做标注、拆图、局部放大、OCR、表格重建或忠实重绘。
+只加工选入规格的资产。原图保留，派生资产记录输入/输出 ID、哈希、操作及理由。清晰原图经目标尺寸复核可直接使用。只有可靠数据才能重建图表。公式使用 `render-formula.mjs`；无法可靠转写时使用源裁图。
 
-核心主张必须指向 PDF 页码、图表号、公式号、补充材料或可靠出版页面。作者结论使用 <code>source_author_claim</code>；汇报者综合或批判使用 <code>presenter_synthesis</code> 或 <code>presenter_critique</code>，两种声音不得混淆。
-
-## 3. 叙事、大纲与逐页规格
-
-围绕“为什么值得读、作者如何生成证据、证据说明什么、是否可信、对本组有什么启发”组织，而不是复述论文目录。
-
-每页执行一次决策链：
-
-    听众需要判断的问题
-    → 一句话结论
-    → 支撑证据
-    → 最快且真实的表达形式
-    → 布局或自由证据画布
-    → 精简上屏文字
-    → 发言稿与过渡
-    → Sources
-
-生成 <code>deck-spec.json</code> 作为唯一机器事实源，再由它生成 <code>PPT内容与设计大纲.md</code>。
-
-新项目使用 <code>group_meeting_v2</code> 科学内容合同。主稿必须覆盖：
-
-- 为什么值得读或研究问题；
-- 学生对方法和证据生成逻辑的理解；
-- 至少一个 source-backed core finding；
-- 可信度、不确定性、局限或边界；
-- 证据绑定且可见的汇报者综合或批判；
-- 对本组工作的启发、验证方案或讨论问题。
-
-核心发现必须闭合到真实源证据并由 renderer 实际消费。纯文字强调不能替代论文图、表、结果、公式或源文本。公式中心型论文至少显示一个核心公式；非公式驱动论文允许零公式。
-
-单篇不生成目录，默认也不生成论文分隔页；多篇必须生成论文目录并在每篇焦点论文前设置编号分隔页。默认不生成可见附录。封面必须是第一页，学生结束页必须是最后一页。QA、证据 ID、生成状态和交付说明不进入老师可见页面。
-
-用户选择 <code>outline_first</code> 时在大纲后暂停；否则直接构建。
-
-## 4. 入选资产、公式与构建
-
-只加工已经进入 <code>deck-spec.json</code> 的资产：
-
-- 原始素材保持不变，派生版本写入对应 <code>ready/</code>；
-- 数据图表保留可复核的数据与计算；
-- 简单关系图使用可编辑 PowerPoint 形状；
-- 没有自然匹配布局时使用自由证据画布；
-- 论文快照只显示已核验且对叙事有用的字段；
-- 出版指标只在确有用途、标明体系和年份且可以复核时显示。
-
-公式统一调用 <code>scripts/render-formula.mjs</code>。本机 LaTeX 可用时优先使用，否则使用内置 MathJax 路径 SVG。只渲染入选公式；复杂公式无法可靠转写时使用忠实高分辨率源裁图，不输出 raw LaTeX。
-
-正常构建入口：
+正常入口：
 
     node scripts/build-project.mjs \
       --project-dir <project-dir> \
@@ -114,24 +43,16 @@
       --stem <短题名_组会汇报> \
       --render
 
-同一规格一次生成 PPTX、Word 发言稿和项目 MJS。规格、资产和核心渲染代码未变时使用签名缓存。只有定向调试才分别调用底层脚本。
+构建模式由配置或显式 `--delivery-mode` 选择。PPT 备注始终带 Sources。`presenter_pack` 增加同源 Word；`rebuildable_pack` 再交付内嵌规格的 MJS 与实际依赖资产。内部构建可保留重建入口，但不把所有内部文件强制交给用户。
 
-项目 MJS 嵌入最终规格，只引用交付 <code>assets/</code> 中的相对路径，默认重建同名 PPTX 与 DOCX。新项目 MJS 必须显式标记 <code>artifact_purpose: production</code>。
+## 5. 质量检查与交付
 
-## 5. QA、修复与交付
+先运行 schema、跨文件引用、科学内容/设计结构检查，然后看全稿联系表与高风险全尺寸页面。独立核对核心主张、数字、比较口径和来源；结构标签齐全不能证明科学正确。按照 `references/qa.md` 修复重要缺陷，局部改动只复查受影响页。
 
-1. 运行 schema、项目、科学内容、科学设计和溢出检查。
-2. 渲染全稿一次，先看联系表。
-3. 全尺寸检查封面、结束页、方法/公式、核心发现、复杂图表、自由画布和自动风险页。
-4. 修复学术错误、证据断裂、不可读内容、损坏媒体、遮挡、裁切和异常换行。
-5. 局部修改后只复查受影响页及其衔接页。
-6. 只有主题、字体、全局壳层、导航或渲染器变化才重新进行整稿视觉检查。
-7. 硬失败为零且重要问题已修复后停止。
+读取 `references/delivery.md` 并在干净暂存目录重建所选格式。硬失败解决后交付；剩余重要限制需清楚说明。小留白、字距和无需加工的清晰原图不触发无意义循环。
 
-内部 QA 通过后读取 <code>references/delivery.md</code>，调用 <code>scripts/stage-delivery.mjs</code> 在空白暂存目录重建一次。客户包只保留同名 PPTX、MJS、Word 发言稿和实际使用的 <code>assets/</code>。
+## 修改和维护
 
-维护 Skill 时运行：
+用户调整某页时，先定位相关 slide/claim/asset，保留未变来源和决策。同步修改备注及需要的 Word，不重做整个论文解析。全局主题、字体或渲染逻辑变更才重查整稿。
 
-    node scripts/validate-skill-assets.mjs . --profile release --strict
-
-发布检查会包含确定性 eval、测试和打包检查。只在需要实际暂存发布包时单独调用 <code>package-skill.mjs</code>。
+维护发布运行 `node scripts/validate-skill-assets.mjs . --profile release --strict`。它含规定测试、确定性合同检查和打包检查；只有失败或新增改动时重复相关检查。真实模型行为和作品质量按 `references/evaluation.md` 单独评测，不用合同通过率替代。

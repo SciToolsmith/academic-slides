@@ -9,6 +9,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { validateProject } from "./validate-project.mjs";
+import { deliveryNeedsWord, normalizeDeliveryMode, resolveDeliveryMode } from "./create-project-builder.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
@@ -59,6 +60,7 @@ function usage() {
     "Options:",
     "  --theme <name>  blue | red | purple | cyan",
     "  --project-dir <dir>  Validate the complete source/evidence/outline/deck project before building",
+    "  --delivery-mode <mode>  Override output.delivery_mode: pptx_with_notes | presenter_pack | rebuildable_pack",
     "  --render        Render one internal slide preview after the build",
     "  --force         Ignore a matching build signature",
     "  -h, --help      Show this help",
@@ -72,7 +74,7 @@ function parseArgs(argv) {
     if (token === "-h" || token === "--help") result.help = true;
     else if (token === "--render") result.render = true;
     else if (token === "--force") result.force = true;
-    else if (["--spec", "--output-dir", "--stem", "--theme", "--project-dir"].includes(token)) {
+    else if (["--spec", "--output-dir", "--stem", "--theme", "--project-dir", "--delivery-mode"].includes(token)) {
       const value = argv[++index];
       if (!value || value.startsWith("--")) throw new Error(`${token} requires a value.`);
       result[token.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
@@ -178,13 +180,14 @@ async function nearestPackageJson(entryPath, expectedName) {
   }
 }
 
-async function coreRuntimeFingerprintFiles() {
+async function coreRuntimeFingerprintFiles(deliveryMode) {
   const files = new Map();
   const roots = [
     process.env.RUNTIME_NODE_MODULES,
     path.resolve(path.dirname(process.execPath), "..", "node_modules"),
   ].filter(Boolean).map((value) => path.resolve(value));
   for (const dependency of CORE_RUNTIME_DEPENDENCIES) {
+    if (dependency.name === "docx" && !deliveryNeedsWord(deliveryMode)) continue;
     for (const root of roots) {
       for (const relativePath of dependency.files) {
         const filePath = path.join(root, ...dependency.name.split("/"), relativePath);
@@ -281,7 +284,8 @@ export async function computeProjectSignature(options) {
   const specBytes = await fs.readFile(specPath);
   const spec = JSON.parse(specBytes.toString("utf8"));
   const hash = crypto.createHash("sha256");
-  hash.update("paper-club-ppt-project-build:v3\0");
+  hash.update("paper-club-ppt-project-build:v4\0");
+  hash.update(`delivery=${normalizeDeliveryMode(options.deliveryMode)}\0`);
   hash.update(`stem=${options.stem}\0theme=${options.theme ?? ""}\0`);
   hash.update(`node=${process.version}\0exec=${process.execPath}\0platform=${process.platform}\0arch=${process.arch}\0`);
   hash.update(`runtime=${process.env.RUNTIME_NODE_MODULES ?? ""}\0cjk-font=${process.env.PAPER_CLUB_PPT_CJK_FONT ?? ""}\0`);
@@ -304,7 +308,7 @@ export async function computeProjectSignature(options) {
   for (const filePath of [...new Set(sourceFiles)].sort((left, right) => left.localeCompare(right, "en"))) {
     if (await isFile(filePath)) await updateHashWithFile(hash, `skill:${path.relative(SKILL_DIR, filePath)}`, filePath);
   }
-  for (const dependency of await coreRuntimeFingerprintFiles()) {
+  for (const dependency of await coreRuntimeFingerprintFiles(options.deliveryMode)) {
     await updateHashWithFile(hash, dependency.label, dependency.filePath);
   }
   return { signature: hash.digest("hex"), spec, referencedAssets: localFiles };
@@ -339,10 +343,11 @@ function defaultBuilders() {
   };
 }
 
-function outputPaths(outputDir, stem) {
+function outputPaths(outputDir, stem, deliveryMode) {
   return {
     pptx: path.join(outputDir, `${stem}.pptx`),
-    docx: path.join(outputDir, `${stem}_发言稿.docx`),
+    ...(deliveryNeedsWord(deliveryMode) ? { docx: path.join(outputDir, `${stem}_发言稿.docx`) } : {}),
+    // The internal snapshot drives clean staging; lightweight customer packages omit it.
     mjs: path.join(outputDir, `${stem}.mjs`),
   };
 }
@@ -547,7 +552,8 @@ export async function buildProject(options, injectedBuilders = null) {
   const specPath = path.resolve(options.spec);
   const outputDir = path.resolve(options.outputDir);
   await fs.mkdir(outputDir, { recursive: true });
-  const outputs = outputPaths(outputDir, stem);
+  const deliveryMode = await resolveDeliveryMode(options, options.projectDir ? path.resolve(options.projectDir) : path.dirname(specPath));
+  const outputs = outputPaths(outputDir, stem, deliveryMode);
   const statePath = path.join(outputDir, STATE_FILENAME);
   const previewDir = path.join(outputDir, PREVIEW_DIRNAME);
   return withProjectLock(outputDir, stem, async () => {
@@ -569,7 +575,7 @@ export async function buildProject(options, injectedBuilders = null) {
     }
   }
   const signatureStartedAt = performance.now();
-  const signatureInfo = await computeProjectSignature({ spec: specPath, stem, theme });
+  const signatureInfo = await computeProjectSignature({ spec: specPath, stem, theme, deliveryMode });
   const signatureMs = Math.round(performance.now() - signatureStartedAt);
   const previous = await loadState(statePath);
   const outputIntegritySatisfied = await outputsMatchState(outputs, previous);
@@ -581,6 +587,7 @@ export async function buildProject(options, injectedBuilders = null) {
     return {
       ok: true,
       cached: true,
+      deliveryMode,
       signature: signatureInfo.signature,
       outputs,
       previewDir: previous.rendered === true ? previewDir : null,
@@ -595,7 +602,7 @@ export async function buildProject(options, injectedBuilders = null) {
 
   const builders = injectedBuilders ?? defaultBuilders();
   const workDir = path.join(outputDir, `.paper-club-ppt-build-${process.pid}-${crypto.randomBytes(5).toString("hex")}`);
-  const workOutputs = outputPaths(workDir, stem);
+  const workOutputs = outputPaths(workDir, stem, deliveryMode);
   const workPreviewDir = path.join(workDir, PREVIEW_DIRNAME);
   await fs.mkdir(workDir, { recursive: true });
   let deckReport;
@@ -611,7 +618,8 @@ export async function buildProject(options, injectedBuilders = null) {
       spec: specPath,
       output: workOutputs.mjs,
       pptxName: path.basename(outputs.pptx),
-      docxName: path.basename(outputs.docx),
+      docxName: `${stem}_发言稿.docx`,
+      deliveryMode,
       theme: theme ?? undefined,
     });
     stageMetrics.project_builder_ms = Math.round(performance.now() - stageStartedAt);
@@ -624,9 +632,9 @@ export async function buildProject(options, injectedBuilders = null) {
     });
     stageMetrics.deck_and_preview_ms = Math.round(performance.now() - stageStartedAt);
     stageStartedAt = performance.now();
-    wordReport = await builders.buildSpeakerScriptFromFile(specPath, workOutputs.docx);
+    if (deliveryNeedsWord(deliveryMode)) wordReport = await builders.buildSpeakerScriptFromFile(specPath, workOutputs.docx);
     stageMetrics.word_ms = Math.round(performance.now() - stageStartedAt);
-    if (!(await outputsExist(workOutputs))) throw new Error("Project build did not create all three required outputs.");
+    if (!(await outputsExist(workOutputs))) throw new Error(`Project build did not create the required ${deliveryMode} outputs.`);
     const outputArtifacts = {};
     for (const [key, filePath] of Object.entries(workOutputs)) outputArtifacts[key] = await artifactRecord(filePath, workDir);
     const previewArtifacts = options.render === true ? await previewArtifactRecords(workPreviewDir) : [];
@@ -639,6 +647,7 @@ export async function buildProject(options, injectedBuilders = null) {
       spec: specPath,
       stem,
       theme,
+      delivery_mode: deliveryMode,
       outputs: Object.fromEntries(Object.entries(outputs).map(([key, value]) => [key, path.basename(value)])),
       output_artifacts: outputArtifacts,
       rendered: options.render === true,
@@ -650,7 +659,7 @@ export async function buildProject(options, injectedBuilders = null) {
     await fs.writeFile(pendingStatePath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
     stageStartedAt = performance.now();
     await publishArtifactsTransactionally([
-      ...["pptx", "docx", "mjs"].map((key) => ({ source: workOutputs[key], target: outputs[key] })),
+      ...Object.entries(outputPaths(outputDir, stem)).map(([key, target]) => ({ source: workOutputs[key] ?? null, target })),
       { source: options.render === true ? workPreviewDir : null, target: previewDir },
       { source: pendingStatePath, target: statePath },
     ], path.join(workDir, ".rollback"));
@@ -658,18 +667,19 @@ export async function buildProject(options, injectedBuilders = null) {
   } finally {
     await fs.rm(workDir, { recursive: true, force: true });
   }
-  if (!(await outputsExist(outputs))) throw new Error("Project build did not publish all three required outputs.");
+  if (!(await outputsExist(outputs))) throw new Error(`Project build did not publish the required ${deliveryMode} outputs.`);
 
   const totalMs = Math.round(performance.now() - startedAt);
   return {
     ok: true,
     cached: false,
+    deliveryMode,
     signature: signatureInfo.signature,
     outputs,
     previewDir: options.render === true ? previewDir : null,
     reports: {
       deck: { ...deckReport, output: outputs.pptx, previewDir: options.render === true ? previewDir : null },
-      word: { ...wordReport, output: outputs.docx },
+      ...(deliveryNeedsWord(deliveryMode) ? { word: { ...wordReport, output: outputs.docx } } : {}),
       builder: { ...builderReport, output: outputs.mjs },
       projectValidation,
     },

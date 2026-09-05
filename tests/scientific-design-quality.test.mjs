@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
+import { createHash } from "node:crypto";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { validateScientificDesign, validateScientificDesignFile } from "../scripts/validate-scientific-design.mjs";
@@ -128,13 +130,73 @@ assert(!codes(validateScientificDesign(deck([contentSlide("with-emphasis")]))).i
 
 const untreatedVisual = deck([contentSlide("untreated-visual", {
   layout: { family: "hero_figure", variant: "single-result-evidence" },
+  narrative_roles: ["key_finding"],
   render_data: { conclusion: "图中趋势支持方向性判断" },
   visuals: [{ id: "plot", type: "figure", include: true, asset_ref: "plot", transformations: ["裁取图身并去除题注"] }]
 })], { assets: [{ id: "plot", path: "assets/figures/original/plot.png" }] });
 assert(codes(validateScientificDesign(untreatedVisual)).includes("scientific.visuals.unprocessed"));
 const treatedVisual = structuredClone(untreatedVisual);
 treatedVisual.assets[0].path = "assets/figures/ready/plot-annotated.png";
-assert(!codes(validateScientificDesign(treatedVisual)).includes("scientific.visuals.unprocessed"));
+assert(codes(validateScientificDesign(treatedVisual)).includes("scientific.visuals.unprocessed"), "a ready directory cannot establish processing or readability");
+const clearOriginal = structuredClone(untreatedVisual);
+clearOriginal.slides[0].asset_transform = {
+  asset_ref: "plot", mode: "original", readability_verified: true,
+  output_sha256: createHash("sha256").update("reviewed original fixture bytes").digest("hex"),
+  reason: "At the final slide size the two curves, tick labels and legend are readable; the original already isolates the relevant comparison.",
+};
+assert.equal(validateScientificDesign(clearOriginal, { strict: true }).ok, true, "a reviewed clear original needs no decorative annotation");
+const noReview = structuredClone(clearOriginal);
+noReview.slides[0].asset_transform.readability_verified = false;
+assert(codes(validateScientificDesign(noReview)).includes("scientific.visuals.unprocessed"), "a reason without a completed review is only a plan");
+const unboundReview = structuredClone(clearOriginal);
+delete unboundReview.slides[0].asset_transform.output_sha256;
+assert(codes(validateScientificDesign(unboundReview)).includes("scientific.visuals.readability_review_invalid"), "a readability boolean without an asset hash cannot bind the review to a file");
+
+const proofDir = await fs.mkdtemp(path.join(os.tmpdir(), "paper-club-treatment-proof-"));
+try {
+  const original = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect x="20" y="20" width="30" height="30"/></svg>';
+  const annotated = original.replace('</svg>', '<text x="10" y="80">Selected result</text></svg>');
+  const hash = (value) => createHash("sha256").update(value).digest("hex");
+  await fs.mkdir(path.join(proofDir, "original"));
+  await fs.mkdir(path.join(proofDir, "ready"));
+  await fs.writeFile(path.join(proofDir, "original", "plot.svg"), original);
+  await fs.writeFile(path.join(proofDir, "ready", "plot.svg"), original);
+  const fileDeck = structuredClone(untreatedVisual);
+  const validateFileDeck = async () => {
+    const specPath = path.join(proofDir, "deck.json");
+    await fs.writeFile(specPath, JSON.stringify(fileDeck));
+    return validateScientificDesignFile(specPath, { strict: true });
+  };
+  fileDeck.assets[0].path = "original/plot.svg";
+  const originalResult = await validateFileDeck();
+  fileDeck.assets[0].path = "ready/plot.svg";
+  const renamedResult = await validateFileDeck();
+  assert.equal(originalResult.ok, false);
+  assert.deepEqual(renamedResult.issues, originalResult.issues, "identical bytes under ready/ must have exactly the same treatment result");
+  fileDeck.slides[0].asset_transform = { ...clearOriginal.slides[0].asset_transform, output_sha256: hash(original) };
+  assert.equal((await validateFileDeck()).ok, true, "a review bound to the current original bytes permits the original");
+  await fs.writeFile(path.join(proofDir, "ready", "plot.svg"), annotated);
+  assert(codes(await validateFileDeck()).includes("scientific.visuals.readability_review_invalid"), "replacing the reviewed original invalidates its prior readability boolean");
+  await fs.writeFile(path.join(proofDir, "ready", "plot.svg"), original);
+  delete fileDeck.slides[0].asset_transform.output_sha256;
+  assert(codes(await validateFileDeck()).includes("scientific.visuals.readability_review_invalid"), "file validation also rejects an unbound original review");
+  fileDeck.assets.push({ id: "source-plot", path: "original/plot.svg" });
+  fileDeck.slides[0].asset_transform = {
+    asset_ref: "plot", input_asset_ref: "source-plot", mode: "annotate", reason: "Label the result region while retaining the source graphic.",
+    input_sha256: hash(original), output_sha256: hash(original),
+  };
+  assert(codes(await validateFileDeck()).includes("scientific.visuals.processing_proof_invalid"), "byte-identical input and output are a copy, not a treatment");
+  fileDeck.slides[0].asset_transform.output_sha256 = hash(annotated);
+  assert(codes(await validateFileDeck()).includes("scientific.visuals.processing_proof_invalid"), "declaring a different output hash cannot prove a treatment that never happened");
+  await fs.writeFile(path.join(proofDir, "ready", "plot.svg"), annotated);
+  const actualTreatment = await validateFileDeck();
+  assert.equal(actualTreatment.ok, true, JSON.stringify(actualTreatment.issues));
+  assert.equal(actualTreatment.scope, "structure_and_file_provenance");
+  await fs.writeFile(path.join(proofDir, "original", "plot.svg"), annotated);
+  assert(codes(await validateFileDeck()).includes("scientific.visuals.processing_proof_invalid"), "changing the retained source invalidates the input proof");
+} finally {
+  await fs.rm(proofDir, { recursive: true, force: true });
+}
 
 const emptyCustom = deck([contentSlide("empty-custom", {
   layout: { family: "free_canvas", variant: "custom:paper-evidence" },

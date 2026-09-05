@@ -166,6 +166,21 @@
       "additionalProperties": false,
       "required": ["section_transition_mode", "appendix_policy"],
       "properties": {
+        "narrative_mode": {
+          "enum": ["paper_walkthrough", "question_comparison"],
+          "default": "paper_walkthrough",
+          "description": "Paper walkthrough preserves numbered per-paper sections. Question comparison organizes shared questions across focal papers while retaining each paper's scientific coverage."
+        },
+        "title_policy": {
+          "enum": ["section", "claim"],
+          "default": "section",
+          "description": "Section keeps legacy numbered titles; claim uses content.title for the page conclusion and content.section_label for independent navigation."
+        },
+        "closing_mode": {
+          "enum": ["thanks", "discussion"],
+          "default": "thanks",
+          "description": "Thanks is a short closing with user-chosen wording in any language. Discussion permits an evidence-bound synthesis and discussion prompts on the final main slide."
+        },
         "section_transition_mode": {
           "enum": ["full", "integrated", "none"],
           "description": "Whether main sections use full divider slides, integrated transitions, or no explicit transitions."
@@ -205,6 +220,7 @@
         "approximate": {"const": true},
         "page_policy": {"enum": ["auto", "fixed"]},
         "target_slide_count": {"type": ["integer", "null"], "minimum": 3},
+        "include_appendix_in_count": {"type": "boolean", "default": false},
         "timing_notes": {
           "type": "array",
           "items": {"type": "string", "minLength": 1},
@@ -387,6 +403,12 @@
           "enum": ["title", "agenda", "section", "content", "summary", "questions", "closing", "appendix"]
         },
         "section_id": {"type": ["string", "null"]},
+        "paper_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true,
+          "description": "Focal papers substantively addressed on this page. Shared question-comparison pages may name several; associations must be supported by cited source evidence."
+        },
         "purpose": {"type": "string", "minLength": 1},
         "audience_question": {"type": ["string", "null"]},
         "takeaway": {"type": "string"},
@@ -501,6 +523,13 @@
       "properties": {
         "asset_ref": {"$ref": "#/$defs/stableId"},
         "mode": {"enum": ["original", "crop", "annotate", "split", "zoom", "redraw"]},
+        "input_asset_ref": {"$ref": "#/$defs/stableId"},
+        "input_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+        "output_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+        "readability_verified": {
+          "type": "boolean",
+          "description": "Explicit reviewer judgment that the original figure is readable and needs no derivative treatment; reason records the basis."
+        },
         "reason": {"type": "string", "minLength": 1}
       }
     },
@@ -511,6 +540,10 @@
       "properties": {
         "kicker": {"type": ["string", "null"]},
         "title": {"type": "string", "minLength": 1},
+        "section_label": {
+          "type": ["string", "null"],
+          "description": "Independent visible navigation label. With paper_walkthrough and title_policy=claim, use X.Y plus a section name; the title remains the slide-specific conclusion."
+        },
         "subtitle": {"type": ["string", "null"]},
         "body": {
           "type": "array",
@@ -829,6 +862,8 @@
       "properties": {
         "claim_id": {"$ref": "#/$defs/stableId"},
         "claim": {"type": "string", "minLength": 1},
+        "comparison_assertion": {"enum": ["affirmed", "not_established", "not_applicable"]},
+        "comparison_review_reason": {"type": "string", "minLength": 1},
         "slide_ids": {
           "type": "array",
           "minItems": 1,
