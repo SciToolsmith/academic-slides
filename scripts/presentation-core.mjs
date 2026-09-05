@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { serializeSpeakerNotes } from "./speaker-notes.mjs";
+import { discussionClosingPayload } from "./validate-deck-spec.mjs";
 import {
   isProductionSubstantiveKind,
   productionPayloadProblems,
@@ -1169,7 +1170,9 @@ async function addGroupContentChrome(slide, slideSpec, context, slideNumber) {
     && continuationIndex <= continuationTotal
     ? `第 ${continuationIndex}/${continuationTotal} 页`
     : "";
-  const tag = cleanText(first(data.chrome_label, data.chromeLabel, continuationLabel, paperNo && `PAPER ${paperNo}`, section, ""));
+  const sectionLabel = cleanText(slideSpec.content?.section_label);
+  const independentNavigation = sectionLabel && `${sectionLabel}${continuationLabel ? ` · ${continuationIndex}/${continuationTotal}` : ""}`;
+  const tag = cleanText(first(independentNavigation, data.chrome_label, data.chromeLabel, continuationLabel, paperNo && `PAPER ${paperNo}`, section, ""));
   if (tag) addPill(slide, tag, { left: 1010, top: 19, width: 204, height: 34 }, colors, tokens, {
     name: "group-context-tag",
     fill: colors.primaryLight,
@@ -1997,29 +2000,36 @@ async function renderGroupClosing(slide, spec, slideSpec, context) {
     name: "group-closing-band", fill: context.colors.primary,
     line: { style: "solid", fill: context.colors.primary, width: 0 },
   });
-  if (groupMeetingContract(spec) !== "group_meeting_v2") {
-    const title = slideTitle(slideSpec) || "讨论与下一步";
+  const legacyClosing = groupMeetingContract(spec) !== "group_meeting_v2";
+  if (legacyClosing || spec.structure?.closing_mode === "discussion") {
+    const payload = legacyClosing ? null : discussionClosingPayload(slideSpec);
+    if (payload?.problems.length) throw new Error(`Discussion closing payload is invalid: ${payload.problems.map((problem) => problem.message).join(" ")}`);
+    const title = slideTitle(slideSpec) || (/^zh/i.test(spec.language ?? "zh") ? "讨论与下一步" : "Discussion and next steps");
     addText(slide, title, { left: 110, top: 216, width: 1060, height: 74 }, {
       fontSize: 46, fontFamily: fontFor(title, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
     }, "group-closing-title");
-    const synthesis = cleanText(first(data.synthesis, slideTakeaway(slideSpec), "用一句话带走本次阅读最重要的判断。"));
-    addText(slide, synthesis, { left: 160, top: 310, width: 960, height: 104 }, {
+    const synthesis = cleanText(legacyClosing
+      ? first(data.synthesis, list(slideSpec.content?.body).join(" "), slideTakeaway(slideSpec), "用一句话带走本次阅读最重要的判断。")
+      : first(payload.synthesis, slideTakeaway(slideSpec), ""));
+    if (synthesis) addText(slide, synthesis, { left: 160, top: 310, width: 960, height: 104 }, {
       fontSize: 24, fontFamily: fontFor(synthesis, context.tokens), color: "#F4F6FB", alignment: "center",
     }, "group-closing-synthesis");
-    const prompts = list(first(data.prompts, slideSpec.content?.bullets, [])).map(cleanText).filter(Boolean).slice(0, 3);
-    const values = prompts.length ? prompts : ["我们接受哪项结论？", "还缺哪项关键证据？", "下一步由谁完成什么？"];
-    const width = 330;
+    const prompts = legacyClosing
+      ? list(first(data.prompts, slideSpec.content?.bullets, [])).map((item) => cleanText(isObject(item) ? item.text : item)).filter(Boolean).slice(0, 3)
+      : payload.prompts;
+    const values = prompts.length ? prompts : legacyClosing ? ["我们接受哪项结论？", "还缺哪项关键证据？", "下一步由谁完成什么？"] : [];
+    const width = legacyClosing ? 330 : Math.min(960, (1040 - Math.max(0, values.length - 1) * 24) / Math.max(1, values.length));
     const totalWidth = values.length * width + (values.length - 1) * 24;
     values.forEach((prompt, index) => addPill(slide, prompt, {
-      left: (1280 - totalWidth) / 2 + index * (width + 24), top: 540, width, height: 54,
-    }, context.colors, context.tokens, { name: `group-closing-prompt-${index + 1}`, fill: context.colors.primaryLight, color: context.colors.primaryDark, fontSize: 15 }));
+      left: (1280 - totalWidth) / 2 + index * (width + 24), top: legacyClosing ? 540 : 516, width, height: legacyClosing ? 54 : 90,
+    }, context.colors, context.tokens, { name: `group-closing-prompt-${index + 1}`, fill: context.colors.primaryLight, color: context.colors.primaryDark, fontSize: legacyClosing ? 15 : 22 }));
     const presenter = cleanText(first(data.presenter, spec.presenter, spec.author, ""));
     if (presenter) addText(slide, presenter, { left: 260, top: 636, width: 760, height: 30 }, {
       fontSize: 14, fontFamily: fontFor(presenter, context.tokens), color: context.tokens.neutral.muted, alignment: "center",
     }, "group-closing-presenter");
     return;
   }
-  const title = slideTitle(slideSpec) || "谢谢老师，请批评指正";
+  const title = slideTitle(slideSpec) || (/^zh/i.test(spec.language ?? "zh") ? "谢谢老师，请批评指正" : "Thank you");
   addText(slide, title, { left: 110, top: 244, width: 1060, height: 86 }, {
     fontSize: 48, fontFamily: fontFor(title, context.tokens), bold: true, color: context.tokens.neutral.white, alignment: "center",
   }, "group-closing-title");
@@ -2598,6 +2608,12 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
     } else if (chrome !== "none") {
       throw new Error(`Unsupported free-canvas chrome mode: ${chrome}. Use standard, minimal, or none.`);
     }
+    const sectionLabel = cleanText(slideSpec.content?.section_label);
+    if (chrome !== "standard" && sectionLabel) {
+      addText(slide, sectionLabel, { left: 76, top: 678, width: 1100, height: 24 }, {
+        fontSize: 12, fontFamily: fontFor(sectionLabel, context.tokens), color: context.tokens.neutral.muted,
+      }, "custom-section-label");
+    }
 
     for (let index = 0; index < customElements.length; index += 1) {
       const element = customElements[index];
@@ -2850,7 +2866,8 @@ async function renderFreeEvidence(slide, slideSpec, context, slideNumber) {
       throw new Error(`Unsupported layout "${layoutId}" on slide ${slideSpec.id ?? slideNumber}. Use a Paper Club PPT layout or family=free_canvas with render_data.custom_elements.`);
   }
   applySlideTextEmphasis(slide, slideSpec, context);
-  if (!["group-cover", "paper-agenda", "paper-divider", "group-closing"].includes(layoutId)) addSourceHint(slide, slideSpec, context);
+  if (!["group-cover", "paper-agenda", "paper-divider", "group-closing"].includes(layoutId)
+    || (layoutId === "group-closing" && spec.structure?.closing_mode === "discussion")) addSourceHint(slide, slideSpec, context);
   setNotes(slide, slideSpec);
 }
 

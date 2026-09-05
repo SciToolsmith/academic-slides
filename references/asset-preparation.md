@@ -28,7 +28,7 @@
 
 ## 图表轻索引与条件物化
 
-对每篇焦点论文运行一次：
+仅对 PDF 焦点来源运行一次；Markdown/纯文本材料直接使用标题/行号、原文摘录及已提供的数据。不要将非 PDF 交给此提取器，也不要为摘要伪造图号或 PDF 页码：
 
     node scripts/extract-paper-assets.mjs \
       <paper.pdf> \
@@ -50,11 +50,17 @@
 
 - 识别 Figure/Fig./Table/图/表编号图注，以页面几何裁取 PNG；
 - 图身默认在图注上方，表体默认在表题下方；
-- 一个方向空间不足时只反向降级一次，并记录低置信；
+- 一个方向空间不足时可反向提出候选，并记录低置信；
 - 表格首轮保留忠实截图，只有入选且数据可复核的表格才结构化重建；
-- 扫描件、非常规图注和复杂多栏版面可以标记低置信；
-- 只有低置信项成为核心证据时才定向修正一次；
+- 所有自动裁框均为 `unverified`（异常回退为 `low`），不根据图注几何自动认证图体完整；
+- 入选证据都要与源页面和完整图注对照；缺面板、轴/图例或混入正文时修正至可用，未入选图无需全量复查；
 - 不批量索引或渲染全文公式。
+
+## 记录选中裁图的核验
+
+`crop.sha256` 绑定生成的图片。脚本初始化 `crop.verification.status=unverified`；查看源页面和目标尺寸裁图后，记录 `status=verified`、`asset_sha256`、`checks` 及必要说明。检查项为 `body_complete`、`axes_legends_complete`、`caption_interpreted`、`no_neighboring_text`；不适用项在说明中解释。更换裁图后旧核验失效。`confidence` 是定位线索，不是科学或视觉通过证书。
+
+图注保留完整同块连续文本，简短标题另存 `title`。特别核对误差线、样本量、缩写与面板说明；跨页或未能连续提取的图注仍需对照原文。
 
 ## 论文图表处理
 
@@ -108,3 +114,9 @@
 - 裁切、旋转、增强、拆分、重绘和格式转换全部进入 provenance。
 - 视觉素材必须有 alt text 或可供讲稿使用的内容说明。
 - 同一资产跨页复用时保持颜色、标注含义和裁切逻辑一致。
+
+## 页面处理证明
+
+在页面的 `asset_transform` 中记录原图/派生策略。清晰原图使用 `mode: original`、`asset_ref`、`readability_verified: true`、`output_sha256` 和目标尺寸下无需加工的 `reason`。换图后哈希不符，旧核验失效。
+
+派生图使用 `annotate`、`split`、`zoom`、`redraw` 或 `crop`，记录不同的 `input_asset_ref`、`asset_ref`、`input_sha256`、`output_sha256` 和理由。保留输入原图以供文件级验证。只改路径、同字节复制或伪造哈希不能算加工；真实字节变化仍需复核科学忠实性。

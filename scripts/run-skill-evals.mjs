@@ -156,11 +156,15 @@ function checkCategoryContract(testCase, location, findings) {
       if (new Set(missing).size !== missing.length || new Set(providedInteractive).size !== providedInteractive.length) findings.push(finding("error", "case.intake-control.duplicate", location, "Page/theme controls must not be duplicated."));
       if (missing.some((control) => providedInteractive.includes(control))) findings.push(finding("error", "case.intake-control.overlap", location, "A page/theme control cannot be both provided and missing."));
       if (!sameMembers([...providedInteractive, ...missing], allowedInteractiveControls)) findings.push(finding("error", "case.intake-control.partition", location, "Every page/theme control must be classified as either provided or missing."));
-      if (!sameMembers(asked, missing)) findings.push(finding("error", "case.intake-ask-exact", location, "askControls must contain exactly the missing page/theme controls."));
+      const defaultMissingControls = expected.defaultMissingControls === true;
+      const expectedAsked = defaultMissingControls ? [] : missing;
+      if (!sameMembers(asked, expectedAsked)) findings.push(finding("error", "case.intake-ask-exact", location, defaultMissingControls
+        ? "Missing page/theme controls use defaults without an intake question."
+        : "Legacy askControls must contain exactly the missing page/theme controls."));
       if (!mustNotAsk.includes("duration_minutes")) findings.push(finding("error", "case.duration-reprompt", location, "Duration must never be requested during intake."));
       if (!includesAll(mustNotAsk, provided)) findings.push(finding("error", "case.intake-provided-asked", location, "Every provided control must be excluded from the intake question."));
       if (!includesAll(mustNotReprompt, provided.filter((control) => allowedInteractiveControls.includes(control)))) findings.push(finding("error", "case.intake-repeat", location, "Provided page/theme controls must be covered by mustNotReprompt."));
-      const expectedQuestionCount = missing.length > 0 ? 1 : 0;
+      const expectedQuestionCount = !defaultMissingControls && missing.length > 0 ? 1 : 0;
       if (expected.maxClarifyingQuestions !== expectedQuestionCount) findings.push(finding("error", "case.intake-question-count", location, `Expected ${expectedQuestionCount} consolidated intake question(s).`));
       if (missing.includes("page_policy") && expected.defaultPagePolicy !== "auto") findings.push(finding("error", "case.page-default", location, "A missing page policy must offer auto as the recommended default."));
       if (missing.includes("theme_policy")) {
@@ -169,7 +173,7 @@ function checkCategoryContract(testCase, location, findings) {
         const forbiddenSources = ["institution", "school_brand", "university_logo"];
         if (!Array.isArray(expected.mustNotInferThemeFrom) || !includesAll(expected.mustNotInferThemeFrom, forbiddenSources)) findings.push(finding("error", "case.theme-brand-inference", location, "Theme selection must not be inferred from institution, school brand, or university logo."));
       }
-      if (missing.length > 0 && expected.incompleteReplyUsesRecommendedDefaults !== true) findings.push(finding("error", "case.intake-incomplete-reply", location, "An incomplete reply must use the displayed recommendations instead of causing another question."));
+      if (!defaultMissingControls && missing.length > 0 && expected.incompleteReplyUsesRecommendedDefaults !== true) findings.push(finding("error", "case.intake-incomplete-reply", location, "An incomplete reply must use the displayed recommendations instead of causing another question."));
       break;
     }
     case "prompt_injection": {
@@ -229,15 +233,20 @@ function checkCategoryContract(testCase, location, findings) {
       break;
     }
     case "delivery_package": {
-      if (!requireArray(expected.rootEntries, "case.delivery-root", `${location}.expected.rootEntries`, findings, 4) || expected.rootEntries.length !== 4) {
-        findings.push(finding("error", "case.delivery-root-count", location, "Delivery root must contain exactly four entries."));
+      const mode = expected.deliveryMode ?? "rebuildable_pack";
+      const entryCounts = { pptx_with_notes: 1, presenter_pack: 2, rebuildable_pack: 4 };
+      if (!(mode in entryCounts)) findings.push(finding("error", "case.delivery-mode", location, "Unknown delivery mode."));
+      const count = entryCounts[mode] ?? 4;
+      if (!requireArray(expected.rootEntries, "case.delivery-root", `${location}.expected.rootEntries`, findings, count) || expected.rootEntries.length !== count) {
+        findings.push(finding("error", "case.delivery-root-count", location, `Delivery mode ${mode} needs ${count} root entries.`));
       }
       if (expected.stemPattern !== "短题名_汇报类型") findings.push(finding("error", "case.delivery-stem", location, "Delivery stem must be short title plus report type."));
-      if (!requireArray(expected.forbiddenNameMarkers, "case.delivery-name-markers", `${location}.expected.forbiddenNameMarkers`, findings)
-        || !includesAll(expected.forbiddenNameMarkers, ["date", "version", "v1", "final", "最终版", "姓名"])) {
+      if (expected.userNamingOverrides !== true && (!requireArray(expected.forbiddenNameMarkers, "case.delivery-name-markers", `${location}.expected.forbiddenNameMarkers`, findings)
+        || !includesAll(expected.forbiddenNameMarkers, ["date", "version", "v1", "final", "最终版", "姓名"]))) {
         findings.push(finding("error", "case.delivery-name-markers", location, "Delivery fixture must reject dates, versions, final markers, and names."));
       }
-      for (const key of ["wordMatchesPptNotes", "builderEmbedsFinalSpec", "builderUsesRelativeAssets"]) if (expected[key] !== true) findings.push(finding("error", "case.delivery-contract", `${location}.expected.${key}`, "Expected delivery contract must be true."));
+      const contracts = mode === "rebuildable_pack" ? ["wordMatchesPptNotes", "builderEmbedsFinalSpec", "builderUsesRelativeAssets"] : mode === "presenter_pack" ? ["wordMatchesPptNotes"] : [];
+      for (const key of contracts) if (expected[key] !== true) findings.push(finding("error", "case.delivery-contract", `${location}.expected.${key}`, "Expected delivery contract must be true."));
       if (!requireArray(expected.forbiddenArtifacts, "case.delivery-forbidden", `${location}.expected.forbiddenArtifacts`, findings)
         || !includesAll(expected.forbiddenArtifacts, ["deck-spec.json", "evidence-index.json", "qa", "preview", "node_modules", "source-pdf"])) {
         findings.push(finding("error", "case.delivery-forbidden", location, "Delivery fixture does not cover required internal artifacts."));

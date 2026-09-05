@@ -4,7 +4,7 @@ import { access, readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { readJsonFile, validateDeckSpecFile, validateJsonValue } from "./validate-deck-spec.mjs";
+import { countedDeckSlides, readJsonFile, validateDeckSpecFile, validateJsonValue } from "./validate-deck-spec.mjs";
 import { validateScientificContent } from "./validate-scientific-content.mjs";
 import { validateScientificDesignFile } from "./validate-scientific-design.mjs";
 
@@ -206,6 +206,14 @@ async function validatePaperIndex(paperIndexPath, findings, mode, requireSchema)
       else ids.add(id);
       const title = paper?.title ?? paper?.bibliography?.title;
       if (typeof title !== "string" || !title.trim()) findings.push(finding("error", "paper-index.title", paperIndexPath, `${pointer} needs a non-empty title.`));
+      const authors = paper?.bibliography?.authors;
+      if (Array.isArray(authors) && authors.length === 0) {
+        const verification = paper?.metadata_verification;
+        if (verification?.status === "verified") findings.push(finding("error", "paper-index.authors.unverified", paperIndexPath, `${pointer} has unknown authors; metadata_verification.status cannot be verified. Use partial, needs_review, or conflicted.`));
+        const verifiedFields = Array.isArray(verification?.verified_fields) ? verification.verified_fields : [];
+        if (verifiedFields.some((field) => /^(?:bibliography[./])?authors$/i.test(String(field).trim()))) findings.push(finding("error", "paper-index.authors.verified-field", paperIndexPath, `${pointer} has unknown authors but verified_fields claims that authors were verified.`));
+        if (typeof paper.notes !== "string" || !paper.notes.trim()) findings.push(finding("error", "paper-index.authors.missing-note", paperIndexPath, `${pointer} must explain in notes why authors are unknown; preserve an empty authors array instead of inventing attribution.`));
+      }
     });
     for (const focalId of focalIds) if (!ids.has(focalId)) findings.push(finding("error", "paper-index.focal-unknown", paperIndexPath, `focal_paper_ids refers to unknown paper id ${focalId}.`));
     return index;
@@ -491,7 +499,9 @@ export async function validateProject(projectPath, options = {}) {
         if (config.presentation?.duration_minutes != null && deck.timing?.duration_minutes !== config.presentation.duration_minutes) findings.push(finding("error", "deck.duration", paths.deckSpec, "Deck duration_minutes does not match project-config."));
         if (config.presentation?.aspect_ratio && deck.slide_size?.ratio !== config.presentation.aspect_ratio) findings.push(finding("error", "deck.aspect-ratio", paths.deckSpec, "Deck slide_size.ratio does not match project-config presentation.aspect_ratio."));
         const policy = config.presentation?.page_policy;
-        const countedSlides = policy?.include_appendix_in_count === true ? (deck.slides ?? []) : (deck.slides ?? []).filter((slide) => slide?.kind !== "appendix");
+        const countedSlides = countedDeckSlides(deck, policy?.include_appendix_in_count === true);
+        const hasAppendix = countedDeckSlides(deck, false).length !== deck.slides.length;
+        if (hasAppendix && policy?.mode === "fixed" && (policy.include_appendix_in_count === true) !== (deck.timing?.include_appendix_in_count === true)) findings.push(finding("error", "deck.appendix-count-policy", paths.deckSpec, "Project and deck must agree whether fixed page counts include appendix slides."));
         if (policy?.mode === "fixed" && Number.isInteger(policy.target_slide_count) && countedSlides.length !== policy.target_slide_count) findings.push(finding("error", "deck.page-policy", paths.deckSpec, `Project requires ${policy.target_slide_count} counted slides; deck has ${countedSlides.length}.`));
         validateEvidenceClosure(config, sourceManifest, evidenceIndex, deck, paths, findings);
         const scientificContent = validateScientificContent({ config, paperIndex, evidenceIndex, deck, assetManifests: paperAssetManifests }, { strict: options.strict });

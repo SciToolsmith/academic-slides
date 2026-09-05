@@ -14,6 +14,22 @@ function clean(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+// A bounded language risk screen, not an entailment or statistical-validity
+// test. Explicit reviewed classifications cover claims outside this vocabulary.
+function comparisonLanguageRisk(text) {
+  const comparison = /优于|超过|更好|更优|提升|胜过|最佳|最高(?:的)?(?:准确率|精度|性能)|最低(?:的)?(?:误差|错误率)|outperform\w*|surpass\w*|better\s+than|improv(?:e|es|ed|ement)|(?:best|highest)\s+(?:accuracy|performance|precision)|lowest\s+(?:error|loss)|state[- ]of[- ]the[- ]art/gi;
+  let matched = false;
+  for (const clause of clean(text).split(/[.;!?。；！？]|\b(?:but|however|yet)\b|但是|然而|但/u)) {
+    for (const match of clause.matchAll(comparison)) {
+      matched = true;
+      const prefix = clause.slice(Math.max(0, match.index - 120), match.index);
+      const negated = /\b(?:does?|did|is|are|was|were|has|have|can|could|would|should)\s+not\b|\b(?:cannot|can't|unable\s+to|fails?\s+to)\b|\b(?:no|insufficient|inconclusive|lack(?:s|ing)?)\s+(?:\w+\s+){0,5}(?:evidence|support)\b|\bnot\s+(?:necessarily\s+)?$|未(?:能|有|证明|显示|表明)|不能|无法|不足以|尚无|没有|(?:[未不]|不是)\s*$/u.test(prefix.toLowerCase());
+      if (!negated) return { matched: true, affirmed: true };
+    }
+  }
+  return { matched, affirmed: false };
+}
+
 function issue(severity, code, pointer, message, options = {}) {
   const result = { severity, code, path: pointer, message };
   if (options.strictExempt === true) result.strict_exempt = true;
@@ -38,8 +54,16 @@ function claimMap(deck) {
 }
 
 function mainSlides(deck) {
-  return list(deck?.slides).filter((slide) => !["title", "agenda", "section", "closing", "appendix"].includes(clean(slide?.kind).toLowerCase())
-    && clean(slide?.priority).toLowerCase() !== "appendix");
+  const appendixSections = new Set(list(deck?.sections)
+    .filter((section) => [section?.role, section?.audience_role].some((value) => clean(value) === "appendix"))
+    .map((section) => clean(section?.id)));
+  return list(deck?.slides).filter((slide) => {
+    const kind = clean(slide?.kind).toLowerCase();
+    return !["title", "agenda", "section", "appendix"].includes(kind)
+      && (kind !== "closing" || clean(deck?.structure?.closing_mode) === "discussion")
+      && clean(slide?.priority).toLowerCase() !== "appendix"
+      && !appendixSections.has(clean(slide?.section_id));
+  });
 }
 
 function slideById(deck) {
@@ -194,7 +218,9 @@ function finalize(findings, strict) {
     result.total += 1;
     return result;
   }, { error: 0, warning: 0, total: 0 });
-  return { ok: summary.error === 0, strict, summary, issues };
+  return { ok: summary.error === 0, strict, summary, issues,
+    scope: "structure_and_language_risk_checks",
+    disclaimer: "Role labels and evidence links establish coverage, not semantic correctness. Compare each claim with its source evidence and review rendered content." };
 }
 
 export function validateScientificContent(input, options = {}) {
@@ -229,6 +255,30 @@ export function validateScientificContent(input, options = {}) {
   ];
   for (const [alternatives, code, message] of roleGroups) {
     if (!alternatives.some((role) => roles.has(role))) findings.push(contractIssue(`scientific-content.roles.${code}.missing`, "$/slides", message));
+  }
+
+  if (clean(deck?.structure?.narrative_mode) === "question_comparison") {
+    const focalIds = new Set(list(paperIndex?.focal_paper_ids));
+    const paperRoles = new Map([...focalIds].map((id) => [id, new Set()]));
+    for (const slide of mainSlides(deck)) {
+      const refs = new Set([
+        ...list(slide?.evidence_refs),
+        ...list(slide?.visuals).flatMap((visual) => list(visual?.source_refs)),
+        ...list(slide?.claim_ids).flatMap((id) => list(claims.get(id)?.evidence_refs)),
+      ]);
+      const sourcePapers = new Set([...refs].map((ref) => clean(evidenceById.get(ref)?.paper_id ?? deckSources.get(ref)?.paper_id)).filter(Boolean));
+      for (const id of list(slide?.paper_ids)) {
+        if (!focalIds.has(id) || !sourcePapers.has(id)) findings.push(issue("error", "scientific-content.comparison.paper-source-missing", `$/slides/${clean(slide?.id)}/paper_ids`, `Comparison slide paper_id ${id} must be focal and linked to at least one source from that paper.`));
+      }
+      for (const id of sourcePapers) {
+        if (paperRoles.has(id)) list(slide?.narrative_roles).forEach((role) => paperRoles.get(id).add(clean(role)));
+      }
+    }
+    for (const [id, covered] of paperRoles) {
+      for (const [alternatives, code] of roleGroups.filter(([, code]) => code !== "presenter-voice")) {
+        if (!alternatives.some((role) => covered.has(role))) findings.push(issue("error", "scientific-content.comparison.paper-role-missing", "$/slides", `Focal paper ${id} lacks source-linked ${code} coverage in the main comparison deck. Shared slides may cover multiple papers.`));
+      }
+    }
   }
 
   if (v2Enabled) {
@@ -273,16 +323,25 @@ export function validateScientificContent(input, options = {}) {
       if (!list(claim?.evidence_refs).some((ref) => findingRefs.has(ref))) {
         findings.push(contractIssue("scientific-content.core-finding.evidence-mismatch", `$/claim_evidence_map/${claimId}`, `Claim ${claimId} does not cite any evidence declared for its core finding.`));
       }
-      const mappedSlides = list(claim?.slide_ids).map((id) => slides.get(id)).filter(Boolean);
+      const mainSlideIds = new Set(mainSlides(deck).map((slide) => clean(slide?.id)));
+      const mappedSlides = list(claim?.slide_ids).filter((id) => mainSlideIds.has(id)).map((id) => slides.get(id)).filter(Boolean);
       if (!mappedSlides.some((slide) => slideShowsFindingEvidence(slide, finding, evidenceById))) {
         findings.push(contractIssue("scientific-content.core-finding.visible-evidence-missing", `$/claim_evidence_map/${claimId}/slide_ids`, `Core finding ${clean(finding?.id) || claimId} is mapped to slides, but none renders its source visual (or its formula when the finding is formula-only).`));
       }
-      if (v2Enabled && /(?:优于|超过|更好|提升|outperform|better\s+than|improv(?:e|es|ed|ement))/i.test(clean(claim?.claim))) {
+      const comparisonRisk = comparisonLanguageRisk(claim?.claim);
+      const comparisonAssertion = clean(claim?.comparison_assertion);
+      if (comparisonAssertion && (!['affirmed', 'not_established', 'not_applicable'].includes(comparisonAssertion) || !clean(claim?.comparison_review_reason))) {
+        findings.push(issue("error", "scientific-content.comparison.review-incomplete", `$/claim_evidence_map/${claimId}`, "An explicit comparison_assertion needs a supported classification and comparison_review_reason tied to the source evidence."));
+      }
+      if (comparisonRisk.affirmed && ['not_established', 'not_applicable'].includes(comparisonAssertion)) {
+        findings.push(issue("warning", "scientific-content.comparison.review-language-conflict", `$/claim_evidence_map/${claimId}`, "The reviewed comparison classification conflicts with an affirmative language cue. Recheck the wording and source; this language screen cannot resolve entailment.", { strictExempt: true }));
+      }
+      if (v2Enabled && (comparisonAssertion === "affirmed" || comparisonRisk.affirmed && !['not_established', 'not_applicable'].includes(comparisonAssertion))) {
         const declaredRoles = list(claim?.evidence_refs)
           .map((ref) => clean(evidenceById.get(ref)?.evidence_role).toLowerCase())
           .filter(Boolean);
         if (!declaredRoles.some((role) => ["comparison", "independent_validation", "robustness"].includes(role))) {
-          findings.push(issue("error", "scientific-content.superiority.independent-evidence-missing", `$/claim_evidence_map/${claimId}/evidence_refs`, "A superiority claim needs comparison, independent_validation, or robustness evidence. Objective, training, background, or undeclared evidence roles are not sufficient; otherwise narrow the claim."));
+          findings.push(issue("error", "scientific-content.superiority.independent-evidence-missing", `$/claim_evidence_map/${claimId}/evidence_refs`, "An affirmed or language-flagged comparison claim needs comparison, independent_validation, or robustness evidence. Objective/training/background labels cannot satisfy this structural screen. Check the source and narrow or explicitly review the claim; passing does not prove superiority."));
         }
       }
     }
@@ -309,7 +368,7 @@ export function validateScientificContent(input, options = {}) {
       || record?.presentation_priority === "core"
       || ["definition", "objective", "constraint", "method_core"].includes(record?.formula_role)).map((record) => clean(record?.id)).filter(Boolean));
     const renderedKeys = new Set(mainSlides(deck).flatMap((slide) => [...renderedFormulaKeys(slide, evidenceById)]));
-    const renderedCount = list(deck?.slides).filter(renderedFormula).length;
+    const renderedCount = mainSlides(deck).filter(renderedFormula).length;
     const minimum = 1;
     if (renderedCount < minimum) findings.push(contractIssue("scientific-content.formula.required", "$/slides", `Equation-centric method needs at least ${minimum} rendered core formula group(s); found ${renderedCount}.`));
     for (const record of formulaEvidence.filter((item) => item?.display_requirement === "main")) {

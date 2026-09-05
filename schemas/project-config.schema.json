@@ -207,6 +207,7 @@
       "additionalProperties": false,
       "required": ["project_directory", "filename_stem", "keep_intermediates", "deploy_skill"],
       "properties": {
+        "delivery_mode": {"enum": ["pptx_with_notes", "presenter_pack", "rebuildable_pack"], "description": "New tasks default to pptx_with_notes; legacy configs without this field retain the full rebuildable pack."},
         "project_directory": {
           "type": "string",
           "minLength": 1,
@@ -219,7 +220,7 @@
         "filename_stem": {
           "type": "string",
           "minLength": 1,
-          "description": "Concise short-title plus report type, without a person name, date, version, final/latest marker, or revision suffix."
+          "description": "Safe package basename. Default to short-title plus report type; honor explicit user naming preferences."
         },
         "keep_intermediates": {
           "type": "boolean",
@@ -357,6 +358,7 @@
           "items": {"$ref": "#/$defs/stableId"},
           "uniqueItems": true
         },
+        "narrative_mode": {"enum": ["paper_walkthrough", "question_comparison"], "description": "Use question_comparison for a shared research question or controversy; preserve paper attribution."},
         "synthesis_question": {
           "type": ["string", "null"]
         },

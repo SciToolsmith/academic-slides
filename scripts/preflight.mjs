@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 
-import { access, readFile, realpath } from "node:fs/promises";
+import { access, readFile, realpath, readdir } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { constants as fsConstants } from "node:fs";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { promisify } from "node:util";
 import path from "node:path";
+import os from "node:os";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { deliveryNeedsWord, resolveDeliveryMode } from "./create-project-builder.mjs";
+import { selectPythonRuntime } from "./render-word-qa.mjs";
 
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
@@ -32,6 +35,8 @@ function usage() {
     "  --skill-dir <dir>  Skill root (default: parent of this script)",
     "  --strict           Exit nonzero on warnings as well as required failures",
     "  --json             Emit machine-readable JSON",
+    "  --delivery-mode <mode>  Check Word dependencies only for presenter_pack/rebuildable_pack",
+    "  --project-dir <dir>  Read output.delivery_mode from the project configuration",
     "  -h, --help         Show this help",
     "",
     "Preflight is read-only and never installs packages or system tools.",
@@ -45,10 +50,10 @@ function parseArgs(argv) {
     if (token === "--strict") result.strict = true;
     else if (token === "--json") result.json = true;
     else if (token === "-h" || token === "--help") result.help = true;
-    else if (token === "--skill-dir") {
+    else if (["--skill-dir", "--delivery-mode", "--project-dir"].includes(token)) {
       const value = argv[++index];
-      if (!value || value.startsWith("--")) throw new Error("--skill-dir requires a value.");
-      result.skillDir = path.resolve(value);
+      if (!value || value.startsWith("--")) throw new Error(`${token} requires a value.`);
+      result[token.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = token === "--delivery-mode" ? value : path.resolve(value);
     } else throw new Error(`Unknown option: ${token}`);
   }
   return result;
@@ -239,8 +244,38 @@ function available(checks, id) {
   return checks.find((item) => item.id === id)?.available === true;
 }
 
+export async function wordQaDependencyChecks(options = {}) {
+  const candidates = [options.renderer, process.env.DOCUMENTS_RENDER_DOCX].filter(Boolean);
+  const root = path.join(process.env.CODEX_HOME ?? path.join(os.homedir(), ".codex"), "plugins", "cache", "openai-primary-runtime", "documents");
+  for (const entry of (await readdir(root, { withFileTypes: true }).catch(() => [])).filter((entry) => entry.isDirectory()).sort((left, right) => right.name.localeCompare(left.name))) {
+    candidates.push(path.join(root, entry.name, "skills", "documents", "render_docx.py"));
+  }
+  let renderer = null;
+  for (const candidate of candidates) {
+    try { await access(candidate, fsConstants.R_OK); renderer = candidate; break; } catch { /* Try another installed renderer. */ }
+  }
+  const checks = [{ id: "word-qa-renderer", kind: "python-script", required: true, available: Boolean(renderer), path: renderer }];
+  if (!renderer) return checks;
+  const executable = process.platform === "win32" ? "python.exe" : "python3";
+  const pythons = [options.python, process.env.WORKSPACE_PYTHON, path.resolve(path.dirname(process.execPath), "..", "..", "python", "bin", executable), await executablePath("python3"), await executablePath("python")].filter(Boolean);
+  for (const runtimeRoot of [process.env.CODEX_RUNTIMES_DIR, process.env.CODEX_RUNTIME_ROOT, path.join(os.homedir(), ".cache", "codex-runtimes")].filter(Boolean)) {
+    for (const entry of await readdir(runtimeRoot, { withFileTypes: true }).catch(() => [])) {
+      if (entry.isDirectory() || entry.isSymbolicLink()) pythons.push(path.join(runtimeRoot, entry.name, "dependencies", "python", "bin", executable));
+    }
+  }
+  try {
+    const python = await selectPythonRuntime(pythons, renderer);
+    checks.push({ id: "word-qa-python", kind: "python-runtime", required: true, available: true, path: python, detail: "pdf2image and Pillow imports passed." });
+  } catch (error) {
+    checks.push({ id: "word-qa-python", kind: "python-runtime", required: true, available: false, path: null, detail: error.message });
+  }
+  return checks;
+}
+
 export async function runPreflight(options = {}) {
   const skillDir = path.resolve(options.skillDir ?? DEFAULT_SKILL_DIR);
+  const deliveryMode = await resolveDeliveryMode(options, options.projectDir ?? null);
+  const needsWord = deliveryNeedsWord(deliveryMode);
   const nodeMajor = Number.parseInt(process.versions.node.split(".")[0], 10);
   const node = {
     id: "node",
@@ -257,10 +292,11 @@ export async function runPreflight(options = {}) {
     await bundledMathJaxCheck(skillDir),
     await packageCheck("artifact-tool", "@oai/artifact-tool", true),
     await packageCheck("sharp", "sharp", true),
-    await packageCheck("docx", "docx", true),
+    ...(needsWord ? [await packageCheck("docx", "docx", true)] : []),
     await commandCheck("pdftoppm", "pdftoppm", ["-v"], { required: true }),
     await commandCheck("pdfinfo", "pdfinfo", ["-v"], { required: true }),
     await commandCheck("pdftocairo", "pdftocairo", ["-v"], { required: true }),
+    await commandCheck("pdftotext", "pdftotext", ["-v"], { required: true }),
     await commandCheck("unzip", "unzip", ["-v"], { required: true }),
     await commandCheck("zip", "zip", ["-v"], { required: true }),
     await commandCheck("fc-match", "fc-match", ["--version"]),
@@ -270,6 +306,7 @@ export async function runPreflight(options = {}) {
     kpsewhich,
     await texResourceCheck("xecjk", "xeCJK.sty", kpsewhich.path),
     await texResourceCheck("fandol-hei", "FandolHei-Regular.otf", kpsewhich.path),
+    ...(needsWord ? await wordQaDependencyChecks(options) : []),
   ];
 
   const latexEngine = available(checks, "pdflatex") || available(checks, "xelatex");
@@ -326,6 +363,8 @@ export async function runPreflight(options = {}) {
     readOnly: true,
     installsPerformed: false,
     skillDir,
+    deliveryMode,
+    wordQa: { requested: needsWord, checked: needsWord },
     platform: { os: process.platform, arch: process.arch },
     checks,
     formula,
